@@ -111,6 +111,22 @@ export default function WalletConnectDemo() {
     "Connected",
   ] as const;
 
+  const noneDetected = wallets.every((w) => !w.detected);
+  const activeScenario: (typeof scenarios)[number] =
+    status === "connecting"
+      ? "Connecting"
+      : status === "signing"
+        ? "Signing"
+        : status === "rejected"
+          ? "Rejected"
+          : status === "connected"
+            ? "Connected"
+            : open
+              ? noneDetected
+                ? "No wallet installed"
+                : "Wallet list"
+              : "Disconnected";
+
   const runScenario = (label: (typeof scenarios)[number]) => {
     switch (label) {
       case "Disconnected":
@@ -149,7 +165,11 @@ export default function WalletConnectDemo() {
             key={label}
             type="button"
             onClick={() => runScenario(label)}
-            className="cursor-pointer border border-[#373a41] bg-[#13161b] px-3 py-1.5 text-[12px] font-semibold text-[#f0f0f1] transition-colors duration-150 hover:bg-[#22262f] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+            className={`cursor-pointer px-3 py-1.5 text-[12px] font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 ${
+              label === activeScenario
+                ? "bg-[#00543f] text-[#18e3a5] hover:bg-[#006a53]"
+                : "border border-[#373a41] bg-[#13161b] text-[#f0f0f1] hover:bg-[#22262f]"
+            }`}
           >
             {label}
           </button>
