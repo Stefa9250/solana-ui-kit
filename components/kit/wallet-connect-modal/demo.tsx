@@ -71,6 +71,21 @@ export default function WalletConnectModalDemo() {
     "Connected",
   ] as const;
 
+  const noneDetected = wallets.every((w) => !w.detected);
+  const activeScenario: (typeof scenarios)[number] | null = !open
+    ? null
+    : status === "connecting"
+      ? "Connecting"
+      : status === "connected"
+        ? "Connected"
+        : status === "rejected"
+          ? error && /not responding/i.test(error)
+            ? "Rejected — not responding"
+            : "Rejected"
+          : noneDetected
+            ? "No wallet installed"
+            : "Wallet list";
+
   const runScenario = (label: (typeof scenarios)[number]) => {
     switch (label) {
       case "Wallet list":
@@ -107,7 +122,11 @@ export default function WalletConnectModalDemo() {
             key={label}
             type="button"
             onClick={() => runScenario(label)}
-            className="cursor-pointer border border-[#373a41] bg-[#13161b] px-3 py-1.5 text-[12px] font-semibold text-[#f0f0f1] transition-colors duration-150 hover:bg-[#22262f] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+            className={`cursor-pointer px-3 py-1.5 text-[12px] font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 ${
+              label === activeScenario
+                ? "bg-[#00543f] text-[#18e3a5] hover:bg-[#006a53]"
+                : "border border-[#373a41] bg-[#13161b] text-[#f0f0f1] hover:bg-[#22262f]"
+            }`}
           >
             {label}
           </button>
