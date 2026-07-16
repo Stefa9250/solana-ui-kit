@@ -11,39 +11,83 @@
  *   status="confirming"
  *   signature={signature}
  *   confirmations={12}
- *   totalConfirmations={31}
+ *   errorMap={[{ test: /0x1771/i, text: "Price moved too much." }]}
  *   onRetry={() => resubmit()}
+ *   onDismiss={() => reset()}
  * />
+ *
+ * Note on confirmations: `getSignatureStatuses` counts up to ~31 slots
+ * (finality), but most dApps treat the "confirmed" commitment (~1–2s) as
+ * success. If that's you, jump straight to status="confirmed" and skip the
+ * count — or omit `confirmations` for a calm indeterminate bar.
  */
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
-const SOLSCAN_BASE = "https://solscan.io/tx/";
+export interface TransactionStatusErrorRule {
+  test: RegExp;
+  text: string;
+}
 
-const ERROR_MAP: { test: RegExp; text: string }[] = [
+/**
+ * Program-agnostic defaults only. Anchor custom errors (0x1770 + N) mean
+ * different things per program — pass your program's own rules via the
+ * `errorMap` prop, e.g. for a Jupiter swap:
+ *   { test: /0x1771/i, text: "Price moved too much. Try again or increase slippage." }
+ */
+const DEFAULT_ERROR_MAP: TransactionStatusErrorRule[] = [
   {
-    test: /0x1771|slippage/i,
+    test: /slippage/i,
     text: "Price moved too much. Try again or increase slippage.",
   },
   {
+    test: /insufficientfundsforrent|insufficient funds for rent/i,
+    text: "Not enough SOL would be left for rent. Add SOL and retry.",
+  },
+  {
     test: /insufficient.*(lamports|funds|sol)/i,
-    text: "Not enough SOL to cover this transaction’s fee.",
+    text: "Not enough SOL to cover this transaction and its fees.",
   },
   {
     test: /blockhash.*expired|blockhash not found/i,
     text: "This transaction timed out. Tap retry to resubmit.",
   },
   {
-    test: /user rejected|rejected the request|user cancelled/i,
+    test: /user rejected|rejected the request|user cancelled|user declined/i,
     text: "You cancelled this in your wallet.",
+  },
+  {
+    test: /compute budget|computational budget|out of compute|exceeded cus/i,
+    text: "The transaction ran out of compute. Retry with a higher compute limit.",
+  },
+  {
+    test: /accountnotfound|could not find account|account does not exist/i,
+    text: "An account this transaction needs doesn’t exist yet.",
+  },
+  {
+    test: /429|too many requests|rate.?limit/i,
+    text: "The network endpoint is busy. Wait a moment and retry.",
   },
 ];
 
-function friendlyError(raw?: string): { text: string; raw: string } {
+function friendlyError(
+  raw: string | undefined,
+  errorMap?: TransactionStatusErrorRule[],
+): { text: string; raw: string } {
   if (!raw) return { text: "Something went wrong on-chain.", raw: "" };
-  const match = ERROR_MAP.find((e) => e.test.test(raw));
+  // RPC simulation wraps the real error — strip the prefix before matching.
+  const normalized = raw.replace(/^.*transaction simulation failed:\s*/i, "");
+  const rules = errorMap ? [...errorMap, ...DEFAULT_ERROR_MAP] : DEFAULT_ERROR_MAP;
+  const match = rules.find((rule) => rule.test.test(normalized));
   return { text: match ? match.text : "Something went wrong on-chain.", raw };
+}
+
+export type SolanaCluster = "mainnet-beta" | "devnet" | "testnet";
+
+function defaultExplorerUrl(signature: string, cluster: SolanaCluster): string {
+  const suffix = cluster === "mainnet-beta" ? "" : `?cluster=${cluster}`;
+  return `https://solscan.io/tx/${signature}${suffix}`;
 }
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -78,16 +122,31 @@ export interface TransactionStatusDetails {
 
 export interface TransactionStatusProps {
   status: TransactionStatusState;
-  /** Transaction signature — powers the Solscan link and short display. */
+  /** Transaction signature — powers the explorer link and short display. */
   signature?: string;
   /** Raw RPC / wallet error. Mapped to plain language automatically. */
   error?: string;
+  /**
+   * Your program's error rules, matched before the built-in defaults.
+   * Anchor custom errors (0x1770 + N) are program-specific — map them here.
+   */
+  errorMap?: TransactionStatusErrorRule[];
   /** Confirmations so far. Omit while confirming for an indeterminate bar. */
   confirmations?: number;
-  /** Confirmation target. Solana finality is ~31 slots. */
+  /** Confirmation target (~31 slots to finality). */
   totalConfirmations?: number;
-  /** Called from the Retry button in the failed state (auto-focused). */
+  /** Explorer links point at this cluster (default mainnet-beta). */
+  cluster?: SolanaCluster;
+  /** Override the explorer entirely, e.g. (sig) => `https://solana.fm/tx/${sig}`. */
+  explorerUrl?: (signature: string) => string;
+  /** Called from the Retry button in the failed state. */
   onRetry?: () => void;
+  /** When provided, shows a dismiss button and enables autoDismissMs. */
+  onDismiss?: () => void;
+  /** Auto-dismiss this many ms after confirmed (requires onDismiss). */
+  autoDismissMs?: number;
+  /** Move focus to Retry when a transaction fails (default true). */
+  autoFocusRetry?: boolean;
   /** Optional transaction summary card shown under the status row. */
   details?: TransactionStatusDetails;
   className?: string;
@@ -101,7 +160,7 @@ const KEYFRAMES = `
 @keyframes sol-txs-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
 @keyframes sol-txs-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 @keyframes sol-txs-bounce-scale { 0% { transform: scale(0.85); } 55% { transform: scale(1.06); } 80% { transform: scale(0.97); } 100% { transform: scale(1); } }
-@keyframes sol-txs-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+@keyframes sol-txs-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-3px); } 40% { transform: translateX(2px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
 @keyframes sol-txs-flash-green { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.62; } }
 @keyframes sol-txs-sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
 .sol-txs-panel-enter { animation: sol-txs-fade-slide-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
@@ -190,9 +249,15 @@ export function TransactionStatus({
   status,
   signature,
   error,
+  errorMap,
   confirmations,
   totalConfirmations = 31,
+  cluster = "mainnet-beta",
+  explorerUrl: explorerUrlProp,
   onRetry,
+  onDismiss,
+  autoDismissMs,
+  autoFocusRetry = true,
   details,
   className,
 }: TransactionStatusProps) {
@@ -201,6 +266,7 @@ export function TransactionStatus({
   const [prevStatus, setPrevStatus] = useState(status);
   const displayPctRef = useRef(0);
   const retryRef = useRef<HTMLButtonElement>(null);
+  const onDismissRef = useRef(onDismiss);
   const reduceMotion = useReducedMotion();
 
   // Reset the collapsible + progress when a new attempt starts
@@ -221,11 +287,22 @@ export function TransactionStatus({
     displayPctRef.current = displayPct;
   }, [displayPct]);
 
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
+
   // Focus lands on Retry when a transaction fails. Refs are attached by the
   // time effects run, and rAF would never fire in a backgrounded tab.
   useEffect(() => {
-    if (status === "failed") retryRef.current?.focus();
-  }, [status]);
+    if (status === "failed" && autoFocusRetry) retryRef.current?.focus();
+  }, [status, autoFocusRetry]);
+
+  // Optional auto-dismiss once confirmed.
+  useEffect(() => {
+    if (status !== "confirmed" || !autoDismissMs) return;
+    const t = setTimeout(() => onDismissRef.current?.(), autoDismissMs);
+    return () => clearTimeout(t);
+  }, [status, autoDismissMs]);
 
   // Frame-rate independent exponential catch-up toward the confirmation target:
   // the fill is always closing the gap, never stalling or restarting.
@@ -253,24 +330,30 @@ export function TransactionStatus({
     return () => cancelAnimationFrame(raf);
   }, [status, confirmations, totalConfirmations, reduceMotion]);
 
-  const explorerUrl = signature ? SOLSCAN_BASE + signature : undefined;
+  const explorerHref = signature
+    ? explorerUrlProp
+      ? explorerUrlProp(signature)
+      : defaultExplorerUrl(signature, cluster)
+    : undefined;
   const shortSig = signature
     ? `${signature.slice(0, 4)}…${signature.slice(-4)}`
     : "";
-  const friendly = friendlyError(error);
+  const friendly = friendlyError(error, errorMap);
   const pct = Math.round(
     Math.min(100, ((confirmations ?? 0) / totalConfirmations) * 100),
   );
   const atTarget =
     confirmations !== undefined && confirmations >= totalConfirmations;
 
+  // Milestone announcements only — announcing every confirmation update
+  // would flood screen readers.
   const liveAnnouncement =
     status === "pending"
       ? "Transaction sent, awaiting confirmation."
       : status === "confirming"
-        ? confirmations === undefined
-          ? "Confirming transaction."
-          : `${confirmations} of ${totalConfirmations} confirmations.`
+        ? confirmations !== undefined && pct >= 50
+          ? "More than halfway confirmed."
+          : "Confirming transaction."
         : status === "confirmed"
           ? "Transaction confirmed."
           : status === "failed"
@@ -279,9 +362,9 @@ export function TransactionStatus({
 
   if (status === "idle") return null;
 
-  const explorerLink = explorerUrl && (
+  const explorerLink = explorerHref && (
     <a
-      href={explorerUrl}
+      href={explorerHref}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex items-center gap-1 text-[13px] font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
@@ -323,7 +406,11 @@ export function TransactionStatus({
         </div>
       </div>
       {details.meta && (
-        <div className="relative z-10 shrink-0 text-right font-mono text-[12px] text-[#61656c]">
+        <div
+          className={`relative z-10 shrink-0 text-right font-mono text-[12px] ${
+            status === "confirming" ? "text-[#94969c]" : "text-[#61656c]"
+          }`}
+        >
           {details.meta}
         </div>
       )}
@@ -331,11 +418,22 @@ export function TransactionStatus({
   );
 
   return (
-    <div className={className}>
+    <div className={`relative ${className ?? ""}`}>
       <style>{KEYFRAMES}</style>
       <div role="status" aria-live="polite" className="sr-only">
         {liveAnnouncement}
       </div>
+
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="absolute right-0 top-0 z-10 flex size-7 cursor-pointer items-center justify-center text-[#61656c] transition-colors duration-150 hover:bg-[#22262f] hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+        >
+          <X aria-hidden className="size-4" />
+        </button>
+      )}
 
       <div
         key={status}
@@ -351,31 +449,42 @@ export function TransactionStatus({
               <div className="mt-0.5 text-[13px] text-[#94969c]">
                 Waiting for the network to pick it up{"…"}
               </div>
+              {explorerLink && <div className="mt-2">{explorerLink}</div>}
             </div>
           </div>
         )}
 
         {status === "confirming" && (
-          <div className="flex items-center gap-5 py-1">
-            <div className="flex size-10 shrink-0 items-center justify-center">
-              {confirmations === undefined ? (
-                <BlockTrace />
-              ) : (
-                <span className="text-[15px] font-bold text-[#f7f7f7]">
-                  {pct}
-                  <span className="text-[10px] font-semibold">%</span>
-                </span>
-              )}
-            </div>
-            <div>
+          <div className="flex items-center gap-4 py-1">
+            <BlockTrace />
+            <div className="min-w-0 flex-1">
               <div className="text-[15px] font-semibold text-[#f7f7f7]">
                 Confirming
               </div>
               <div className="mt-0.5 text-[13px] text-[#94969c]">
                 {confirmations === undefined
-                  ? `Waiting for confirmations…`
+                  ? "Waiting for confirmations…"
                   : `${confirmations} of ${totalConfirmations} confirmations`}
               </div>
+              <div className="relative mt-2 h-[3px] w-full max-w-[220px] overflow-hidden bg-[#22262f]">
+                {confirmations === undefined ? (
+                  <div
+                    aria-hidden
+                    className="sol-txs-sweep absolute inset-y-0 w-1/4 bg-emerald-600/60"
+                  />
+                ) : (
+                  <div
+                    aria-hidden
+                    className={`absolute inset-y-0 left-0 transition-colors duration-200 ${
+                      atTarget ? "bg-[#17b26a]" : "bg-emerald-500"
+                    }`}
+                    style={{
+                      width: `${(reduceMotion ? pct : displayPct).toFixed(2)}%`,
+                    }}
+                  />
+                )}
+              </div>
+              {explorerLink && <div className="mt-2.5">{explorerLink}</div>}
             </div>
           </div>
         )}

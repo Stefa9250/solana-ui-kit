@@ -47,7 +47,13 @@ export const registry: RegistryEntry[] = [
         name: "error",
         type: "string",
         description:
-          "Raw error from the RPC / wallet. Mapped to plain language; raw value shown under “technical details”.",
+          "Raw error from the RPC / wallet. Mapped to plain language; raw value shown under “technical details”. Simulation-failure prefixes are stripped before matching.",
+      },
+      {
+        name: "errorMap",
+        type: "{ test: RegExp; text: string }[]",
+        description:
+          "Your program's error rules, matched before the built-in defaults. Anchor custom errors (0x1770 + N) are program-specific — map them here.",
       },
       {
         name: "confirmations",
@@ -59,13 +65,44 @@ export const registry: RegistryEntry[] = [
         name: "totalConfirmations",
         type: "number",
         default: "31",
-        description: "Confirmation target (Solana finality is ~31 slots).",
+        description:
+          "Confirmation target (finality is ~31 slots). Most dApps treat the confirmed commitment (~1–2s) as success — jump to status=\"confirmed\" then, or omit confirmations for an indeterminate bar.",
+      },
+      {
+        name: "cluster",
+        type: '"mainnet-beta" | "devnet" | "testnet"',
+        default: '"mainnet-beta"',
+        description: "Explorer links point at this cluster.",
+      },
+      {
+        name: "explorerUrl",
+        type: "(signature: string) => string",
+        description:
+          "Override the explorer entirely, e.g. Solana Explorer or SolanaFM. Defaults to Solscan.",
       },
       {
         name: "onRetry",
         type: "() => void",
+        description: "Called when the user clicks Retry in the failed state.",
+      },
+      {
+        name: "onDismiss",
+        type: "() => void",
         description:
-          "Called when the user clicks Retry in the failed state. Retry is auto-focused on failure.",
+          "When provided, shows a dismiss button and enables autoDismissMs.",
+      },
+      {
+        name: "autoDismissMs",
+        type: "number",
+        description:
+          "Auto-dismiss this many ms after confirmed (requires onDismiss).",
+      },
+      {
+        name: "autoFocusRetry",
+        type: "boolean",
+        default: "true",
+        description:
+          "Move focus to Retry on failure. Disable if failures can land while the user is typing elsewhere.",
       },
       {
         name: "details",
