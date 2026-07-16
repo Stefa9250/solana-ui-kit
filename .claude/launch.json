@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "solana-ui-kit",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "C:\\Users\\stefa\\Desktop\\solana-ui-kit",
+      "port": 3000
+    }
+  ]
+}
