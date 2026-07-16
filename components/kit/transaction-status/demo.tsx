@@ -10,8 +10,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock } from "lucide-react";
 import {
   TransactionStatus,
+  type TransactionStatusErrorRule,
   type TransactionStatusState,
 } from "./transaction-status";
+
+// Anchor custom errors are program-specific — this maps Jupiter's 6001
+// (0x1771). Integrators pass their own program's rules the same way.
+const DEMO_ERROR_MAP: TransactionStatusErrorRule[] = [
+  {
+    test: /0x1771/i,
+    text: "Price moved too much. Try again or increase slippage.",
+  },
+];
 
 const SIGNATURE = "5tj8y9F3nQeR2m1kLp7VxAqW3sZ4bTn6uHc9dK1eMoP8";
 const TOTAL = 31;
@@ -130,9 +140,11 @@ export default function TransactionStatusDemo() {
             status={status}
             signature={SIGNATURE}
             error={error}
+            errorMap={DEMO_ERROR_MAP}
             confirmations={status === "confirming" ? confirmations : undefined}
             totalConfirmations={TOTAL}
             onRetry={() => activate(SCENARIOS[2])}
+            onDismiss={() => activate(SCENARIOS[0])}
             details={{
               primary: detailsPrimary,
               secondary: "to sol.domain.eth",

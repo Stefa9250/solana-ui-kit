@@ -51,6 +51,43 @@ useful, a mock layer (`mock-wallet.ts`) with `TODO` markers showing exactly
 where real `@solana/wallet-adapter` calls plug in. You only need to copy the
 component file itself.
 
+## Patterns
+
+**Program-specific errors.** Anchor custom errors (`0x1770 + N`) mean
+different things per program — pass your program's rules via `errorMap` and
+they're matched before the built-in defaults:
+
+```tsx
+<TransactionStatus
+  status={status}
+  error={error}
+  errorMap={[
+    { test: /0x1771/i, text: "Price moved too much. Try again or increase slippage." },
+  ]}
+/>
+```
+
+**Multiple transactions.** The component is intentionally single-transaction.
+For a queue, render a list keyed by signature:
+
+```tsx
+{transactions.map((tx) => (
+  <TransactionStatus
+    key={tx.signature}
+    status={tx.status}
+    signature={tx.signature}
+    error={tx.error}
+    onRetry={() => resubmit(tx)}
+    onDismiss={() => remove(tx.signature)}
+  />
+))}
+```
+
+**Commitment levels.** `confirmations` counting to 31 tracks finality, but
+most dApps treat the `confirmed` commitment (~1–2s) as success. If that's
+you, jump straight to `status="confirmed"` — or omit `confirmations` while
+confirming for a calm indeterminate bar.
+
 ## Out of scope
 
 This kit deliberately does **not** include:
