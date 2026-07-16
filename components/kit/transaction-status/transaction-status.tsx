@@ -96,7 +96,7 @@ export interface TransactionStatusProps {
 /* Scoped keyframes — inlined so the component works with zero Tailwind config. */
 const KEYFRAMES = `
 @keyframes sol-txs-fade-slide-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-txs-pulse-ring { 0% { transform: scale(0.85); opacity: 0.55; } 70% { opacity: 0; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes sol-txs-trace { from { stroke-dashoffset: 128; } to { stroke-dashoffset: 0; } }
 @keyframes sol-txs-core-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 @keyframes sol-txs-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
 @keyframes sol-txs-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
@@ -105,8 +105,8 @@ const KEYFRAMES = `
 @keyframes sol-txs-flash-green { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.62; } }
 @keyframes sol-txs-sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
 .sol-txs-panel-enter { animation: sol-txs-fade-slide-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-txs-ring { animation: sol-txs-pulse-ring 2.2s cubic-bezier(0.2,0.6,0.4,1) infinite; }
-.sol-txs-core { animation: sol-txs-core-breathe 2.2s ease-in-out infinite; }
+.sol-txs-trace-path { stroke-dasharray: 32 96; animation: sol-txs-trace 2.4s linear infinite; }
+.sol-txs-trace-core { transform-origin: center; transform-box: fill-box; animation: sol-txs-core-breathe 2.4s ease-in-out infinite; }
 .sol-txs-check-circle-path { stroke-dasharray: 132; animation: sol-txs-check-circle 500ms cubic-bezier(0.65,0,0.35,1) forwards; }
 .sol-txs-check-mark-path { stroke-dasharray: 24; animation: sol-txs-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 420ms forwards; }
 .sol-txs-success-bounce { animation: sol-txs-bounce-scale 480ms cubic-bezier(0.34,1.56,0.64,1) 400ms both; }
@@ -115,13 +115,42 @@ const KEYFRAMES = `
 .sol-txs-sweep { animation: sol-txs-sweep 1.6s ease-in-out infinite; }
 .sol-txs-stripes { background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent); background-size: 28px 28px; }
 @media (prefers-reduced-motion: reduce) {
-  .sol-txs-panel-enter, .sol-txs-ring, .sol-txs-core, .sol-txs-check-circle-path,
+  .sol-txs-panel-enter, .sol-txs-trace-path, .sol-txs-trace-core, .sol-txs-check-circle-path,
   .sol-txs-check-mark-path, .sol-txs-success-bounce, .sol-txs-shake, .sol-txs-flash, .sol-txs-sweep {
     animation: none !important;
   }
   .sol-txs-check-circle-path, .sol-txs-check-mark-path { stroke-dashoffset: 0; }
+  .sol-txs-trace-path { stroke-dasharray: none; }
 }
 `;
+
+/** Pending glyph: a block outline being traced while the core breathes. */
+function BlockTrace() {
+  return (
+    <div className="flex size-10 shrink-0 items-center justify-center" aria-hidden>
+      <svg width={36} height={36} viewBox="0 0 36 36" fill="none">
+        <rect x={2} y={2} width={32} height={32} stroke="#22262f" strokeWidth={2} />
+        <rect
+          className="sol-txs-trace-path"
+          x={2}
+          y={2}
+          width={32}
+          height={32}
+          stroke="#34d399"
+          strokeWidth={2}
+        />
+        <rect
+          className="sol-txs-trace-core"
+          x={14}
+          y={14}
+          width={8}
+          height={8}
+          fill="#059669"
+        />
+      </svg>
+    </div>
+  );
+}
 
 function SolanaMark() {
   return (
@@ -314,16 +343,7 @@ export function TransactionStatus({
       >
         {status === "pending" && (
           <div className="flex items-center gap-4">
-            <div className="relative flex size-10 shrink-0 items-center justify-center">
-              <div
-                aria-hidden
-                className="sol-txs-ring absolute inset-0 rounded-full border-2 border-emerald-400"
-              />
-              <div
-                aria-hidden
-                className="sol-txs-core size-3.5 rounded-full bg-emerald-600"
-              />
-            </div>
+            <BlockTrace />
             <div>
               <div className="text-[15px] font-semibold text-[#f7f7f7]">
                 Sending transaction
@@ -339,16 +359,7 @@ export function TransactionStatus({
           <div className="flex items-center gap-5 py-1">
             <div className="flex size-10 shrink-0 items-center justify-center">
               {confirmations === undefined ? (
-                <div className="relative flex size-10 items-center justify-center">
-                  <div
-                    aria-hidden
-                    className="sol-txs-ring absolute inset-0 rounded-full border-2 border-emerald-400"
-                  />
-                  <div
-                    aria-hidden
-                    className="sol-txs-core size-3.5 rounded-full bg-emerald-600"
-                  />
-                </div>
+                <BlockTrace />
               ) : (
                 <span className="text-[15px] font-bold text-[#f7f7f7]">
                   {pct}
