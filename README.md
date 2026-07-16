@@ -44,7 +44,8 @@ There is nothing to install. Each component is a single self-contained file.
 | Component | Description |
 | --- | --- |
 | [Transaction Status](components/kit/transaction-status/transaction-status.tsx) | Pending → confirming (`12 of 31`) → confirmed / failed, with mapped Solana errors, Solscan links, Retry, and a collapsible raw-error view. |
-| [Wallet Connect Modal](components/kit/wallet-connect-modal/wallet-connect-modal.tsx) | Wallet list (detected first), no-wallet empty state, connecting with "check your wallet" hint, calm rejection, connected with auto-dismiss. Focus-trapped and keyboard-friendly. |
+| [Wallet Connect](components/kit/wallet-connect/wallet-connect.tsx) | The full connect flow: trigger button → anchored panel morphing through wallet list, connecting, optional sign-in-with-Solana, success → connected account chip. |
+| [Wallet Connect Modal](components/kit/wallet-connect-modal/wallet-connect-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, calm rejection, auto-dismiss. Focus-trapped and keyboard-friendly. |
 
 Each component folder also contains its docs demo (`demo.tsx`) and, where
 useful, a mock layer (`mock-wallet.ts`) with `TODO` markers showing exactly

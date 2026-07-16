@@ -118,6 +118,71 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
+    name: "Wallet Connect",
+    slug: "wallet-connect",
+    description:
+      "The full connect flow: a trigger that opens an anchored panel, morphs through wallet list → connecting → optional sign-in-with-Solana → success, then becomes a connected account chip.",
+    path: "components/kit/wallet-connect/wallet-connect.tsx",
+    props: [
+      {
+        name: "wallets",
+        type: "WalletOption[]",
+        description:
+          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages.",
+      },
+      {
+        name: "status",
+        type: '"disconnected" | "connecting" | "signing" | "rejected" | "connected"',
+        description:
+          "Wallet lifecycle, driven by your adapter calls. The signing step is optional — never set it if your dApp doesn't use sign-in-with-Solana.",
+      },
+      {
+        name: "onSelectWallet",
+        type: "(wallet: WalletOption) => void",
+        description: "Called when a detected wallet is picked (also powers Try again).",
+      },
+      {
+        name: "onSign",
+        type: "() => void",
+        description: "Called from the sign-in-with-Solana step's Sign button.",
+      },
+      {
+        name: "onDisconnect",
+        type: "() => void",
+        description:
+          "Called from the chip menu, the sign step, and the rejected Cancel.",
+      },
+      {
+        name: "error",
+        type: "string",
+        description:
+          "Raw connection error. Mapped to plain language in the rejected state.",
+      },
+      {
+        name: "selectedWalletId",
+        type: "string",
+        description:
+          "Which wallet is mid-flow when driven externally. Clicking a row tracks this internally.",
+      },
+      {
+        name: "address",
+        type: "string",
+        description: "Connected address — shown in the success beat and the chip.",
+      },
+      {
+        name: "open",
+        type: "boolean",
+        description:
+          "Control the panel externally. Omit to let the component manage it (trigger click, Escape, outside click, auto-close).",
+      },
+      {
+        name: "onOpenChange",
+        type: "(open: boolean) => void",
+        description: "Notified when the panel wants to open or close.",
+      },
+    ],
+  },
+  {
     name: "Wallet Connect Modal",
     slug: "wallet-connect-modal",
     description:
