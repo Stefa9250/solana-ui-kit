@@ -466,25 +466,7 @@ export function TransactionStatus({
                   ? "Waiting for confirmations…"
                   : `${confirmations} of ${totalConfirmations} confirmations`}
               </div>
-              <div className="relative mt-2 h-[3px] w-full max-w-[220px] overflow-hidden bg-[#22262f]">
-                {confirmations === undefined ? (
-                  <div
-                    aria-hidden
-                    className="sol-txs-sweep absolute inset-y-0 w-1/4 bg-emerald-600/60"
-                  />
-                ) : (
-                  <div
-                    aria-hidden
-                    className={`absolute inset-y-0 left-0 transition-colors duration-200 ${
-                      atTarget ? "bg-[#17b26a]" : "bg-emerald-500"
-                    }`}
-                    style={{
-                      width: `${(reduceMotion ? pct : displayPct).toFixed(2)}%`,
-                    }}
-                  />
-                )}
-              </div>
-              {explorerLink && <div className="mt-2.5">{explorerLink}</div>}
+              {explorerLink && <div className="mt-2">{explorerLink}</div>}
             </div>
           </div>
         )}
