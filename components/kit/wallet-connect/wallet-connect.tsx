@@ -29,7 +29,7 @@ import {
   useSyncExternalStore,
   type KeyboardEvent,
 } from "react";
-import { MoreVertical, Wallet } from "lucide-react";
+import { MoreHorizontal, MoreVertical, Wallet } from "lucide-react";
 
 export interface WalletOption {
   id: string;
@@ -39,6 +39,11 @@ export interface WalletOption {
   installUrl: string;
   /** Brand color behind the wallet initials. */
   color?: string;
+  /**
+   * Recommended wallets show in the main list; the rest sit behind a
+   * "More wallets" row. Omit on every wallet to show a single flat list.
+   */
+  recommended?: boolean;
 }
 
 export type WalletConnectFlowStatus =
@@ -64,6 +69,12 @@ export interface WalletConnectProps {
   selectedWalletId?: string;
   /** Connected address — shown in the success beat and the chip. */
   address?: string;
+  /** Badge this wallet "Connected" in the list (e.g. multi-wallet apps). */
+  connectedWalletId?: string;
+  /** Terms of service link in the header. Omit both to hide the line. */
+  termsUrl?: string;
+  /** Privacy policy link in the header. */
+  privacyUrl?: string;
   /** Control the panel externally (defaults to internal state). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -128,6 +139,7 @@ const KEYFRAMES = `
 .sol-wc-row:hover:not([data-disabled="true"]) { background: #1a2030; border-left-color: #10b981; }
 .sol-wc-row .sol-wc-cta { opacity: 0; transition: opacity 150ms ease; }
 .sol-wc-row:hover:not([data-disabled="true"]) .sol-wc-cta { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .sol-wc-row .sol-wc-cta { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .sol-wc-panel-enter, .sol-wc-panel-exit, .sol-wc-step-enter, .sol-wc-item-enter,
   .sol-wc-spin, .sol-wc-check-circle-path, .sol-wc-check-mark-path, .sol-wc-row {
@@ -178,6 +190,9 @@ export function WalletConnect({
   error,
   selectedWalletId,
   address,
+  connectedWalletId,
+  termsUrl,
+  privacyUrl,
   open: openProp,
   onOpenChange,
   className,
@@ -188,6 +203,8 @@ export function WalletConnect({
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [prevStatus, setPrevStatus] = useState(status);
   const panelRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -206,6 +223,8 @@ export function WalletConnect({
   if (open && !present) {
     setPresent(true);
     setShowHint(false);
+    setShowAll(false);
+    setHelpOpen(false);
     if (status === "disconnected") setInternalSelectedId(null);
   }
   if (prevStatus !== status) {
@@ -288,7 +307,8 @@ export function WalletConnect({
       panel.style.transition = "";
     }, 320);
     return () => clearTimeout(t);
-  }, [view, reduceMotion]);
+    // helpOpen and showAll change the list view's height without changing `view`.
+  }, [view, helpOpen, showAll, reduceMotion]);
 
   // Reset the height cache whenever the panel unmounts.
   useEffect(() => {
@@ -298,8 +318,21 @@ export function WalletConnect({
   const effectiveSelectedId = selectedWalletId ?? internalSelectedId;
   const selectedWallet = wallets.find((w) => w.id === effectiveSelectedId);
   const detected = wallets.filter((w) => w.detected);
-  const undetected = wallets.filter((w) => !w.detected);
   const noneDetected = detected.length === 0;
+  const anyRecommended = wallets.some((w) => w.recommended);
+  const byPriority = (a: WalletOption, b: WalletOption) => {
+    const rank = (w: WalletOption) =>
+      w.id === connectedWalletId ? 0 : w.detected ? 1 : 2;
+    return rank(a) - rank(b);
+  };
+  const mainWallets = (anyRecommended ? wallets.filter((w) => w.recommended) : wallets)
+    .slice()
+    .sort(byPriority);
+  const extraWallets = anyRecommended
+    ? wallets.filter((w) => !w.recommended).slice().sort(byPriority)
+    : [];
+  const visibleWallets = showAll ? [...mainWallets, ...extraWallets] : mainWallets;
+  const helpView = noneDetected || helpOpen;
   const friendly = error
     ? friendlyConnectError(error)
     : {
@@ -318,8 +351,8 @@ export function WalletConnect({
           ? friendly.text
           : view === "connected"
             ? `Wallet connected${address ? `: ${address}` : ""}`
-            : noneDetected
-              ? "No wallet installed."
+            : helpView
+              ? "Get a wallet to continue."
               : "Choose a wallet to connect.";
 
   const selectWallet = (wallet: WalletOption) => {
@@ -351,8 +384,9 @@ export function WalletConnect({
 
   const renderRow = (wallet: WalletOption, index: number) => {
     const rowClasses =
-      "sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[#22262f] bg-[#161b26] px-3 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2";
+      "sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[#22262f] bg-[#13161b] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2";
     const rowStyle = { animationDelay: `${index * 40}ms` };
+    const isConnected = wallet.id === connectedWalletId;
     const icon = (
       <span
         aria-hidden
@@ -361,6 +395,17 @@ export function WalletConnect({
       >
         {initials(wallet.name)}
       </span>
+    );
+    const badge = isConnected ? (
+      <span className="border border-emerald-500 px-2 py-[2px] text-[10.5px] font-semibold text-emerald-400">
+        Connected
+      </span>
+    ) : wallet.detected ? (
+      <span className="border border-[#373a41] px-2 py-[2px] text-[10.5px] font-semibold text-[#cecfd2]">
+        Detected
+      </span>
+    ) : (
+      <span className="sol-wc-cta text-[11px] text-[#94969c]">Install {"↗"}</span>
     );
     if (!wallet.detected) {
       return (
@@ -377,7 +422,7 @@ export function WalletConnect({
           <span className="flex-1 text-[13px] font-semibold text-[#f7f7f7]">
             {wallet.name}
           </span>
-          <span className="text-[11px] text-[#94969c]">Install {"↗"}</span>
+          {badge}
         </a>
       );
     }
@@ -394,9 +439,7 @@ export function WalletConnect({
         <span className="flex-1 text-[13px] font-semibold text-[#f7f7f7]">
           {wallet.name}
         </span>
-        <span className="sol-wc-cta text-[12px] font-semibold text-emerald-400">
-          Connect
-        </span>
+        {badge}
       </button>
     );
   };
@@ -476,13 +519,13 @@ export function WalletConnect({
         >
           <div ref={stepRef} key={view} className="sol-wc-step-enter">
             {view === "list" &&
-              (noneDetected ? (
+              (helpView ? (
                 <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
                   <div className="flex size-11 items-center justify-center bg-[#1f242f]">
                     <Wallet aria-hidden className="size-5 text-[#94969c]" />
                   </div>
                   <div className="text-[14px] font-semibold text-[#f7f7f7]">
-                    No wallet found
+                    {noneDetected ? "No wallet found" : "Get a wallet"}
                   </div>
                   <div className="text-[12px] leading-relaxed text-[#94969c]">
                     A wallet holds your keys and approves transactions —
@@ -501,18 +544,82 @@ export function WalletConnect({
                       </a>
                     ))}
                   </div>
+                  {helpOpen && !noneDetected && (
+                    <button
+                      type="button"
+                      onClick={() => setHelpOpen(false)}
+                      className="mt-0.5 cursor-pointer text-[12px] font-semibold text-[#94969c] transition-colors duration-150 hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                    >
+                      Back to wallet list
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="p-4">
-                  <div className="text-[14px] font-semibold text-[#f7f7f7]">
-                    Select a wallet
+                  <div className="text-center text-[15px] font-semibold text-[#f7f7f7]">
+                    Connect wallet
                   </div>
-                  <div className="mb-3 mt-0.5 text-[11px] text-[#61656c]">
-                    By connecting you agree to the terms of service.
+                  {(termsUrl || privacyUrl) && (
+                    <p className="mx-auto mb-0 mt-1.5 text-center text-[11.5px] leading-relaxed text-[#94969c]">
+                      By connecting your wallet, you agree to our{" "}
+                      {termsUrl && (
+                        <a
+                          href={termsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                        >
+                          Terms of Service
+                        </a>
+                      )}
+                      {termsUrl && privacyUrl && " and our "}
+                      {privacyUrl && (
+                        <a
+                          href={privacyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                        >
+                          Privacy Policy
+                        </a>
+                      )}
+                      .
+                    </p>
+                  )}
+                  {anyRecommended && (
+                    <div className="mb-1.5 mt-3 text-[11.5px] text-[#94969c]">
+                      Recommended
+                    </div>
+                  )}
+                  <div className={`flex flex-col gap-1.5 ${anyRecommended ? "" : "mt-3"}`}>
+                    {visibleWallets.map((w, i) => renderRow(w, i))}
+                    {extraWallets.length > 0 && !showAll && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAll(true)}
+                        className="sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[#22262f] bg-[#13161b] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                        style={{ animationDelay: `${visibleWallets.length * 40}ms` }}
+                      >
+                        <span
+                          aria-hidden
+                          className="flex size-7 shrink-0 items-center justify-center bg-[#1f242f]"
+                        >
+                          <MoreHorizontal className="size-4 text-[#cecfd2]" />
+                        </span>
+                        <span className="flex-1 text-[13px] font-semibold text-[#f7f7f7]">
+                          More wallets
+                        </span>
+                      </button>
+                    )}
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    {detected.map((w, i) => renderRow(w, i))}
-                    {undetected.map((w, i) => renderRow(w, detected.length + i))}
+                  <div className="mt-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setHelpOpen(true)}
+                      className="cursor-pointer text-[12px] font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                    >
+                      I don{"’"}t have a wallet
+                    </button>
                   </div>
                 </div>
               ))}

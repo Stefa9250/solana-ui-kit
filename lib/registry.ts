@@ -128,7 +128,7 @@ export const registry: RegistryEntry[] = [
         name: "wallets",
         type: "WalletOption[]",
         description:
-          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages.",
+          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages. Mark some `recommended` to group the rest behind a “More wallets” row.",
       },
       {
         name: "status",
@@ -168,6 +168,23 @@ export const registry: RegistryEntry[] = [
         name: "address",
         type: "string",
         description: "Connected address — shown in the success beat and the chip.",
+      },
+      {
+        name: "connectedWalletId",
+        type: "string",
+        description:
+          "Badges this wallet “Connected” in the list (multi-wallet apps).",
+      },
+      {
+        name: "termsUrl",
+        type: "string",
+        description:
+          "Terms of service link in the header line. Omit both URLs to hide the line.",
+      },
+      {
+        name: "privacyUrl",
+        type: "string",
+        description: "Privacy policy link in the header line.",
       },
       {
         name: "open",

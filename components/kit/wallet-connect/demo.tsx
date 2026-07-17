@@ -19,6 +19,7 @@ const WALLETS: WalletOption[] = [
     id: "phantom",
     name: "Phantom",
     detected: true,
+    recommended: true,
     color: "#ab9ff2",
     installUrl: "https://phantom.app/download",
   },
@@ -26,6 +27,7 @@ const WALLETS: WalletOption[] = [
     id: "solflare",
     name: "Solflare",
     detected: true,
+    recommended: true,
     color: "#fc9231",
     installUrl: "https://solflare.com/download",
   },
@@ -33,8 +35,23 @@ const WALLETS: WalletOption[] = [
     id: "backpack",
     name: "Backpack",
     detected: false,
+    recommended: true,
     color: "#e33e3f",
     installUrl: "https://backpack.app/download",
+  },
+  {
+    id: "trust",
+    name: "Trust",
+    detected: false,
+    color: "#3375bb",
+    installUrl: "https://trustwallet.com/download",
+  },
+  {
+    id: "ledger",
+    name: "Ledger",
+    detected: false,
+    color: "#d4a0ff",
+    installUrl: "https://www.ledger.com/ledger-live",
   },
 ];
 const NONE_DETECTED = WALLETS.map((w) => ({ ...w, detected: false }));
@@ -195,6 +212,8 @@ export default function WalletConnectDemo() {
             error={error}
             selectedWalletId={selectedWalletId}
             address={ADDRESS}
+            termsUrl="#"
+            privacyUrl="#"
           />
         </div>
         <div aria-hidden className="grid grid-cols-3 gap-3 p-4">
