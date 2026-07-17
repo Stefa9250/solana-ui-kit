@@ -205,12 +205,29 @@ export const registry: RegistryEntry[] = [
         name: "wallets",
         type: "WalletOption[]",
         description:
-          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages.",
+          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages. Mark some `recommended` to group the rest behind a “More wallets” row.",
       },
       {
         name: "onSelectWallet",
         type: "(wallet: WalletOption) => void",
         description: "Called when the user picks a detected wallet.",
+      },
+      {
+        name: "connectedWalletId",
+        type: "string",
+        description:
+          "Badges this wallet “Connected” in the list — for reopening the modal to switch wallets.",
+      },
+      {
+        name: "termsUrl",
+        type: "string",
+        description:
+          "Terms of service link in the header line. Omit both URLs to hide the line.",
+      },
+      {
+        name: "privacyUrl",
+        type: "string",
+        description: "Privacy policy link in the header line.",
       },
       {
         name: "status",
