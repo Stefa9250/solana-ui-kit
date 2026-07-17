@@ -37,7 +37,9 @@ export interface WalletOption {
   /** Detected wallets connect on click; undetected ones link to installUrl. */
   detected: boolean;
   installUrl: string;
-  /** Brand color behind the wallet initials. */
+  /** Logo URL or data URI (wallet.adapter.icon). Falls back to initials. */
+  icon?: string;
+  /** Brand color behind the wallet-initials fallback. */
   color?: string;
   /**
    * Recommended wallets show in the main list; the rest sit behind a
@@ -102,6 +104,40 @@ function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
+/** Wallet logo when provided (wallet.adapter.icon), initials otherwise. */
+function WalletGlyph({
+  wallet,
+  sizeClass,
+  textClass,
+  className = "",
+}: {
+  wallet?: WalletOption;
+  sizeClass: string;
+  textClass: string;
+  className?: string;
+}) {
+  if (wallet?.icon) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- data-URI logos need no optimization
+      <img
+        src={wallet.icon}
+        alt=""
+        aria-hidden
+        className={`${sizeClass} shrink-0 object-contain ${className}`}
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden
+      className={`flex ${sizeClass} shrink-0 items-center justify-center font-bold text-[#0c0e12] ${textClass} ${className}`}
+      style={{ background: wallet?.color ?? "#94969c" }}
+    >
+      {wallet ? initials(wallet.name) : "?"}
+    </span>
+  );
+}
+
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 function useReducedMotion(): boolean {
@@ -154,12 +190,21 @@ const KEYFRAMES = `
 function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
   return (
     <div className="relative mx-auto size-16" aria-hidden>
-      <div
-        className="absolute inset-[10px] flex items-center justify-center text-[14px] font-bold text-[#0c0e12]"
-        style={{ background: wallet?.color ?? "#94969c" }}
-      >
-        {wallet ? initials(wallet.name) : "?"}
-      </div>
+      {wallet?.icon ? (
+        // eslint-disable-next-line @next/next/no-img-element -- data-URI logos need no optimization
+        <img
+          src={wallet.icon}
+          alt=""
+          className="absolute inset-[10px] size-11 object-contain"
+        />
+      ) : (
+        <div
+          className="absolute inset-[10px] flex items-center justify-center text-[14px] font-bold text-[#0c0e12]"
+          style={{ background: wallet?.color ?? "#94969c" }}
+        >
+          {wallet ? initials(wallet.name) : "?"}
+        </div>
+      )}
       <svg
         viewBox="0 0 64 64"
         width={64}
@@ -388,13 +433,7 @@ export function WalletConnect({
     const rowStyle = { animationDelay: `${index * 40}ms` };
     const isConnected = wallet.id === connectedWalletId;
     const icon = (
-      <span
-        aria-hidden
-        className="flex size-7 shrink-0 items-center justify-center text-[11px] font-bold text-[#0c0e12]"
-        style={{ background: wallet.color ?? "#94969c" }}
-      >
-        {initials(wallet.name)}
-      </span>
+      <WalletGlyph wallet={wallet} sizeClass="size-7" textClass="text-[11px]" />
     );
     const badge = isConnected ? (
       <span className="border border-emerald-500 px-2 py-[2px] text-[10.5px] font-semibold text-emerald-400">
@@ -461,13 +500,20 @@ export function WalletConnect({
             aria-expanded={menuOpen}
             className="sol-wc-step-enter flex cursor-pointer items-center gap-2 border border-[#22262f] bg-transparent py-1.5 pl-2.5 pr-1.5 transition-colors duration-150 hover:bg-[#161b26] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
           >
-            <span
-              aria-hidden
-              className="flex size-5 items-center justify-center text-[10px] font-bold text-[#0c0e12]"
-              style={{ background: selectedWallet?.color ?? "#34d399" }}
-            >
-              {selectedWallet ? initials(selectedWallet.name) : "◎"}
-            </span>
+            {selectedWallet ? (
+              <WalletGlyph
+                wallet={selectedWallet}
+                sizeClass="size-5"
+                textClass="text-[10px]"
+              />
+            ) : (
+              <span
+                aria-hidden
+                className="flex size-5 items-center justify-center bg-[#34d399] text-[10px] font-bold text-[#0c0e12]"
+              >
+                {"◎"}
+              </span>
+            )}
             <span className="font-mono text-[12px] text-[#f7f7f7]">
               {shortAddress || "Connected"}
             </span>
@@ -685,13 +731,12 @@ export function WalletConnect({
             {view === "rejected" && (
               <div className="p-4">
                 <div className="flex items-center gap-3">
-                  <div
-                    aria-hidden
-                    className="flex size-8 shrink-0 items-center justify-center text-[12px] font-bold text-[#0c0e12] opacity-70"
-                    style={{ background: selectedWallet?.color ?? "#94969c" }}
-                  >
-                    {selectedWallet ? initials(selectedWallet.name) : "?"}
-                  </div>
+                  <WalletGlyph
+                    wallet={selectedWallet}
+                    sizeClass="size-8"
+                    textClass="text-[12px]"
+                    className="opacity-70"
+                  />
                   <div>
                     <div className="text-[13px] font-semibold text-[#f7f7f7]">
                       Connection cancelled

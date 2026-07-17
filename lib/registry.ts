@@ -128,7 +128,7 @@ export const registry: RegistryEntry[] = [
         name: "wallets",
         type: "WalletOption[]",
         description:
-          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages. Mark some `recommended` to group the rest behind a “More wallets” row.",
+          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages. Mark some `recommended` to group the rest behind a “More wallets” row. Set `icon` (URL or data URI, e.g. wallet.adapter.icon) for real logos; initials otherwise.",
       },
       {
         name: "status",
@@ -222,7 +222,7 @@ export const registry: RegistryEntry[] = [
         name: "wallets",
         type: "WalletOption[]",
         description:
-          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages. Mark some `recommended` to group the rest behind a “More wallets” row.",
+          "Wallets to list. Detected wallets are badged and sorted first; undetected ones link to their install pages. Mark some `recommended` to group the rest behind a “More wallets” row. Set `icon` (URL or data URI, e.g. wallet.adapter.icon) for real logos; initials otherwise.",
       },
       {
         name: "onSelectWallet",
