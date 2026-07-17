@@ -15,7 +15,54 @@ import {
 } from "./wallet-connect-modal";
 import { mockWalletLayer } from "./mock-wallet";
 
-const DEFAULT_WALLETS = mockWalletLayer.listWallets();
+const DEFAULT_WALLETS: WalletOption[] = [
+  {
+    id: "phantom",
+    name: "Phantom",
+    detected: true,
+    recommended: true,
+    color: "#ab9ff2",
+    installUrl: "https://phantom.app/download",
+  },
+  {
+    id: "solflare",
+    name: "Solflare",
+    detected: true,
+    recommended: true,
+    color: "#fc9231",
+    installUrl: "https://solflare.com/download",
+  },
+  {
+    id: "backpack",
+    name: "Backpack",
+    detected: true,
+    recommended: true,
+    color: "#e33e3f",
+    installUrl: "https://backpack.app/download",
+  },
+  {
+    id: "trust",
+    name: "Trust",
+    detected: false,
+    recommended: true,
+    color: "#3375bb",
+    installUrl: "https://trustwallet.com/download",
+  },
+  {
+    id: "coinbase",
+    name: "Coinbase Wallet",
+    detected: false,
+    color: "#1652f0",
+    installUrl: "https://www.coinbase.com/wallet/downloads",
+  },
+  {
+    id: "ledger",
+    name: "Ledger",
+    detected: false,
+    color: "#d4a0ff",
+    installUrl: "https://www.ledger.com/ledger-live",
+  },
+];
 const NONE_DETECTED = DEFAULT_WALLETS.map((w) => ({ ...w, detected: false }));
 
 export default function WalletConnectModalDemo() {
@@ -24,18 +71,25 @@ export default function WalletConnectModalDemo() {
   const [error, setError] = useState<string | undefined>();
   const [address, setAddress] = useState<string | undefined>();
   const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>();
+  const [connectedWalletId, setConnectedWalletId] = useState<string | undefined>();
   const [wallets, setWallets] = useState<WalletOption[]>(DEFAULT_WALLETS);
   // Bumps on every forced state / close so stale connect() results are ignored.
   const attemptRef = useRef(0);
 
   const openWith = (
     next: WalletConnectStatus,
-    opts: { wallets?: WalletOption[]; error?: string; selectedWalletId?: string } = {},
+    opts: {
+      wallets?: WalletOption[];
+      error?: string;
+      selectedWalletId?: string;
+      connectedWalletId?: string;
+    } = {},
   ) => {
     attemptRef.current += 1;
     setWallets(opts.wallets ?? DEFAULT_WALLETS);
     setError(opts.error);
     setSelectedWalletId(opts.selectedWalletId);
+    setConnectedWalletId(opts.connectedWalletId);
     setStatus(next);
     setOpen(true);
   };
@@ -54,6 +108,7 @@ export default function WalletConnectModalDemo() {
       const { address: connected } = await mockWalletLayer.connect(wallet.id);
       if (attemptRef.current !== attempt) return;
       setAddress(connected);
+      setConnectedWalletId(wallet.id);
       setStatus("connected");
     } catch (err) {
       if (attemptRef.current !== attempt) return;
@@ -64,6 +119,7 @@ export default function WalletConnectModalDemo() {
 
   const scenarios = [
     "Wallet list",
+    "List — connected",
     "No wallet installed",
     "Connecting",
     "Rejected",
@@ -84,12 +140,17 @@ export default function WalletConnectModalDemo() {
             : "Rejected"
           : noneDetected
             ? "No wallet installed"
-            : "Wallet list";
+            : connectedWalletId
+              ? "List — connected"
+              : "Wallet list";
 
   const runScenario = (label: (typeof scenarios)[number]) => {
     switch (label) {
       case "Wallet list":
         openWith("list");
+        break;
+      case "List — connected":
+        openWith("list", { connectedWalletId: "solflare" });
         break;
       case "No wallet installed":
         openWith("list", { wallets: NONE_DETECTED });
@@ -152,6 +213,9 @@ export default function WalletConnectModalDemo() {
         error={error}
         selectedWalletId={selectedWalletId}
         address={address}
+        connectedWalletId={connectedWalletId}
+        termsUrl="#"
+        privacyUrl="#"
       />
     </div>
   );
