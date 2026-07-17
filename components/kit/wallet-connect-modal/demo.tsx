@@ -13,11 +13,13 @@ import {
   type WalletConnectStatus,
   type WalletOption,
 } from "./wallet-connect-modal";
+import { WALLET_LOGOS } from "@/components/docs/wallet-logos";
 import { mockWalletLayer } from "./mock-wallet";
 
 const DEFAULT_WALLETS: WalletOption[] = [
   {
     id: "phantom",
+    icon: WALLET_LOGOS.phantom,
     name: "Phantom",
     detected: true,
     recommended: true,
@@ -26,6 +28,7 @@ const DEFAULT_WALLETS: WalletOption[] = [
   },
   {
     id: "solflare",
+    icon: WALLET_LOGOS.solflare,
     name: "Solflare",
     detected: true,
     recommended: true,
@@ -34,6 +37,7 @@ const DEFAULT_WALLETS: WalletOption[] = [
   },
   {
     id: "backpack",
+    icon: WALLET_LOGOS.backpack,
     name: "Backpack",
     detected: true,
     recommended: true,
@@ -42,6 +46,7 @@ const DEFAULT_WALLETS: WalletOption[] = [
   },
   {
     id: "trust",
+    icon: WALLET_LOGOS.trust,
     name: "Trust",
     detected: false,
     recommended: true,
@@ -50,6 +55,7 @@ const DEFAULT_WALLETS: WalletOption[] = [
   },
   {
     id: "coinbase",
+    icon: WALLET_LOGOS.coinbase,
     name: "Coinbase Wallet",
     detected: false,
     color: "#1652f0",
@@ -57,6 +63,7 @@ const DEFAULT_WALLETS: WalletOption[] = [
   },
   {
     id: "ledger",
+    icon: WALLET_LOGOS.ledger,
     name: "Ledger",
     detected: false,
     color: "#d4a0ff",

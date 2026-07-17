@@ -13,10 +13,12 @@ import {
   type WalletConnectFlowStatus,
   type WalletOption,
 } from "./wallet-connect";
+import { WALLET_LOGOS } from "@/components/docs/wallet-logos";
 
 const WALLETS: WalletOption[] = [
   {
     id: "phantom",
+    icon: WALLET_LOGOS.phantom,
     name: "Phantom",
     detected: true,
     recommended: true,
@@ -25,6 +27,7 @@ const WALLETS: WalletOption[] = [
   },
   {
     id: "solflare",
+    icon: WALLET_LOGOS.solflare,
     name: "Solflare",
     detected: true,
     recommended: true,
@@ -33,6 +36,7 @@ const WALLETS: WalletOption[] = [
   },
   {
     id: "backpack",
+    icon: WALLET_LOGOS.backpack,
     name: "Backpack",
     detected: false,
     recommended: true,
@@ -41,6 +45,7 @@ const WALLETS: WalletOption[] = [
   },
   {
     id: "trust",
+    icon: WALLET_LOGOS.trust,
     name: "Trust",
     detected: false,
     color: "#3375bb",
@@ -48,6 +53,7 @@ const WALLETS: WalletOption[] = [
   },
   {
     id: "ledger",
+    icon: WALLET_LOGOS.ledger,
     name: "Ledger",
     detected: false,
     color: "#d4a0ff",

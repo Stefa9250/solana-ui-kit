@@ -34,7 +34,9 @@ export interface WalletOption {
   /** Detected wallets connect on click; undetected ones link to installUrl. */
   detected: boolean;
   installUrl: string;
-  /** Brand color behind the wallet initials. */
+  /** Logo URL or data URI (wallet.adapter.icon). Falls back to initials. */
+  icon?: string;
+  /** Brand color behind the wallet-initials fallback. */
   color?: string;
   /**
    * Recommended wallets show in the main list; the rest sit behind a
@@ -90,6 +92,40 @@ function friendlyConnectError(raw?: string): { text: string; raw: string } {
 
 function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
+}
+
+/** Wallet logo when provided (wallet.adapter.icon), initials otherwise. */
+function WalletGlyph({
+  wallet,
+  sizeClass,
+  textClass,
+  className = "",
+}: {
+  wallet?: WalletOption;
+  sizeClass: string;
+  textClass: string;
+  className?: string;
+}) {
+  if (wallet?.icon) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- data-URI logos need no optimization
+      <img
+        src={wallet.icon}
+        alt=""
+        aria-hidden
+        className={`${sizeClass} shrink-0 object-contain ${className}`}
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden
+      className={`flex ${sizeClass} shrink-0 items-center justify-center font-bold text-[#0c0e12] ${textClass} ${className}`}
+      style={{ background: wallet?.color ?? "#94969c" }}
+    >
+      {wallet ? initials(wallet.name) : "?"}
+    </span>
+  );
 }
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -303,15 +339,12 @@ export function WalletConnectModal({
     } ${isDimmed ? "opacity-40" : "cursor-pointer"}`;
     const rowStyle = { animationDelay: `${index * 40}ms` };
     const icon = (
-      <div
-        aria-hidden
-        className={`flex size-9 shrink-0 items-center justify-center text-[13px] font-bold text-[#0c0e12] ${
-          isSelected ? "sol-wcm-breathe" : ""
-        }`}
-        style={{ background: wallet.color ?? "#94969c" }}
-      >
-        {initials(wallet.name)}
-      </div>
+      <WalletGlyph
+        wallet={wallet}
+        sizeClass="size-9"
+        textClass="text-[13px]"
+        className={isSelected ? "sol-wcm-breathe" : ""}
+      />
     );
     const name = (
       <div className="flex-1">
@@ -525,13 +558,12 @@ export function WalletConnectModal({
         {status === "rejected" && (
           <div className="sol-wcm-item-enter flex flex-col gap-4 py-1">
             <div className="flex items-center gap-3.5">
-              <div
-                aria-hidden
-                className="flex size-9 shrink-0 items-center justify-center text-[13px] font-bold text-[#0c0e12] opacity-70"
-                style={{ background: selectedWallet?.color ?? "#94969c" }}
-              >
-                {selectedWallet ? initials(selectedWallet.name) : "?"}
-              </div>
+              <WalletGlyph
+                wallet={selectedWallet}
+                sizeClass="size-9"
+                textClass="text-[13px]"
+                className="opacity-70"
+              />
               <div>
                 <div className="text-[14px] font-semibold text-[#f7f7f7]">
                   Connection cancelled
@@ -580,13 +612,11 @@ export function WalletConnectModal({
         {status === "connected" && (
           <div className="sol-wcm-item-enter flex items-center gap-3.5 py-2">
             <div className="relative shrink-0">
-              <div
-                aria-hidden
-                className="flex size-10 items-center justify-center text-[14px] font-bold text-[#0c0e12]"
-                style={{ background: selectedWallet?.color ?? "#ab9ff2" }}
-              >
-                {selectedWallet ? initials(selectedWallet.name) : "??"}
-              </div>
+              <WalletGlyph
+                wallet={selectedWallet}
+                sizeClass="size-10"
+                textClass="text-[14px]"
+              />
               <svg
                 width={20}
                 height={20}
