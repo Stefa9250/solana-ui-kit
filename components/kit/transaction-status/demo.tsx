@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * Docs demo for TransactionStatus. Cycles every state, simulating the
- * confirmation stream a real RPC subscription would deliver.
+ * Docs demo for TransactionStatus. Cycles every state, simulating the bursty
+ * counts a real getSignatureStatuses polling loop delivers (signatureSubscribe
+ * fires once at a commitment — it can't feed a count; see the README).
  * Not part of the copy-paste component.
  */
 
@@ -23,7 +24,9 @@ const DEMO_ERROR_MAP: TransactionStatusErrorRule[] = [
   },
 ];
 
-const SIGNATURE = "5tj8y9F3nQeR2m1kLp7VxAqW3sZ4bTn6uHc9dK1eMoP8";
+// Real transaction signatures are ~88 base58 characters.
+const SIGNATURE =
+  "2ZE7Rz1DkV5xWqTgH8uJmN4pAeYcF6vKsX9bLd3M7nQaPjS5tUwB1hCiD4fGyRmE8oJx6KpLqNvTaZbWcXdYeUf";
 const TOTAL = 31;
 
 type DemoScenario = {
@@ -37,9 +40,26 @@ const SCENARIOS: DemoScenario[] = [
   { label: "Pending", status: "pending" },
   { label: "Confirming", status: "confirming" },
   { label: "Confirmed", status: "confirmed" },
-  { label: "Failed — slippage", status: "failed", error: "0x1771" },
+  {
+    label: "Failed — slippage",
+    status: "failed",
+    // Post-send failures arrive as objects with decimal codes; the component
+    // appends the hex form so the 0x1771 rule still matches.
+    error: '{"InstructionError":[0,{"Custom":6001}]}',
+  },
   { label: "Failed — no SOL", status: "failed", error: "insufficient lamports for fee" },
-  { label: "Failed — timeout", status: "failed", error: "blockhash expired" },
+  {
+    label: "Failed — no prior credit",
+    status: "failed",
+    error:
+      "Transaction simulation failed: Attempt to debit an account but found no record of a prior credit.",
+  },
+  {
+    label: "Failed — expired",
+    status: "failed",
+    error:
+      "TransactionExpiredBlockheightExceededError: Signature 2ZE7…YeUf has expired: block height exceeded.",
+  },
   { label: "Failed — rejected", status: "failed", error: "user rejected the request" },
   {
     label: "Failed — unknown",
@@ -147,7 +167,7 @@ export default function TransactionStatusDemo() {
             onDismiss={() => activate(SCENARIOS[0])}
             details={{
               primary: detailsPrimary,
-              secondary: "to sol.domain.eth",
+              secondary: "to wallet.sol",
               meta: "9xQe…F4kM",
             }}
             className="min-h-[172px]"

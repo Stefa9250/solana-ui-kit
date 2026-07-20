@@ -21,6 +21,10 @@ export type RegistryEntry = {
   /** Repo-relative path to the self-contained component source file. */
   path: string;
   props: PropRow[];
+  /** Short JSX snippet rendered in the docs page's Usage section. */
+  usage?: string;
+  /** Guidance callout rendered under the demo (e.g. which variant to pick). */
+  note?: string;
 };
 
 export const registry: RegistryEntry[] = [
@@ -30,6 +34,16 @@ export const registry: RegistryEntry[] = [
     description:
       "Every state of a Solana transaction — pending, confirming, confirmed, failed — with human-readable errors and calm, purposeful motion.",
     path: "components/kit/transaction-status/transaction-status.tsx",
+    usage: `<TransactionStatus
+  status={status}
+  signature={signature}
+  error={error}
+  confirmations={confirmations}
+  errorMap={[{ test: /0x1771|"Custom":6001/, text: "Price moved too much." }]}
+  onRetry={() => resubmit()}
+  onDismiss={() => reset()}
+/>`,
+    note: "Feed confirmations from a getSignatureStatuses polling loop — signatureSubscribe fires once and can't drive a count. See the README's “Wiring up real data” pattern.",
     props: [
       {
         name: "status",
@@ -108,7 +122,7 @@ export const registry: RegistryEntry[] = [
         name: "details",
         type: "{ primary: string; secondary?: string; meta?: string }",
         description:
-          "Optional transaction summary card (e.g. “Sending 2.5 SOL / to sol.domain.eth”). During confirming it doubles as the progress fill.",
+          "Optional transaction summary card (e.g. “Sending 2.5 SOL / to wallet.sol”). During confirming it doubles as the progress fill.",
       },
       {
         name: "className",
@@ -123,6 +137,15 @@ export const registry: RegistryEntry[] = [
     description:
       "The full connect flow: a trigger that opens an anchored panel, morphs through wallet list → connecting → optional sign-in-with-Solana → success, then becomes a connected account chip.",
     path: "components/kit/wallet-connect/wallet-connect.tsx",
+    usage: `<WalletConnect
+  wallets={wallets}
+  status={status}
+  address={address}
+  onSelectWallet={(w) => connect(w)}
+  onSign={() => signIn()}   // omit status="signing" to skip SIWS
+  onDisconnect={() => disconnect()}
+/>`,
+    note: "Dropdown vs Modal: this anchored flow owns the trigger and becomes the connected chip — pick it when connect lives in your navbar. Pick the modal when connect is triggered from arbitrary places, or when the trigger sits inside an overflow-hidden container (this panel doesn't portal).",
     props: [
       {
         name: "wallets",
@@ -205,6 +228,17 @@ export const registry: RegistryEntry[] = [
     description:
       "Wallet selection, connecting, rejected, and connected states in one accessible modal. Detected wallets first, install links for the rest.",
     path: "components/kit/wallet-connect-modal/wallet-connect-modal.tsx",
+    usage: `<WalletConnectModal
+  open={open}
+  onClose={() => setOpen(false)}
+  wallets={wallets}
+  onSelectWallet={(w) => connect(w)}
+  status={status}
+  error={error}
+  termsUrl="/terms"
+  privacyUrl="/privacy"
+/>`,
+    note: "Dropdown vs Modal: this centered modal portals to document.body and locks scroll — pick it when connect is triggered from arbitrary places. Pick the anchored WalletConnect when connect lives in your navbar and you want the trigger-to-chip morph.",
     props: [
       {
         name: "open",
