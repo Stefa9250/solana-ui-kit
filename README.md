@@ -52,6 +52,70 @@ useful, a mock layer (`mock-wallet.ts`) with `TODO` markers showing exactly
 where real `@solana/wallet-adapter` calls plug in. You only need to copy the
 component file itself.
 
+## Wiring up real data
+
+**Transaction status.** `signatureSubscribe` fires once at a target
+commitment — it can't drive the `confirmations` count. Poll
+`getSignatureStatuses` instead (`confirmations: null` means finalized):
+
+```tsx
+useEffect(() => {
+  if (!signature) return;
+  const id = setInterval(async () => {
+    const { value: [s] } = await connection.getSignatureStatuses([signature]);
+    if (!s) return; // not seen yet — still pending
+    if (s.err) {
+      setStatus("failed");
+      setError(s.err); // objects are fine — the component normalizes them
+    } else if (s.confirmations === null) {
+      setStatus("confirmed"); // finalized
+    } else {
+      setStatus("confirming");
+      setConfirmations(s.confirmations);
+    }
+  }, 1000);
+  return () => clearInterval(id);
+}, [signature]);
+```
+
+**Wallet connect.** Map `useWallet()` onto `WalletOption[]` — icons come for
+free from the adapter:
+
+```tsx
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletReadyState } from "@solana/wallet-adapter-base";
+
+const { wallets, select, connect, publicKey } = useWallet();
+const options = wallets.map((w) => ({
+  id: w.adapter.name,
+  name: w.adapter.name,
+  icon: w.adapter.icon,
+  detected: w.readyState === WalletReadyState.Installed,
+  installUrl: w.adapter.url,
+}));
+// onSelectWallet: select(w.id); await connect();
+// then read publicKey.toBase58() — connect() itself returns void.
+```
+
+**Scope note:** the connect components target desktop browser extensions.
+Mobile Wallet Adapter and deeplinks are currently out of scope — on mobile
+browsers, undetected wallets fall back to install links.
+
+## Theming
+
+Every color is a CSS variable with the kit's dark-emerald default inlined as
+a fallback (e.g. `var(--sk-surface,#161b26)`), so the files work with zero
+config. To retheme, define `--sk-*` variables on any ancestor:
+
+```css
+:root {
+  --sk-surface: #ffffff;
+  --sk-text: #111318;
+  --sk-accent: #7c3aed;
+  /* see the token list at the top of any component file */
+}
+```
+
 ## Patterns
 
 **Program-specific errors.** Anchor custom errors (`0x1770 + N`) mean
@@ -108,4 +172,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Adding a component is one folder under
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Wallet logos shown in the demos are trademarks of their
+respective owners, used nominatively to identify each wallet.

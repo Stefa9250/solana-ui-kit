@@ -9,6 +9,14 @@
  * Self-contained: copy this file into your project.
  * Dependencies: React, Tailwind CSS, lucide-react.
  *
+ * Positioning: the panel is absolutely positioned inside the trigger's
+ * wrapper (no portal), so an `overflow: hidden` ancestor will clip it —
+ * keep the trigger out of clipping containers, or use WalletConnectModal.
+ *
+ * Theming: every color is a CSS variable with the kit's dark-emerald default
+ * inlined as fallback (e.g. var(--sk-surface,#161b26)). Define --sk-* on any
+ * ancestor to retheme without touching this file.
+ *
  * <WalletConnect
  *   wallets={wallets}
  *   status={status}
@@ -24,6 +32,7 @@
 
 import {
   useEffect,
+  useInsertionEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -55,6 +64,11 @@ export type WalletConnectFlowStatus =
   | "rejected"
   | "connected";
 
+export interface WalletConnectErrorRule {
+  test: RegExp;
+  text: string;
+}
+
 export interface WalletConnectProps {
   wallets: WalletOption[];
   /** Wallet lifecycle, driven by your adapter calls. */
@@ -67,11 +81,13 @@ export interface WalletConnectProps {
   onDisconnect?: () => void;
   /** Raw connection error shown (mapped) in the rejected state. */
   error?: string;
+  /** Your own connect-error rules, matched before the built-in defaults. */
+  errorMap?: WalletConnectErrorRule[];
   /** Which wallet is mid-flow, when driven externally. */
   selectedWalletId?: string;
-  /** Connected address — shown in the success beat and the chip. */
+  /** Connected address (full base58 is fine — truncated for display). */
   address?: string;
-  /** Badge this wallet "Connected" in the list (e.g. multi-wallet apps). */
+  /** Badge this wallet "Connected" in the list; also drives the chip glyph. */
   connectedWalletId?: string;
   /** Terms of service link in the header. Omit both to hide the line. */
   termsUrl?: string;
@@ -83,25 +99,55 @@ export interface WalletConnectProps {
   className?: string;
 }
 
-function friendlyConnectError(raw?: string): { text: string; raw: string } {
+/** Includes the error names @solana/wallet-adapter actually throws. */
+const DEFAULT_CONNECT_ERROR_MAP: WalletConnectErrorRule[] = [
+  {
+    test: /walletnotready|not ready/i,
+    text: "Wallet isn’t ready. Make sure the extension is enabled.",
+  },
+  {
+    test: /not responding|unresponsive/i,
+    text: "Wallet isn’t responding. Make sure the extension is unlocked.",
+  },
+  {
+    test: /timeout|timed out/i,
+    text: "This is taking longer than usual. Check your wallet extension.",
+  },
+  {
+    test: /walletsigninerror|sign.?in failed/i,
+    text: "Sign-in failed. Try again.",
+  },
+  {
+    test: /user rejected|declined|cancelled|walletconnectionerror.*rejected/i,
+    text: "You declined the connection request.",
+  },
+];
+
+function friendlyConnectError(
+  raw: string | undefined,
+  errorMap?: WalletConnectErrorRule[],
+): { text: string; raw: string } {
   if (!raw) return { text: "Something went wrong connecting. Try again.", raw: "" };
-  if (/not responding|unresponsive/i.test(raw))
-    return {
-      text: "Wallet isn’t responding. Make sure the extension is unlocked.",
-      raw,
-    };
-  if (/timeout|timed out/i.test(raw))
-    return {
-      text: "This is taking longer than usual. Check your wallet extension.",
-      raw,
-    };
-  if (/user rejected|declined|cancelled/i.test(raw))
-    return { text: "You declined the connection request.", raw };
-  return { text: "Something went wrong connecting. Try again.", raw };
+  const rules = errorMap
+    ? [...errorMap, ...DEFAULT_CONNECT_ERROR_MAP]
+    : DEFAULT_CONNECT_ERROR_MAP;
+  const match = rules.find((rule) => rule.test.test(raw));
+  return {
+    text: match ? match.text : "Something went wrong connecting. Try again.",
+    raw,
+  };
 }
 
 function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
+}
+
+/** Full base58 in, short display out. Pre-truncated strings pass through. */
+function shortAddress(address?: string): string {
+  if (!address) return "";
+  return address.length > 12
+    ? `${address.slice(0, 4)}…${address.slice(-4)}`
+    : address;
 }
 
 /** Wallet logo when provided (wallet.adapter.icon), initials otherwise. */
@@ -130,7 +176,7 @@ function WalletGlyph({
   return (
     <span
       aria-hidden
-      className={`flex ${sizeClass} shrink-0 items-center justify-center font-bold text-[#0c0e12] ${textClass} ${className}`}
+      className={`flex ${sizeClass} shrink-0 items-center justify-center font-bold text-[var(--sk-bg,#0c0e12)] ${textClass} ${className}`}
       style={{ background: wallet?.color ?? "#94969c" }}
     >
       {wallet ? initials(wallet.name) : "?"}
@@ -152,10 +198,21 @@ function useReducedMotion(): boolean {
   );
 }
 
+/** Inject the kit stylesheet once per document, no matter how many instances mount. */
+function useKitStyles(id: string, css: string) {
+  useInsertionEffect(() => {
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = css;
+    document.head.appendChild(style);
+  }, [id, css]);
+}
+
 const FOCUSABLE =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
-/* Scoped keyframes — inlined so the component works with zero Tailwind config. */
+const STYLE_ID = "sol-wc-styles";
 const KEYFRAMES = `
 @keyframes sol-wc-panel-in { from { opacity: 0; transform: scale(0.96) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes sol-wc-panel-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(-2px); } }
@@ -171,11 +228,10 @@ const KEYFRAMES = `
 .sol-wc-spin { animation: sol-wc-spin 1.2s linear infinite; }
 .sol-wc-check-circle-path { stroke-dasharray: 132; animation: sol-wc-check-circle 450ms cubic-bezier(0.65,0,0.35,1) forwards; }
 .sol-wc-check-mark-path { stroke-dasharray: 24; animation: sol-wc-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 380ms forwards; }
-.sol-wc-row { border-left: 2px solid #22262f; transition: background 150ms ease, border-color 150ms ease, opacity 200ms ease; }
-.sol-wc-row:hover:not([data-disabled="true"]) { background: #1a2030; border-left-color: #10b981; }
+.sol-wc-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
+.sol-wc-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
 .sol-wc-row .sol-wc-cta { opacity: 0; transition: opacity 150ms ease; }
 .sol-wc-row:hover:not([data-disabled="true"]) .sol-wc-cta { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .sol-wc-row .sol-wc-cta { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .sol-wc-panel-enter, .sol-wc-panel-exit, .sol-wc-step-enter, .sol-wc-item-enter,
   .sol-wc-spin, .sol-wc-check-circle-path, .sol-wc-check-mark-path, .sol-wc-row {
@@ -199,7 +255,7 @@ function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
         />
       ) : (
         <div
-          className="absolute inset-[10px] flex items-center justify-center text-[14px] font-bold text-[#0c0e12]"
+          className="absolute inset-[10px] flex items-center justify-center text-[14px] font-bold text-[var(--sk-bg,#0c0e12)]"
           style={{ background: wallet?.color ?? "#94969c" }}
         >
           {wallet ? initials(wallet.name) : "?"}
@@ -216,7 +272,7 @@ function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
           cy={32}
           r={29}
           fill="none"
-          stroke="#34d399"
+          stroke="var(--sk-accent,#34d399)"
           strokeWidth={2.5}
           strokeDasharray="60 122"
           strokeLinecap="round"
@@ -233,6 +289,7 @@ export function WalletConnect({
   onSign,
   onDisconnect,
   error,
+  errorMap,
   selectedWalletId,
   address,
   connectedWalletId,
@@ -256,8 +313,11 @@ export function WalletConnect({
   const stepRef = useRef<HTMLDivElement>(null);
   const stepHeightRef = useRef<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<() => void>(() => {});
   const reduceMotion = useReducedMotion();
+
+  useKitStyles(STYLE_ID, KEYFRAMES);
 
   const setOpen = (next: boolean) => {
     if (openProp === undefined) setOpenInternal(next);
@@ -307,6 +367,12 @@ export function WalletConnect({
     return () => focusTrigger();
   }, [present]);
 
+  // Focus the chip menu's first item when it opens.
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+  }, [menuOpen]);
+
   // Escape and outside click close the panel (and the chip menu).
   useEffect(() => {
     if (!present && !menuOpen) return;
@@ -329,7 +395,7 @@ export function WalletConnect({
   // Connected: brief success beat, then the panel closes into the chip.
   useEffect(() => {
     if (status !== "connected") return;
-    const t = setTimeout(() => closeRef.current(), 1400);
+    const t = setTimeout(() => closeRef.current(), 2000);
     return () => clearTimeout(t);
   }, [status]);
 
@@ -362,6 +428,9 @@ export function WalletConnect({
 
   const effectiveSelectedId = selectedWalletId ?? internalSelectedId;
   const selectedWallet = wallets.find((w) => w.id === effectiveSelectedId);
+  const connectedWallet = wallets.find((w) => w.id === connectedWalletId);
+  // After a reload with autoConnect, only connectedWalletId may be set.
+  const chipWallet = selectedWallet ?? connectedWallet;
   const detected = wallets.filter((w) => w.detected);
   const noneDetected = detected.length === 0;
   const anyRecommended = wallets.some((w) => w.recommended);
@@ -379,12 +448,12 @@ export function WalletConnect({
   const visibleWallets = showAll ? [...mainWallets, ...extraWallets] : mainWallets;
   const helpView = noneDetected || helpOpen;
   const friendly = error
-    ? friendlyConnectError(error)
+    ? friendlyConnectError(error, errorMap)
     : {
         text: `You declined the connection in ${selectedWallet?.name ?? "your wallet"}.`,
         raw: "",
       };
-  const shortAddress = address ?? "";
+  const displayAddress = shortAddress(address);
 
   const liveText = !present
     ? ""
@@ -395,7 +464,7 @@ export function WalletConnect({
         : view === "rejected"
           ? friendly.text
           : view === "connected"
-            ? `Wallet connected${address ? `: ${address}` : ""}`
+            ? `Wallet connected${displayAddress ? `: ${displayAddress}` : ""}`
             : helpView
               ? "Get a wallet to continue."
               : "Choose a wallet to connect.";
@@ -427,24 +496,45 @@ export function WalletConnect({
     }
   };
 
+  const menuKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      setMenuOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const items = Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+      );
+      if (items.length === 0) return;
+      const index = items.indexOf(document.activeElement as HTMLElement);
+      const delta = e.key === "ArrowDown" ? 1 : -1;
+      items[(index + delta + items.length) % items.length]?.focus();
+    }
+  };
+
   const renderRow = (wallet: WalletOption, index: number) => {
     const rowClasses =
-      "sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[#22262f] bg-[#13161b] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2";
+      "sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2";
     const rowStyle = { animationDelay: `${index * 40}ms` };
     const isConnected = wallet.id === connectedWalletId;
     const icon = (
       <WalletGlyph wallet={wallet} sizeClass="size-7" textClass="text-[11px]" />
     );
     const badge = isConnected ? (
-      <span className="border border-emerald-500 px-2 py-[2px] text-[10.5px] font-semibold text-emerald-400">
+      <span className="border border-[var(--sk-success,#17b26a)] px-2 py-[2px] text-[10.5px] font-semibold text-[var(--sk-accent,#34d399)]">
         Connected
       </span>
     ) : wallet.detected ? (
-      <span className="border border-[#373a41] px-2 py-[2px] text-[10.5px] font-semibold text-[#cecfd2]">
+      <span className="border border-[var(--sk-border-strong,#373a41)] px-2 py-[2px] text-[10.5px] font-semibold text-[var(--sk-text-secondary,#cecfd2)]">
         Detected
       </span>
     ) : (
-      <span className="sol-wc-cta text-[11px] text-[#94969c]">Install {"↗"}</span>
+      <span className="sol-wc-cta text-[11px] text-[var(--sk-text-tertiary,#94969c)]">
+        Install {"↗"}
+      </span>
     );
     if (!wallet.detected) {
       return (
@@ -458,7 +548,7 @@ export function WalletConnect({
           style={rowStyle}
         >
           {icon}
-          <span className="flex-1 text-[13px] font-semibold text-[#f7f7f7]">
+          <span className="flex-1 text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
             {wallet.name}
           </span>
           {badge}
@@ -475,7 +565,7 @@ export function WalletConnect({
         style={rowStyle}
       >
         {icon}
-        <span className="flex-1 text-[13px] font-semibold text-[#f7f7f7]">
+        <span className="flex-1 text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
           {wallet.name}
         </span>
         {badge}
@@ -485,7 +575,6 @@ export function WalletConnect({
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className ?? ""}`}>
-      <style>{KEYFRAMES}</style>
       <div role="status" aria-live="polite" className="sr-only">
         {liveText}
       </div>
@@ -498,31 +587,37 @@ export function WalletConnect({
             onClick={() => setMenuOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            className="sol-wc-step-enter flex cursor-pointer items-center gap-2 border border-[#22262f] bg-transparent py-1.5 pl-2.5 pr-1.5 transition-colors duration-150 hover:bg-[#161b26] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+            title={address}
+            className="sol-wc-step-enter flex cursor-pointer items-center gap-2 border border-[var(--sk-border,#22262f)] bg-transparent py-1.5 pl-2.5 pr-1.5 transition-colors duration-150 hover:bg-[var(--sk-surface,#161b26)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
           >
-            {selectedWallet ? (
+            {chipWallet ? (
               <WalletGlyph
-                wallet={selectedWallet}
+                wallet={chipWallet}
                 sizeClass="size-5"
                 textClass="text-[10px]"
               />
             ) : (
               <span
                 aria-hidden
-                className="flex size-5 items-center justify-center bg-[#34d399] text-[10px] font-bold text-[#0c0e12]"
+                className="flex size-5 items-center justify-center bg-[var(--sk-accent,#34d399)] text-[10px] font-bold text-[var(--sk-bg,#0c0e12)]"
               >
                 {"◎"}
               </span>
             )}
-            <span className="font-mono text-[12px] text-[#f7f7f7]">
-              {shortAddress || "Connected"}
+            <span className="font-mono text-[12px] text-[var(--sk-text,#f7f7f7)]">
+              {displayAddress || "Connected"}
             </span>
-            <MoreVertical aria-hidden className="size-3.5 text-[#61656c]" />
+            <MoreVertical
+              aria-hidden
+              className="size-3.5 text-[var(--sk-text-quaternary,#61656c)]"
+            />
           </button>
           {menuOpen && (
             <div
+              ref={menuRef}
               role="menu"
-              className="sol-wc-panel-enter absolute right-0 top-full z-50 mt-1.5 w-40 border border-[#22262f] bg-[#161b26] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+              onKeyDown={menuKeyDown}
+              className="sol-wc-panel-enter absolute right-0 top-full z-50 mt-1.5 w-40 border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
             >
               <button
                 type="button"
@@ -531,7 +626,7 @@ export function WalletConnect({
                   setMenuOpen(false);
                   onDisconnect?.();
                 }}
-                className="w-full cursor-pointer px-3 py-2.5 text-left text-[13px] font-semibold text-[#cecfd2] transition-colors duration-150 hover:bg-[#22262f] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                className="w-full cursor-pointer px-3 py-2.5 text-left text-[13px] font-semibold text-[var(--sk-text-secondary,#cecfd2)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
               >
                 Disconnect
               </button>
@@ -545,7 +640,7 @@ export function WalletConnect({
           onClick={() => setOpen(!open)}
           aria-haspopup="dialog"
           aria-expanded={open}
-          className="cursor-pointer bg-[#00543f] px-4 py-2 text-[13px] font-semibold text-[#18e3a5] transition-colors duration-150 hover:bg-[#006a53] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+          className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-4 py-2 text-[13px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
         >
           Connect wallet
         </button>
@@ -555,11 +650,10 @@ export function WalletConnect({
         <div
           ref={panelRef}
           role="dialog"
-          aria-modal="true"
           aria-label="Connect wallet"
           tabIndex={-1}
           onKeyDown={trapFocus}
-          className={`absolute right-0 top-full z-50 mt-2 w-[290px] origin-top-right overflow-hidden border border-[#22262f] bg-[#161b26] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
+          className={`absolute right-0 top-full z-50 mt-2 w-[290px] origin-top-right overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
             exiting ? "sol-wc-panel-exit" : "sol-wc-panel-enter"
           }`}
         >
@@ -567,15 +661,18 @@ export function WalletConnect({
             {view === "list" &&
               (helpView ? (
                 <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
-                  <div className="flex size-11 items-center justify-center bg-[#1f242f]">
-                    <Wallet aria-hidden className="size-5 text-[#94969c]" />
+                  <div className="flex size-11 items-center justify-center bg-[var(--sk-raised,#1f242f)]">
+                    <Wallet
+                      aria-hidden
+                      className="size-5 text-[var(--sk-text-tertiary,#94969c)]"
+                    />
                   </div>
-                  <div className="text-[14px] font-semibold text-[#f7f7f7]">
+                  <div className="text-[14px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                     {noneDetected ? "No wallet found" : "Get a wallet"}
                   </div>
-                  <div className="text-[12px] leading-relaxed text-[#94969c]">
-                    A wallet holds your keys and approves transactions —
-                    install one to continue.
+                  <div className="text-[12px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
+                    A wallet is a browser extension that holds your keys and
+                    approves transactions — install one to continue.
                   </div>
                   <div className="mt-1 flex flex-wrap justify-center gap-2">
                     {wallets.map((w) => (
@@ -584,7 +681,7 @@ export function WalletConnect({
                         href={w.installUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="border border-[#22262f] px-3 py-1.5 text-[12px] font-semibold text-emerald-400 transition-colors duration-150 hover:bg-[#22262f] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                        className="border border-[var(--sk-border,#22262f)] px-3 py-1.5 text-[12px] font-semibold text-[var(--sk-accent,#34d399)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                       >
                         Get {w.name}
                       </a>
@@ -594,7 +691,7 @@ export function WalletConnect({
                     <button
                       type="button"
                       onClick={() => setHelpOpen(false)}
-                      className="mt-0.5 cursor-pointer text-[12px] font-semibold text-[#94969c] transition-colors duration-150 hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                      className="mt-0.5 cursor-pointer text-[12px] font-semibold text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                     >
                       Back to wallet list
                     </button>
@@ -602,18 +699,18 @@ export function WalletConnect({
                 </div>
               ) : (
                 <div className="p-4">
-                  <div className="text-center text-[15px] font-semibold text-[#f7f7f7]">
+                  <div className="text-center text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                     Connect wallet
                   </div>
                   {(termsUrl || privacyUrl) && (
-                    <p className="mx-auto mb-0 mt-1.5 text-center text-[11.5px] leading-relaxed text-[#94969c]">
+                    <p className="mx-auto mb-0 mt-1.5 text-center text-[11.5px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
                       By connecting your wallet, you agree to our{" "}
                       {termsUrl && (
                         <a
                           href={termsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                          className="font-semibold text-[var(--sk-accent,#34d399)] transition-colors duration-150 hover:text-[var(--sk-accent-soft,#6ee7b7)] hover:underline focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                         >
                           Terms of Service
                         </a>
@@ -624,7 +721,7 @@ export function WalletConnect({
                           href={privacyUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                          className="font-semibold text-[var(--sk-accent,#34d399)] transition-colors duration-150 hover:text-[var(--sk-accent-soft,#6ee7b7)] hover:underline focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                         >
                           Privacy Policy
                         </a>
@@ -633,7 +730,7 @@ export function WalletConnect({
                     </p>
                   )}
                   {anyRecommended && (
-                    <div className="mb-1.5 mt-3 text-[11.5px] text-[#94969c]">
+                    <div className="mb-1.5 mt-3 text-[11.5px] text-[var(--sk-text-tertiary,#94969c)]">
                       Recommended
                     </div>
                   )}
@@ -643,16 +740,16 @@ export function WalletConnect({
                       <button
                         type="button"
                         onClick={() => setShowAll(true)}
-                        className="sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[#22262f] bg-[#13161b] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                        className="sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                         style={{ animationDelay: `${visibleWallets.length * 40}ms` }}
                       >
                         <span
                           aria-hidden
-                          className="flex size-7 shrink-0 items-center justify-center bg-[#1f242f]"
+                          className="flex size-7 shrink-0 items-center justify-center bg-[var(--sk-raised,#1f242f)]"
                         >
-                          <MoreHorizontal className="size-4 text-[#cecfd2]" />
+                          <MoreHorizontal className="size-4 text-[var(--sk-text-secondary,#cecfd2)]" />
                         </span>
-                        <span className="flex-1 text-[13px] font-semibold text-[#f7f7f7]">
+                        <span className="flex-1 text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                           More wallets
                         </span>
                       </button>
@@ -662,7 +759,7 @@ export function WalletConnect({
                     <button
                       type="button"
                       onClick={() => setHelpOpen(true)}
-                      className="cursor-pointer text-[12px] font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                      className="cursor-pointer text-[12px] font-semibold text-[var(--sk-accent,#34d399)] transition-colors duration-150 hover:text-[var(--sk-accent-soft,#6ee7b7)] hover:underline focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                     >
                       I don{"’"}t have a wallet
                     </button>
@@ -673,11 +770,11 @@ export function WalletConnect({
             {view === "connecting" && (
               <div className="px-4 py-6 text-center">
                 <SpinnerAvatar wallet={selectedWallet} />
-                <div className="mt-3.5 text-[13px] font-semibold text-[#f7f7f7]">
+                <div className="mt-3.5 text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                   Approve in {selectedWallet?.name ?? "your wallet"}
                 </div>
                 <div
-                  className={`mt-1 text-[11px] text-[#61656c] transition-opacity duration-300 ${
+                  className={`mt-1 text-[11px] text-[var(--sk-text-quaternary,#61656c)] transition-opacity duration-300 ${
                     showHint ? "opacity-100" : "opacity-0"
                   }`}
                 >
@@ -696,13 +793,26 @@ export function WalletConnect({
                   aria-hidden
                   className="mx-auto mb-2.5"
                 >
-                  <rect x={3} y={3} width={30} height={30} stroke="#34d399" strokeWidth={2} />
-                  <rect x={14} y={14} width={8} height={8} fill="#059669" />
+                  <rect
+                    x={3}
+                    y={3}
+                    width={30}
+                    height={30}
+                    stroke="var(--sk-accent,#34d399)"
+                    strokeWidth={2}
+                  />
+                  <rect
+                    x={14}
+                    y={14}
+                    width={8}
+                    height={8}
+                    fill="var(--sk-accent-deep,#059669)"
+                  />
                 </svg>
-                <div className="text-[14px] font-semibold text-[#f7f7f7]">
+                <div className="text-[14px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                   Sign the message to continue
                 </div>
-                <div className="mx-auto mb-3.5 mt-1.5 max-w-[220px] text-[11px] leading-relaxed text-[#94969c]">
+                <div className="mx-auto mb-3.5 mt-1.5 max-w-[220px] text-[11px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
                   The signature verifies you own this address. It costs
                   nothing.
                 </div>
@@ -710,7 +820,7 @@ export function WalletConnect({
                   <button
                     type="button"
                     onClick={onSign}
-                    className="cursor-pointer bg-[#00543f] px-3.5 py-2 text-[13px] font-semibold text-[#18e3a5] transition-colors duration-150 hover:bg-[#006a53] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                    className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-3.5 py-2 text-[13px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                   >
                     Sign message
                   </button>
@@ -720,9 +830,9 @@ export function WalletConnect({
                       setOpen(false);
                       onDisconnect?.();
                     }}
-                    className="cursor-pointer border border-[#22262f] px-3.5 py-2 text-[13px] font-semibold text-[#cecfd2] transition-colors duration-150 hover:bg-[#22262f] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                    className="cursor-pointer border border-[var(--sk-border-strong,#373a41)] bg-[var(--sk-card,#13161b)] px-3.5 py-2 text-[13px] font-semibold text-[var(--sk-text-secondary,#cecfd2)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                   >
-                    Disconnect
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -738,32 +848,31 @@ export function WalletConnect({
                     className="opacity-70"
                   />
                   <div>
-                    <div className="text-[13px] font-semibold text-[#f7f7f7]">
+                    <div className="text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                       Connection cancelled
                     </div>
-                    <div className="mt-0.5 text-[12px] leading-relaxed text-[#94969c]">
+                    <div className="mt-0.5 text-[12px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
                       {friendly.text}
                     </div>
                   </div>
                 </div>
                 <div className="mt-3.5 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const wallet = selectedWallet ?? detected[0];
-                      if (wallet) selectWallet(wallet);
-                    }}
-                    className="cursor-pointer bg-[#00543f] px-3.5 py-2 text-[13px] font-semibold text-[#18e3a5] transition-colors duration-150 hover:bg-[#006a53] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
-                  >
-                    Try again
-                  </button>
+                  {selectedWallet && (
+                    <button
+                      type="button"
+                      onClick={() => selectWallet(selectedWallet)}
+                      className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-3.5 py-2 text-[13px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+                    >
+                      Try again
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
                       setOpen(false);
                       onDisconnect?.();
                     }}
-                    className="cursor-pointer border border-[#22262f] px-3.5 py-2 text-[13px] font-semibold text-[#cecfd2] transition-colors duration-150 hover:bg-[#22262f] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                    className="cursor-pointer border border-[var(--sk-border-strong,#373a41)] bg-[var(--sk-card,#13161b)] px-3.5 py-2 text-[13px] font-semibold text-[var(--sk-text-secondary,#cecfd2)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                   >
                     Cancel
                   </button>
@@ -774,8 +883,8 @@ export function WalletConnect({
             {view === "connected" && (
               <div className="px-4 py-6 text-center">
                 <svg
-                  width={52}
-                  height={52}
+                  width={48}
+                  height={48}
                   viewBox="0 0 48 48"
                   fill="none"
                   aria-hidden
@@ -786,24 +895,27 @@ export function WalletConnect({
                     cx={24}
                     cy={24}
                     r={21}
-                    stroke="#17b26a"
+                    stroke="var(--sk-success,#17b26a)"
                     strokeWidth={2.5}
                   />
                   <path
                     className="sol-wc-check-mark-path"
                     d="M15 24.5L21 30.5L33 17.5"
-                    stroke="#17b26a"
+                    stroke="var(--sk-success,#17b26a)"
                     strokeWidth={3}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
-                <div className="mt-2.5 text-[14px] font-semibold text-[#f7f7f7]">
+                <div className="mt-2.5 text-[14px] font-semibold text-[var(--sk-text,#f7f7f7)]">
                   Wallet connected
                 </div>
-                {address && (
-                  <div className="mt-0.5 font-mono text-[12px] text-[#94969c]">
-                    {address}
+                {displayAddress && (
+                  <div
+                    className="mt-0.5 font-mono text-[12px] text-[var(--sk-text-tertiary,#94969c)]"
+                    title={address}
+                  >
+                    {displayAddress}
                   </div>
                 )}
               </div>

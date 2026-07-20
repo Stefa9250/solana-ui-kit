@@ -176,7 +176,7 @@ export default function WalletConnectModalDemo() {
         });
         break;
       case "Connected":
-        setAddress("GK7z…4jNq");
+        setAddress("GK7zVzHYf7hM4dQxkNvR8mW2jL5tYbAcD9eF6gHiJkMq");
         openWith("connected", { selectedWalletId: "phantom" });
         break;
     }

@@ -61,7 +61,8 @@ const WALLETS: WalletOption[] = [
   },
 ];
 const NONE_DETECTED = WALLETS.map((w) => ({ ...w, detected: false }));
-const ADDRESS = "GK7z…4jNq";
+// Full base58 address — the components truncate for display themselves.
+const ADDRESS = "GK7zVzHYf7hM4dQxkNvR8mW2jL5tYbAcD9eF6gHiJkMq";
 
 export default function WalletConnectDemo() {
   const [status, setStatus] = useState<WalletConnectFlowStatus>("disconnected");

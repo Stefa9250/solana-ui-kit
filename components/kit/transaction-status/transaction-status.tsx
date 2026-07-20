@@ -7,11 +7,15 @@
  * purposeful motion. Self-contained: copy this file into your project.
  * Dependencies: React, Tailwind CSS, lucide-react.
  *
+ * Theming: every color is a CSS variable with the kit's dark-emerald default
+ * inlined as fallback (e.g. var(--sk-surface,#161b26)). Define --sk-* on any
+ * ancestor to retheme without touching this file.
+ *
  * <TransactionStatus
  *   status="confirming"
  *   signature={signature}
  *   confirmations={12}
- *   errorMap={[{ test: /0x1771/i, text: "Price moved too much." }]}
+ *   errorMap={[{ test: /0x1771|"Custom":6001/i, text: "Price moved too much." }]}
  *   onRetry={() => resubmit()}
  *   onDismiss={() => reset()}
  * />
@@ -22,7 +26,13 @@
  * count — or omit `confirmations` for a calm indeterminate bar.
  */
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useInsertionEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { AlertCircle, X } from "lucide-react";
 
 export interface TransactionStatusErrorRule {
@@ -35,6 +45,8 @@ export interface TransactionStatusErrorRule {
  * different things per program — pass your program's own rules via the
  * `errorMap` prop, e.g. for a Jupiter swap:
  *   { test: /0x1771/i, text: "Price moved too much. Try again or increase slippage." }
+ * Post-send failures report codes in decimal ({"Custom":6001}); the component
+ * appends the hex form before matching so one 0x-based rule covers both paths.
  */
 const DEFAULT_ERROR_MAP: TransactionStatusErrorRule[] = [
   {
@@ -46,12 +58,20 @@ const DEFAULT_ERROR_MAP: TransactionStatusErrorRule[] = [
     text: "Not enough SOL would be left for rent. Add SOL and retry.",
   },
   {
+    test: /found no record of a prior credit/i,
+    text: "This account has no SOL to pay the fee. Fund it and retry.",
+  },
+  {
     test: /insufficient.*(lamports|funds|sol)/i,
     text: "Not enough SOL to cover this transaction and its fees.",
   },
   {
-    test: /blockhash.*expired|blockhash not found/i,
-    text: "This transaction timed out. Tap retry to resubmit.",
+    test: /block height exceeded|transactionexpired|blockhash.*expired|blockhash not found/i,
+    text: "This transaction expired before it landed. Retry to resubmit.",
+  },
+  {
+    test: /was not confirmed in \d+/i,
+    text: "Confirmation timed out — it may still have landed. Check the explorer before retrying.",
   },
   {
     test: /user rejected|rejected the request|user cancelled|user declined/i,
@@ -69,18 +89,44 @@ const DEFAULT_ERROR_MAP: TransactionStatusErrorRule[] = [
     test: /429|too many requests|rate.?limit/i,
     text: "The network endpoint is busy. Wait a moment and retry.",
   },
+  {
+    test: /node is behind/i,
+    text: "The RPC node is behind. Try again or switch endpoints.",
+  },
 ];
 
+/**
+ * Accepts raw error strings AND the objects Solana APIs actually return
+ * (e.g. getSignatureStatuses err: {"InstructionError":[0,{"Custom":6001}]}).
+ * Decimal custom codes get their hex form appended so 0x-based rules match.
+ */
+function normalizeError(raw?: string | object): string {
+  if (!raw) return "";
+  let text = typeof raw === "string" ? raw : JSON.stringify(raw);
+  const custom = text.match(/"Custom"\s*:\s*(\d+)/);
+  if (custom) {
+    text += ` (custom program error: 0x${Number(custom[1]).toString(16)})`;
+  }
+  return text;
+}
+
 function friendlyError(
-  raw: string | undefined,
+  raw: string | object | undefined,
   errorMap?: TransactionStatusErrorRule[],
 ): { text: string; raw: string } {
-  if (!raw) return { text: "Something went wrong on-chain.", raw: "" };
+  const normalized = normalizeError(raw);
+  if (!normalized) return { text: "Something went wrong on-chain.", raw: "" };
   // RPC simulation wraps the real error — strip the prefix before matching.
-  const normalized = raw.replace(/^.*transaction simulation failed:\s*/i, "");
+  const matchable = normalized.replace(
+    /^.*transaction simulation failed:\s*/i,
+    "",
+  );
   const rules = errorMap ? [...errorMap, ...DEFAULT_ERROR_MAP] : DEFAULT_ERROR_MAP;
-  const match = rules.find((rule) => rule.test.test(normalized));
-  return { text: match ? match.text : "Something went wrong on-chain.", raw };
+  const match = rules.find((rule) => rule.test.test(matchable));
+  return {
+    text: match ? match.text : "Something went wrong on-chain.",
+    raw: normalized,
+  };
 }
 
 export type SolanaCluster = "mainnet-beta" | "devnet" | "testnet";
@@ -88,6 +134,19 @@ export type SolanaCluster = "mainnet-beta" | "devnet" | "testnet";
 function defaultExplorerUrl(signature: string, cluster: SolanaCluster): string {
   const suffix = cluster === "mainnet-beta" ? "" : `?cluster=${cluster}`;
   return `https://solscan.io/tx/${signature}${suffix}`;
+}
+
+/** "View on Solscan" would lie when explorerUrl is overridden — derive it. */
+function explorerLabel(href: string): string {
+  try {
+    const host = new URL(href).hostname.replace(/^www\./, "");
+    if (host === "solscan.io") return "Solscan";
+    if (host === "explorer.solana.com") return "Solana Explorer";
+    if (host === "solana.fm") return "SolanaFM";
+    return host;
+  } catch {
+    return "explorer";
+  }
 }
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -104,6 +163,17 @@ function useReducedMotion(): boolean {
   );
 }
 
+/** Inject the kit stylesheet once per document, no matter how many instances mount. */
+function useKitStyles(id: string, css: string) {
+  useInsertionEffect(() => {
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = css;
+    document.head.appendChild(style);
+  }, [id, css]);
+}
+
 export type TransactionStatusState =
   | "idle"
   | "pending"
@@ -114,7 +184,7 @@ export type TransactionStatusState =
 export interface TransactionStatusDetails {
   /** Headline of the transaction card, e.g. "Sending 2.5 SOL". */
   primary: string;
-  /** Line under the headline, e.g. "to sol.domain.eth". */
+  /** Line under the headline, e.g. "to wallet.sol". */
   secondary?: string;
   /** Right-aligned monospace meta, e.g. a short address. */
   meta?: string;
@@ -124,8 +194,11 @@ export interface TransactionStatusProps {
   status: TransactionStatusState;
   /** Transaction signature — powers the explorer link and short display. */
   signature?: string;
-  /** Raw RPC / wallet error. Mapped to plain language automatically. */
-  error?: string;
+  /**
+   * Raw RPC / wallet error — a string or the error object itself (e.g. the
+   * `err` from getSignatureStatuses). Mapped to plain language automatically.
+   */
+  error?: string | object;
   /**
    * Your program's error rules, matched before the built-in defaults.
    * Anchor custom errors (0x1770 + N) are program-specific — map them here.
@@ -139,7 +212,7 @@ export interface TransactionStatusProps {
   cluster?: SolanaCluster;
   /** Override the explorer entirely, e.g. (sig) => `https://solana.fm/tx/${sig}`. */
   explorerUrl?: (signature: string) => string;
-  /** Called from the Retry button in the failed state. */
+  /** Called from the Retry button in the failed state. Omit to hide Retry. */
   onRetry?: () => void;
   /** When provided, shows a dismiss button and enables autoDismissMs. */
   onDismiss?: () => void;
@@ -152,7 +225,7 @@ export interface TransactionStatusProps {
   className?: string;
 }
 
-/* Scoped keyframes — inlined so the component works with zero Tailwind config. */
+const STYLE_ID = "sol-txs-styles";
 const KEYFRAMES = `
 @keyframes sol-txs-fade-slide-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes sol-txs-trace { from { stroke-dashoffset: 128; } to { stroke-dashoffset: 0; } }
@@ -188,14 +261,21 @@ function BlockTrace() {
   return (
     <div className="flex size-10 shrink-0 items-center justify-center" aria-hidden>
       <svg width={36} height={36} viewBox="0 0 36 36" fill="none">
-        <rect x={2} y={2} width={32} height={32} stroke="#22262f" strokeWidth={2} />
+        <rect
+          x={2}
+          y={2}
+          width={32}
+          height={32}
+          stroke="var(--sk-border,#22262f)"
+          strokeWidth={2}
+        />
         <rect
           className="sol-txs-trace-path"
           x={2}
           y={2}
           width={32}
           height={32}
-          stroke="#34d399"
+          stroke="var(--sk-accent,#34d399)"
           strokeWidth={2}
         />
         <rect
@@ -204,7 +284,7 @@ function BlockTrace() {
           y={14}
           width={8}
           height={8}
-          fill="#059669"
+          fill="var(--sk-accent-deep,#059669)"
         />
       </svg>
     </div>
@@ -269,12 +349,16 @@ export function TransactionStatus({
   const onDismissRef = useRef(onDismiss);
   const reduceMotion = useReducedMotion();
 
+  useKitStyles(STYLE_ID, KEYFRAMES);
+
   // Reset the collapsible + progress when a new attempt starts
   // (render-phase adjustment — https://react.dev/learn/you-might-not-need-an-effect).
+  // The bar also resets on any entry into confirming so a failed→confirming
+  // retry never starts from the previous attempt's stale percentage.
   if (prevStatus !== status) {
     setPrevStatus(status);
     setDetailsOpen(false);
-    if (status === "pending" || status === "idle") {
+    if (status === "pending" || status === "idle" || status === "confirming") {
       setDisplayPct(0);
     } else if (status === "confirmed") {
       setDisplayPct(100);
@@ -367,24 +451,26 @@ export function TransactionStatus({
       href={explorerHref}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-[13px] font-semibold text-emerald-400 transition-colors duration-150 hover:text-emerald-300 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+      className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--sk-accent,#34d399)] transition-colors duration-150 hover:text-[var(--sk-accent-soft,#6ee7b7)] hover:underline focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
     >
-      View on Solscan {"↗"}
+      View on {explorerLabel(explorerHref)} {"↗"}
     </a>
   );
 
   const detailsCard = details && (
-    <div className="relative mt-[18px] flex items-center justify-between gap-3 overflow-hidden border border-[#22262f] bg-[#1f242f] px-3.5 py-3">
+    <div className="relative mt-[18px] flex items-center justify-between gap-3 overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-raised,#1f242f)] px-3.5 py-3">
       {status === "confirming" &&
         (confirmations === undefined ? (
           <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
-            <div className="sol-txs-stripes sol-txs-sweep absolute inset-y-0 w-1/4 bg-[#333741] opacity-50" />
+            <div className="sol-txs-stripes sol-txs-sweep absolute inset-y-0 w-1/4 bg-[var(--sk-fill,#333741)] opacity-50" />
           </div>
         ) : (
           <div
             aria-hidden
             className={`sol-txs-stripes absolute bottom-0 left-0 top-0 z-0 opacity-50 transition-colors duration-200 ${
-              atTarget ? "sol-txs-flash bg-[#17b26a]" : "bg-[#333741]"
+              atTarget
+                ? "sol-txs-flash bg-[var(--sk-success,#17b26a)]"
+                : "bg-[var(--sk-fill,#333741)]"
             }`}
             style={{
               width: `${(reduceMotion ? pct : displayPct).toFixed(2)}%`,
@@ -395,11 +481,11 @@ export function TransactionStatus({
       <div className="relative z-10 flex items-center gap-2.5">
         <SolanaMark />
         <div>
-          <div className="text-[14px] font-semibold text-[#f7f7f7]">
+          <div className="text-[14px] font-semibold text-[var(--sk-text,#f7f7f7)]">
             {details.primary}
           </div>
           {details.secondary && (
-            <div className="mt-px text-[12px] text-[#94969c]">
+            <div className="mt-px text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
               {details.secondary}
             </div>
           )}
@@ -408,7 +494,9 @@ export function TransactionStatus({
       {details.meta && (
         <div
           className={`relative z-10 shrink-0 text-right font-mono text-[12px] ${
-            status === "confirming" ? "text-[#94969c]" : "text-[#61656c]"
+            status === "confirming"
+              ? "text-[var(--sk-text-tertiary,#94969c)]"
+              : "text-[var(--sk-text-quaternary,#61656c)]"
           }`}
         >
           {details.meta}
@@ -419,7 +507,6 @@ export function TransactionStatus({
 
   return (
     <div className={`relative ${className ?? ""}`}>
-      <style>{KEYFRAMES}</style>
       <div role="status" aria-live="polite" className="sr-only">
         {liveAnnouncement}
       </div>
@@ -429,131 +516,141 @@ export function TransactionStatus({
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="absolute right-0 top-0 z-10 flex size-7 cursor-pointer items-center justify-center text-[#61656c] transition-colors duration-150 hover:bg-[#22262f] hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+          className="absolute right-0 top-0 z-10 flex size-7 cursor-pointer items-center justify-center text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
         >
           <X aria-hidden className="size-4" />
         </button>
       )}
 
-      <div
-        key={status}
-        className={`sol-txs-panel-enter ${status === "failed" ? "sol-txs-shake" : ""}`}
-      >
-        {status === "pending" && (
-          <div className="flex items-center gap-4">
-            <BlockTrace />
-            <div>
-              <div className="text-[15px] font-semibold text-[#f7f7f7]">
-                Sending transaction
-              </div>
-              <div className="mt-0.5 text-[13px] text-[#94969c]">
-                Waiting for the network to pick it up{"…"}
-              </div>
-              {explorerLink && <div className="mt-2">{explorerLink}</div>}
-            </div>
-          </div>
-        )}
-
-        {status === "confirming" && (
-          <div className="flex items-center gap-4 py-1">
-            <BlockTrace />
-            <div className="min-w-0 flex-1">
-              <div className="text-[15px] font-semibold text-[#f7f7f7]">
-                Confirming
-              </div>
-              <div className="mt-0.5 text-[13px] text-[#94969c]">
-                {confirmations === undefined
-                  ? "Waiting for confirmations…"
-                  : `${confirmations} of ${totalConfirmations} confirmations`}
-              </div>
-              {explorerLink && <div className="mt-2">{explorerLink}</div>}
-            </div>
-          </div>
-        )}
-
-        {status === "confirmed" && (
-          <div className="flex items-center gap-4 py-1">
-            <div className="sol-txs-success-bounce shrink-0">
-              <svg width={48} height={48} viewBox="0 0 48 48" fill="none" aria-hidden>
-                <circle
-                  className="sol-txs-check-circle-path"
-                  cx={24}
-                  cy={24}
-                  r={21}
-                  stroke="#17b26a"
-                  strokeWidth={2.5}
-                />
-                <path
-                  className="sol-txs-check-mark-path"
-                  d="M15 24.5L21 30.5L33 17.5"
-                  stroke="#17b26a"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div>
-              <div className="text-[15px] font-semibold text-[#f7f7f7]">
-                Transaction confirmed
-              </div>
-              {shortSig && (
-                <div className="mt-0.5 text-[13px] text-[#94969c]">{shortSig}</div>
-              )}
-              {explorerLink && <div className="mt-2">{explorerLink}</div>}
-            </div>
-          </div>
-        )}
-
-        {status === "failed" && (
-          <div className="flex flex-col gap-4 py-1">
+      <div key={status} className="sol-txs-panel-enter">
+        {/* Shake lives on an inner wrapper so failure both fades in AND shakes. */}
+        <div className={status === "failed" ? "sol-txs-shake" : undefined}>
+          {status === "pending" && (
             <div className="flex items-center gap-4">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f04438]/[0.12]">
-                <AlertCircle aria-hidden className="size-5 text-[#f97066]" />
-              </div>
+              <BlockTrace />
               <div>
-                <div className="text-[15px] font-semibold text-[#f7f7f7]">
-                  Transaction failed
+                <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+                  Sending transaction
                 </div>
-                <div className="mt-0.5 text-[13px] text-[#94969c]">
-                  {friendly.text}
+                <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+                  Waiting for the network to pick it up{"…"}
                 </div>
+                {explorerLink && <div className="mt-2">{explorerLink}</div>}
               </div>
             </div>
+          )}
 
-            {friendly.raw && (
+          {status === "confirming" && (
+            <div className="flex items-center gap-4 py-1">
+              <BlockTrace />
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+                  Confirming
+                </div>
+                <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+                  {confirmations === undefined
+                    ? "Waiting for confirmations…"
+                    : `${confirmations} of ${totalConfirmations} confirmations`}
+                </div>
+                {explorerLink && <div className="mt-2">{explorerLink}</div>}
+              </div>
+            </div>
+          )}
+
+          {status === "confirmed" && (
+            <div className="flex items-center gap-4 py-1">
+              <div className="sol-txs-success-bounce shrink-0">
+                <svg width={48} height={48} viewBox="0 0 48 48" fill="none" aria-hidden>
+                  <circle
+                    className="sol-txs-check-circle-path"
+                    cx={24}
+                    cy={24}
+                    r={21}
+                    stroke="var(--sk-success,#17b26a)"
+                    strokeWidth={2.5}
+                  />
+                  <path
+                    className="sol-txs-check-mark-path"
+                    d="M15 24.5L21 30.5L33 17.5"
+                    stroke="var(--sk-success,#17b26a)"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
               <div>
-                <button
-                  type="button"
-                  onClick={() => setDetailsOpen((open) => !open)}
-                  aria-expanded={detailsOpen}
-                  className="cursor-pointer text-[12px] text-[#61656c] underline underline-offset-2 transition-colors duration-150 hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
-                >
-                  {detailsOpen ? "Hide technical details" : "Show technical details"}
-                </button>
-                {detailsOpen && (
-                  <pre className="mt-2 overflow-x-auto border border-[#22262f] bg-[#0c0e12] px-3 py-2.5 font-mono text-[12px] text-[#94969c]">
-                    {friendly.raw}
-                  </pre>
+                <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+                  Transaction confirmed
+                </div>
+                {shortSig && (
+                  <div
+                    className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]"
+                    title={signature}
+                  >
+                    {shortSig}
+                  </div>
                 )}
+                {explorerLink && <div className="mt-2">{explorerLink}</div>}
               </div>
-            )}
-
-            <div className="flex items-center gap-3.5">
-              <button
-                type="button"
-                ref={retryRef}
-                onClick={onRetry}
-                className="cursor-pointer bg-[#00543f] px-4 py-2 text-[13px] font-semibold text-[#18e3a5] transition-colors duration-150 hover:bg-[#006a53] active:brightness-90 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
-              >
-                Retry
-              </button>
-              {explorerLink}
             </div>
-          </div>
-        )}
+          )}
 
-        {detailsCard}
+          {status === "failed" && (
+            <div className="flex flex-col gap-4 py-1">
+              <div className="flex items-center gap-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--sk-danger-bg,rgba(240,68,56,0.12))]">
+                  <AlertCircle
+                    aria-hidden
+                    className="size-5 text-[var(--sk-danger,#f97066)]"
+                  />
+                </div>
+                <div>
+                  <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+                    Transaction failed
+                  </div>
+                  <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+                    {friendly.text}
+                  </div>
+                </div>
+              </div>
+
+              {friendly.raw && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setDetailsOpen((open) => !open)}
+                    aria-expanded={detailsOpen}
+                    className="cursor-pointer text-[12px] text-[var(--sk-text-quaternary,#61656c)] underline underline-offset-2 transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+                  >
+                    {detailsOpen ? "Hide technical details" : "Show technical details"}
+                  </button>
+                  {detailsOpen && (
+                    <pre className="mt-2 overflow-x-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-bg,#0c0e12)] px-3 py-2.5 font-mono text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+                      {friendly.raw}
+                    </pre>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3.5">
+                {onRetry && (
+                  <button
+                    type="button"
+                    ref={retryRef}
+                    onClick={onRetry}
+                    className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-4 py-2 text-[13px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] active:brightness-90 focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+                  >
+                    Retry
+                  </button>
+                )}
+                {explorerLink}
+              </div>
+            </div>
+          )}
+
+          {detailsCard}
+        </div>
       </div>
     </div>
   );

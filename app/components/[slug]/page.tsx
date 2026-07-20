@@ -57,7 +57,26 @@ export default async function ComponentPage({
             Demo
           </h2>
           <DemoHost slug={entry.slug} />
+          {entry.note && (
+            <p className="border-l-2 border-emerald-600 bg-[#13161b] px-4 py-3 text-[13px] leading-relaxed text-[#94969c]">
+              {entry.note}
+            </p>
+          )}
         </section>
+
+        {entry.usage && (
+          <section className="flex flex-col gap-4" aria-label="Usage">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
+                Usage
+              </h2>
+              <CopyButton text={entry.usage} label="Copy" />
+            </div>
+            <pre className="overflow-x-auto border border-[#22262f] bg-[#0a0c10] p-4 font-mono text-[12.5px] leading-relaxed text-[#cecfd2]">
+              <code>{entry.usage}</code>
+            </pre>
+          </section>
+        )}
 
         <section className="flex flex-col gap-4" aria-label="Props">
           <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
