@@ -29,8 +29,9 @@ There is nothing to install. Each component is a single self-contained file.
    npm install lucide-react
    ```
 
-2. Run the docs site (`npm install && npm run dev`, then open
-   `http://localhost:3000`), pick a component, and hit **Copy source**.
+2. Browse the docs site (or clone
+   [the repo](https://github.com/Stefa9250/solana-ui-kit) and run
+   `npm install && npm run dev`), pick a component, and hit **Copy source**.
 
 3. Paste it into your project, e.g.
    `components/transaction-status/transaction-status.tsx`, and import it:
