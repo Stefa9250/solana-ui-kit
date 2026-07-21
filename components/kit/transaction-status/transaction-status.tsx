@@ -589,8 +589,8 @@ export function TransactionStatus({
 
       {s === "confirmed" && (
         <div className="flex items-center gap-4 py-1">
-          <div className="sol-txs-success-bounce shrink-0">
-            <svg width={48} height={48} viewBox="0 0 48 48" fill="none" aria-hidden>
+          <div className="sol-txs-success-bounce flex size-10 shrink-0 items-center justify-center">
+            <svg width={36} height={36} viewBox="0 0 48 48" fill="none" aria-hidden>
               <circle
                 className="sol-txs-check-circle-path"
                 cx={24}
