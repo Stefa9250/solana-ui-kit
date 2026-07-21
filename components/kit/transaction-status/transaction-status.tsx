@@ -29,6 +29,7 @@
 import {
   useEffect,
   useInsertionEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -174,6 +175,10 @@ function useKitStyles(id: string, css: string) {
   }, [id, css]);
 }
 
+// Layout effect on the client, no-op fallback on the server (avoids the SSR warning).
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export type TransactionStatusState =
   | "idle"
   | "pending"
@@ -228,6 +233,7 @@ export interface TransactionStatusProps {
 const STYLE_ID = "sol-txs-styles";
 const KEYFRAMES = `
 @keyframes sol-txs-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sol-txs-fade-out { from { opacity: 1; } to { opacity: 0; } }
 @keyframes sol-txs-trace { from { stroke-dashoffset: 128; } to { stroke-dashoffset: 0; } }
 @keyframes sol-txs-core-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 @keyframes sol-txs-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
@@ -236,7 +242,8 @@ const KEYFRAMES = `
 @keyframes sol-txs-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-3px); } 40% { transform: translateX(2px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
 @keyframes sol-txs-flash-green { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.62; } }
 @keyframes sol-txs-sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
-.sol-txs-panel-enter { animation: sol-txs-fade-in 260ms ease-out both; }
+.sol-txs-enter { animation: sol-txs-fade-in 260ms ease-out both; }
+.sol-txs-leave { animation: sol-txs-fade-out 200ms ease-in both; }
 .sol-txs-trace-path { stroke-dasharray: 32 96; animation: sol-txs-trace 2.4s linear infinite; }
 .sol-txs-trace-core { transform-origin: center; transform-box: fill-box; animation: sol-txs-core-breathe 2.4s ease-in-out infinite; }
 .sol-txs-check-circle-path { stroke-dasharray: 132; animation: sol-txs-check-circle 500ms cubic-bezier(0.65,0,0.35,1) forwards; }
@@ -247,7 +254,7 @@ const KEYFRAMES = `
 .sol-txs-sweep { animation: sol-txs-sweep 1.6s ease-in-out infinite; }
 .sol-txs-stripes { background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent); background-size: 28px 28px; }
 @media (prefers-reduced-motion: reduce) {
-  .sol-txs-panel-enter, .sol-txs-trace-path, .sol-txs-trace-core, .sol-txs-check-circle-path,
+  .sol-txs-enter, .sol-txs-leave, .sol-txs-trace-path, .sol-txs-trace-core, .sol-txs-check-circle-path,
   .sol-txs-check-mark-path, .sol-txs-success-bounce, .sol-txs-shake, .sol-txs-flash, .sol-txs-sweep {
     animation: none !important;
   }
@@ -344,9 +351,15 @@ export function TransactionStatus({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [displayPct, setDisplayPct] = useState(0);
   const [prevStatus, setPrevStatus] = useState(status);
+  // The outgoing state, kept mounted during the crossfade so it can fade out
+  // while the incoming one fades in (null once the transition settles).
+  const [leaving, setLeaving] = useState<TransactionStatusState | null>(null);
   const displayPctRef = useRef(0);
   const retryRef = useRef<HTMLButtonElement>(null);
   const onDismissRef = useRef(onDismiss);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const currentRef = useRef<HTMLDivElement>(null);
+  const heightRef = useRef<number | null>(null);
   const reduceMotion = useReducedMotion();
 
   useKitStyles(STYLE_ID, KEYFRAMES);
@@ -356,6 +369,9 @@ export function TransactionStatus({
   // The bar also resets on any entry into confirming so a failed→confirming
   // retry never starts from the previous attempt's stale percentage.
   if (prevStatus !== status) {
+    // Keep the state we're leaving mounted so it can fade out under the
+    // incoming one (skipped when reduced motion, or coming from nothing).
+    if (!reduceMotion && prevStatus !== "idle") setLeaving(prevStatus);
     setPrevStatus(status);
     setDetailsOpen(false);
     if (status === "pending" || status === "idle" || status === "confirming") {
@@ -374,6 +390,35 @@ export function TransactionStatus({
   useEffect(() => {
     onDismissRef.current = onDismiss;
   }, [onDismiss]);
+
+  // Drop the outgoing layer once its fade-out has played.
+  useEffect(() => {
+    if (leaving === null) return;
+    const t = setTimeout(() => setLeaving(null), 220);
+    return () => clearTimeout(t);
+  }, [leaving]);
+
+  // Ease the container height between states so differing heights don't snap.
+  // Runs after commit, then releases back to auto so later content (expanding
+  // technical details) can still grow freely.
+  useIsoLayoutEffect(() => {
+    const container = containerRef.current;
+    const el = currentRef.current;
+    if (!container || !el) return;
+    const next = el.offsetHeight;
+    const prev = heightRef.current;
+    heightRef.current = next;
+    if (reduceMotion || prev === null || prev === next) return;
+    container.style.height = `${prev}px`;
+    container.getBoundingClientRect(); // commit the starting height
+    container.style.transition = "height 260ms cubic-bezier(0.16,1,0.3,1)";
+    container.style.height = `${next}px`;
+    const t = setTimeout(() => {
+      container.style.height = "";
+      container.style.transition = "";
+    }, 280);
+    return () => clearTimeout(t);
+  }, [status, reduceMotion]);
 
   // Focus lands on Retry when a transaction fails. Refs are attached by the
   // time effects run, and rAF would never fire in a backgrounded tab.
@@ -457,51 +502,186 @@ export function TransactionStatus({
     </a>
   );
 
-  const detailsCard = details && (
-    <div className="relative mt-[18px] flex items-center justify-between gap-3 overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-raised,#1f242f)] px-3.5 py-3">
-      {status === "confirming" &&
-        (confirmations === undefined ? (
-          <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
-            <div className="sol-txs-stripes sol-txs-sweep absolute inset-y-0 w-1/4 bg-[var(--sk-fill,#333741)] opacity-50" />
-          </div>
-        ) : (
-          <div
-            aria-hidden
-            className={`sol-txs-stripes absolute bottom-0 left-0 top-0 z-0 opacity-50 transition-colors duration-200 ${
-              atTarget
-                ? "sol-txs-flash bg-[var(--sk-success,#17b26a)]"
-                : "bg-[var(--sk-fill,#333741)]"
-            }`}
-            style={{
-              width: `${(reduceMotion ? pct : displayPct).toFixed(2)}%`,
-              willChange: "width",
-            }}
-          />
-        ))}
-      <div className="relative z-10 flex items-center gap-2.5">
-        <SolanaMark />
-        <div>
-          <div className="text-[14px] font-semibold text-[var(--sk-text,#f7f7f7)]">
-            {details.primary}
-          </div>
-          {details.secondary && (
-            <div className="mt-px text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
-              {details.secondary}
+  const renderDetailsCard = (s: TransactionStatusState) =>
+    details && (
+      <div className="relative mt-[18px] flex items-center justify-between gap-3 overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-raised,#1f242f)] px-3.5 py-3">
+        {s === "confirming" &&
+          (confirmations === undefined ? (
+            <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+              <div className="sol-txs-stripes sol-txs-sweep absolute inset-y-0 w-1/4 bg-[var(--sk-fill,#333741)] opacity-50" />
             </div>
-          )}
+          ) : (
+            <div
+              aria-hidden
+              className={`sol-txs-stripes absolute bottom-0 left-0 top-0 z-0 opacity-50 transition-colors duration-200 ${
+                atTarget
+                  ? "sol-txs-flash bg-[var(--sk-success,#17b26a)]"
+                  : "bg-[var(--sk-fill,#333741)]"
+              }`}
+              style={{
+                width: `${(reduceMotion ? pct : displayPct).toFixed(2)}%`,
+                willChange: "width",
+              }}
+            />
+          ))}
+        <div className="relative z-10 flex items-center gap-2.5">
+          <SolanaMark />
+          <div>
+            <div className="text-[14px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+              {details.primary}
+            </div>
+            {details.secondary && (
+              <div className="mt-px text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+                {details.secondary}
+              </div>
+            )}
+          </div>
         </div>
+        {details.meta && (
+          <div
+            className={`relative z-10 shrink-0 text-right font-mono text-[12px] ${
+              s === "confirming"
+                ? "text-[var(--sk-text-tertiary,#94969c)]"
+                : "text-[var(--sk-text-quaternary,#61656c)]"
+            }`}
+          >
+            {details.meta}
+          </div>
+        )}
       </div>
-      {details.meta && (
-        <div
-          className={`relative z-10 shrink-0 text-right font-mono text-[12px] ${
-            status === "confirming"
-              ? "text-[var(--sk-text-tertiary,#94969c)]"
-              : "text-[var(--sk-text-quaternary,#61656c)]"
-          }`}
-        >
-          {details.meta}
+    );
+
+  // Content for a given state. `interactive` is true only for the incoming
+  // layer — the outgoing (fading) layer is inert (no refs, no shake replay).
+  const renderContent = (s: TransactionStatusState, interactive: boolean) => (
+    <div className={interactive && s === "failed" ? "sol-txs-shake" : undefined}>
+      {s === "pending" && (
+        <div className="flex items-center gap-4">
+          <BlockTrace />
+          <div>
+            <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+              Sending transaction
+            </div>
+            <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+              Waiting for the network to pick it up{"…"}
+            </div>
+            {explorerLink && <div className="mt-2">{explorerLink}</div>}
+          </div>
         </div>
       )}
+
+      {s === "confirming" && (
+        <div className="flex items-center gap-4 py-1">
+          <BlockTrace />
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+              Confirming
+            </div>
+            <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+              {confirmations === undefined
+                ? "Waiting for confirmations…"
+                : `${confirmations} of ${totalConfirmations} confirmations`}
+            </div>
+            {explorerLink && <div className="mt-2">{explorerLink}</div>}
+          </div>
+        </div>
+      )}
+
+      {s === "confirmed" && (
+        <div className="flex items-center gap-4 py-1">
+          <div className="sol-txs-success-bounce shrink-0">
+            <svg width={48} height={48} viewBox="0 0 48 48" fill="none" aria-hidden>
+              <circle
+                className="sol-txs-check-circle-path"
+                cx={24}
+                cy={24}
+                r={21}
+                stroke="var(--sk-success,#17b26a)"
+                strokeWidth={2.5}
+              />
+              <path
+                className="sol-txs-check-mark-path"
+                d="M15 24.5L21 30.5L33 17.5"
+                stroke="var(--sk-success,#17b26a)"
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+              Transaction confirmed
+            </div>
+            {shortSig && (
+              <div
+                className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]"
+                title={signature}
+              >
+                {shortSig}
+              </div>
+            )}
+            {explorerLink && <div className="mt-2">{explorerLink}</div>}
+          </div>
+        </div>
+      )}
+
+      {s === "failed" && (
+        <div className="flex flex-col gap-4 py-1">
+          <div className="flex items-center gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--sk-danger-bg,rgba(240,68,56,0.12))]">
+              <AlertCircle
+                aria-hidden
+                className="size-5 text-[var(--sk-danger,#f97066)]"
+              />
+            </div>
+            <div>
+              <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+                Transaction failed
+              </div>
+              <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+                {friendly.text}
+              </div>
+            </div>
+          </div>
+
+          {friendly.raw && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setDetailsOpen((open) => !open)}
+                aria-expanded={detailsOpen}
+                tabIndex={interactive ? undefined : -1}
+                className="cursor-pointer text-[12px] text-[var(--sk-text-quaternary,#61656c)] underline underline-offset-2 transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+              >
+                {detailsOpen ? "Hide technical details" : "Show technical details"}
+              </button>
+              {detailsOpen && (
+                <pre className="mt-2 overflow-x-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-bg,#0c0e12)] px-3 py-2.5 font-mono text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+                  {friendly.raw}
+                </pre>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3.5">
+            {onRetry && (
+              <button
+                type="button"
+                ref={interactive ? retryRef : undefined}
+                onClick={onRetry}
+                tabIndex={interactive ? undefined : -1}
+                className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-4 py-2 text-[13px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] active:brightness-90 focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+              >
+                Retry
+              </button>
+            )}
+            {explorerLink}
+          </div>
+        </div>
+      )}
+
+      {renderDetailsCard(s)}
     </div>
   );
 
@@ -516,140 +696,26 @@ export function TransactionStatus({
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="absolute right-0 top-0 z-10 flex size-7 cursor-pointer items-center justify-center text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+          className="absolute right-0 top-0 z-20 flex size-7 cursor-pointer items-center justify-center text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
         >
           <X aria-hidden className="size-4" />
         </button>
       )}
 
-      <div key={status} className="sol-txs-panel-enter">
-        {/* Shake lives on an inner wrapper so failure both fades in AND shakes. */}
-        <div className={status === "failed" ? "sol-txs-shake" : undefined}>
-          {status === "pending" && (
-            <div className="flex items-center gap-4">
-              <BlockTrace />
-              <div>
-                <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
-                  Sending transaction
-                </div>
-                <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
-                  Waiting for the network to pick it up{"…"}
-                </div>
-                {explorerLink && <div className="mt-2">{explorerLink}</div>}
-              </div>
-            </div>
-          )}
-
-          {status === "confirming" && (
-            <div className="flex items-center gap-4 py-1">
-              <BlockTrace />
-              <div className="min-w-0 flex-1">
-                <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
-                  Confirming
-                </div>
-                <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
-                  {confirmations === undefined
-                    ? "Waiting for confirmations…"
-                    : `${confirmations} of ${totalConfirmations} confirmations`}
-                </div>
-                {explorerLink && <div className="mt-2">{explorerLink}</div>}
-              </div>
-            </div>
-          )}
-
-          {status === "confirmed" && (
-            <div className="flex items-center gap-4 py-1">
-              <div className="sol-txs-success-bounce shrink-0">
-                <svg width={48} height={48} viewBox="0 0 48 48" fill="none" aria-hidden>
-                  <circle
-                    className="sol-txs-check-circle-path"
-                    cx={24}
-                    cy={24}
-                    r={21}
-                    stroke="var(--sk-success,#17b26a)"
-                    strokeWidth={2.5}
-                  />
-                  <path
-                    className="sol-txs-check-mark-path"
-                    d="M15 24.5L21 30.5L33 17.5"
-                    stroke="var(--sk-success,#17b26a)"
-                    strokeWidth={3}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
-                  Transaction confirmed
-                </div>
-                {shortSig && (
-                  <div
-                    className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]"
-                    title={signature}
-                  >
-                    {shortSig}
-                  </div>
-                )}
-                {explorerLink && <div className="mt-2">{explorerLink}</div>}
-              </div>
-            </div>
-          )}
-
-          {status === "failed" && (
-            <div className="flex flex-col gap-4 py-1">
-              <div className="flex items-center gap-4">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--sk-danger-bg,rgba(240,68,56,0.12))]">
-                  <AlertCircle
-                    aria-hidden
-                    className="size-5 text-[var(--sk-danger,#f97066)]"
-                  />
-                </div>
-                <div>
-                  <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
-                    Transaction failed
-                  </div>
-                  <div className="mt-0.5 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
-                    {friendly.text}
-                  </div>
-                </div>
-              </div>
-
-              {friendly.raw && (
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setDetailsOpen((open) => !open)}
-                    aria-expanded={detailsOpen}
-                    className="cursor-pointer text-[12px] text-[var(--sk-text-quaternary,#61656c)] underline underline-offset-2 transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
-                  >
-                    {detailsOpen ? "Hide technical details" : "Show technical details"}
-                  </button>
-                  {detailsOpen && (
-                    <pre className="mt-2 overflow-x-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-bg,#0c0e12)] px-3 py-2.5 font-mono text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
-                      {friendly.raw}
-                    </pre>
-                  )}
-                </div>
-              )}
-
-              <div className="flex items-center gap-3.5">
-                {onRetry && (
-                  <button
-                    type="button"
-                    ref={retryRef}
-                    onClick={onRetry}
-                    className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-4 py-2 text-[13px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] active:brightness-90 focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
-                  >
-                    Retry
-                  </button>
-                )}
-                {explorerLink}
-              </div>
-            </div>
-          )}
-
-          {detailsCard}
+      {/* Two stacked layers: the outgoing state fades out (absolute, inert)
+          while the incoming one fades in, so states crossfade in place. */}
+      <div ref={containerRef} className="relative">
+        {leaving && leaving !== "idle" && leaving !== status && (
+          <div
+            key={leaving}
+            aria-hidden
+            className="sol-txs-leave pointer-events-none absolute inset-x-0 top-0"
+          >
+            {renderContent(leaving, false)}
+          </div>
+        )}
+        <div key={status} ref={currentRef} className="sol-txs-enter">
+          {renderContent(status, true)}
         </div>
       </div>
     </div>
