@@ -556,9 +556,9 @@ export function TransactionStatus({
   const renderContent = (s: TransactionStatusState, interactive: boolean) => (
     <div className={interactive && s === "failed" ? "sol-txs-shake" : undefined}>
       {s === "pending" && (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 py-1">
           <BlockTrace />
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="text-[15px] font-semibold text-[var(--sk-text,#f7f7f7)]">
               Sending transaction
             </div>
