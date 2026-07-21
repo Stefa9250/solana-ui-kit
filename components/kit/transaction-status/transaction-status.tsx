@@ -227,7 +227,7 @@ export interface TransactionStatusProps {
 
 const STYLE_ID = "sol-txs-styles";
 const KEYFRAMES = `
-@keyframes sol-txs-fade-slide-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sol-txs-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sol-txs-trace { from { stroke-dashoffset: 128; } to { stroke-dashoffset: 0; } }
 @keyframes sol-txs-core-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 @keyframes sol-txs-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
@@ -236,7 +236,7 @@ const KEYFRAMES = `
 @keyframes sol-txs-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-3px); } 40% { transform: translateX(2px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
 @keyframes sol-txs-flash-green { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.62; } }
 @keyframes sol-txs-sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
-.sol-txs-panel-enter { animation: sol-txs-fade-slide-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-txs-panel-enter { animation: sol-txs-fade-in 260ms ease-out both; }
 .sol-txs-trace-path { stroke-dasharray: 32 96; animation: sol-txs-trace 2.4s linear infinite; }
 .sol-txs-trace-core { transform-origin: center; transform-box: fill-box; animation: sol-txs-core-breathe 2.4s ease-in-out infinite; }
 .sol-txs-check-circle-path { stroke-dasharray: 132; animation: sol-txs-check-circle 500ms cubic-bezier(0.65,0,0.35,1) forwards; }
