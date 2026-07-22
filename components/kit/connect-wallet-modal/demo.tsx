@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Docs demo for WalletConnectModal. The trigger + state buttons drive the
+ * Docs demo for ConnectWalletModal. The trigger + state buttons drive the
  * modal through every state; organic clicks flow through the mock wallet
  * layer (Phantom approves, Solflare rejects).
  * Not part of the copy-paste component.
@@ -9,10 +9,10 @@
 
 import { useRef, useState } from "react";
 import {
-  WalletConnectModal,
-  type WalletConnectStatus,
+  ConnectWalletModal,
+  type ConnectWalletStatus,
   type WalletOption,
-} from "./wallet-connect-modal";
+} from "./connect-wallet-modal";
 import { WALLET_LOGOS } from "@/components/docs/wallet-logos";
 import { mockWalletLayer } from "./mock-wallet";
 
@@ -72,9 +72,9 @@ const DEFAULT_WALLETS: WalletOption[] = [
 ];
 const NONE_DETECTED = DEFAULT_WALLETS.map((w) => ({ ...w, detected: false }));
 
-export default function WalletConnectModalDemo() {
+export default function ConnectWalletModalDemo() {
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<WalletConnectStatus>("list");
+  const [status, setStatus] = useState<ConnectWalletStatus>("list");
   const [error, setError] = useState<string | undefined>();
   const [address, setAddress] = useState<string | undefined>();
   const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>();
@@ -84,7 +84,7 @@ export default function WalletConnectModalDemo() {
   const attemptRef = useRef(0);
 
   const openWith = (
-    next: WalletConnectStatus,
+    next: ConnectWalletStatus,
     opts: {
       wallets?: WalletOption[];
       error?: string;
@@ -211,7 +211,7 @@ export default function WalletConnectModalDemo() {
         </button>
       </div>
 
-      <WalletConnectModal
+      <ConnectWalletModal
         open={open}
         onClose={handleClose}
         wallets={wallets}

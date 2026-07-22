@@ -132,12 +132,12 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
-    name: "Wallet Connect",
-    slug: "wallet-connect",
+    name: "Connect Wallet",
+    slug: "connect-wallet",
     description:
       "The full connect flow: a trigger that opens an anchored panel, morphs through wallet list → connecting → optional sign-in-with-Solana → success, then becomes a connected account chip.",
-    path: "components/kit/wallet-connect/wallet-connect.tsx",
-    usage: `<WalletConnect
+    path: "components/kit/connect-wallet/connect-wallet.tsx",
+    usage: `<ConnectWallet
   wallets={wallets}
   status={status}
   address={address}
@@ -223,12 +223,12 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
-    name: "Wallet Connect Modal",
-    slug: "wallet-connect-modal",
+    name: "Connect Wallet Modal",
+    slug: "connect-wallet-modal",
     description:
       "Wallet selection, connecting, rejected, and connected states in one accessible modal. Detected wallets first, install links for the rest.",
-    path: "components/kit/wallet-connect-modal/wallet-connect-modal.tsx",
-    usage: `<WalletConnectModal
+    path: "components/kit/connect-wallet-modal/connect-wallet-modal.tsx",
+    usage: `<ConnectWalletModal
   open={open}
   onClose={() => setOpen(false)}
   wallets={wallets}
@@ -238,7 +238,7 @@ export const registry: RegistryEntry[] = [
   termsUrl="/terms"
   privacyUrl="/privacy"
 />`,
-    note: "Dropdown vs Modal: this centered modal portals to document.body and locks scroll — pick it when connect is triggered from arbitrary places. Pick the anchored WalletConnect when connect lives in your navbar and you want the trigger-to-chip morph.",
+    note: "Dropdown vs Modal: this centered modal portals to document.body and locks scroll — pick it when connect is triggered from arbitrary places. Pick the anchored ConnectWallet when connect lives in your navbar and you want the trigger-to-chip morph.",
     props: [
       {
         name: "open",

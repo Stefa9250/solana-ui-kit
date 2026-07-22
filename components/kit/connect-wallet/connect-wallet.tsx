@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * WalletConnect — Solana UI Kit
+ * ConnectWallet — Solana UI Kit
  *
  * The full connect flow in one piece: a trigger button, an anchored panel
  * that morphs through wallet list → connecting → (optional) sign-in-with-
@@ -11,13 +11,13 @@
  *
  * Positioning: the panel is absolutely positioned inside the trigger's
  * wrapper (no portal), so an `overflow: hidden` ancestor will clip it —
- * keep the trigger out of clipping containers, or use WalletConnectModal.
+ * keep the trigger out of clipping containers, or use ConnectWalletModal.
  *
  * Theming: every color is a CSS variable with the kit's dark-emerald default
  * inlined as fallback (e.g. var(--sk-surface,#161b26)). Define --sk-* on any
  * ancestor to retheme without touching this file.
  *
- * <WalletConnect
+ * <ConnectWallet
  *   wallets={wallets}
  *   status={status}
  *   address={address}
@@ -57,22 +57,22 @@ export interface WalletOption {
   recommended?: boolean;
 }
 
-export type WalletConnectFlowStatus =
+export type ConnectWalletFlowStatus =
   | "disconnected"
   | "connecting"
   | "signing"
   | "rejected"
   | "connected";
 
-export interface WalletConnectErrorRule {
+export interface ConnectWalletErrorRule {
   test: RegExp;
   text: string;
 }
 
-export interface WalletConnectProps {
+export interface ConnectWalletProps {
   wallets: WalletOption[];
   /** Wallet lifecycle, driven by your adapter calls. */
-  status: WalletConnectFlowStatus;
+  status: ConnectWalletFlowStatus;
   /** Called when a detected wallet is picked (also powers Try again). */
   onSelectWallet?: (wallet: WalletOption) => void;
   /** Called from the sign-in-with-Solana step's Sign button. */
@@ -82,7 +82,7 @@ export interface WalletConnectProps {
   /** Raw connection error shown (mapped) in the rejected state. */
   error?: string;
   /** Your own connect-error rules, matched before the built-in defaults. */
-  errorMap?: WalletConnectErrorRule[];
+  errorMap?: ConnectWalletErrorRule[];
   /** Which wallet is mid-flow, when driven externally. */
   selectedWalletId?: string;
   /** Connected address (full base58 is fine — truncated for display). */
@@ -100,7 +100,7 @@ export interface WalletConnectProps {
 }
 
 /** Includes the error names @solana/wallet-adapter actually throws. */
-const DEFAULT_CONNECT_ERROR_MAP: WalletConnectErrorRule[] = [
+const DEFAULT_CONNECT_ERROR_MAP: ConnectWalletErrorRule[] = [
   {
     test: /walletnotready|not ready/i,
     text: "Wallet isn’t ready. Make sure the extension is enabled.",
@@ -125,7 +125,7 @@ const DEFAULT_CONNECT_ERROR_MAP: WalletConnectErrorRule[] = [
 
 function friendlyConnectError(
   raw: string | undefined,
-  errorMap?: WalletConnectErrorRule[],
+  errorMap?: ConnectWalletErrorRule[],
 ): { text: string; raw: string } {
   if (!raw) return { text: "Something went wrong connecting. Try again.", raw: "" };
   const rules = errorMap
@@ -212,33 +212,33 @@ function useKitStyles(id: string, css: string) {
 const FOCUSABLE =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
-const STYLE_ID = "sol-wc-styles";
+const STYLE_ID = "sol-cw-styles";
 const KEYFRAMES = `
-@keyframes sol-wc-panel-in { from { opacity: 0; transform: scale(0.96) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-@keyframes sol-wc-panel-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(-2px); } }
-@keyframes sol-wc-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-wc-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-wc-spin { to { transform: rotate(360deg); } }
-@keyframes sol-wc-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
-@keyframes sol-wc-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
-.sol-wc-panel-enter { animation: sol-wc-panel-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-wc-panel-exit { animation: sol-wc-panel-out 150ms ease-in both; }
-.sol-wc-step-enter { animation: sol-wc-step-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-wc-item-enter { animation: sol-wc-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-wc-spin { animation: sol-wc-spin 1.2s linear infinite; }
-.sol-wc-check-circle-path { stroke-dasharray: 132; animation: sol-wc-check-circle 450ms cubic-bezier(0.65,0,0.35,1) forwards; }
-.sol-wc-check-mark-path { stroke-dasharray: 24; animation: sol-wc-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 380ms forwards; }
-.sol-wc-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
-.sol-wc-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
-.sol-wc-row .sol-wc-cta { opacity: 0; transition: opacity 150ms ease; }
-.sol-wc-row:hover:not([data-disabled="true"]) .sol-wc-cta { opacity: 1; }
+@keyframes sol-cw-panel-in { from { opacity: 0; transform: scale(0.96) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes sol-cw-panel-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(-2px); } }
+@keyframes sol-cw-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sol-cw-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sol-cw-spin { to { transform: rotate(360deg); } }
+@keyframes sol-cw-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
+@keyframes sol-cw-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+.sol-cw-panel-enter { animation: sol-cw-panel-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-cw-panel-exit { animation: sol-cw-panel-out 150ms ease-in both; }
+.sol-cw-step-enter { animation: sol-cw-step-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-cw-item-enter { animation: sol-cw-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-cw-spin { animation: sol-cw-spin 1.2s linear infinite; }
+.sol-cw-check-circle-path { stroke-dasharray: 132; animation: sol-cw-check-circle 450ms cubic-bezier(0.65,0,0.35,1) forwards; }
+.sol-cw-check-mark-path { stroke-dasharray: 24; animation: sol-cw-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 380ms forwards; }
+.sol-cw-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
+.sol-cw-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
+.sol-cw-row .sol-cw-cta { opacity: 0; transition: opacity 150ms ease; }
+.sol-cw-row:hover:not([data-disabled="true"]) .sol-cw-cta { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
-  .sol-wc-panel-enter, .sol-wc-panel-exit, .sol-wc-step-enter, .sol-wc-item-enter,
-  .sol-wc-spin, .sol-wc-check-circle-path, .sol-wc-check-mark-path, .sol-wc-row {
+  .sol-cw-panel-enter, .sol-cw-panel-exit, .sol-cw-step-enter, .sol-cw-item-enter,
+  .sol-cw-spin, .sol-cw-check-circle-path, .sol-cw-check-mark-path, .sol-cw-row {
     animation: none !important; transition: none !important;
   }
-  .sol-wc-check-circle-path, .sol-wc-check-mark-path { stroke-dashoffset: 0; }
-  .sol-wc-row .sol-wc-cta { opacity: 1; }
+  .sol-cw-check-circle-path, .sol-cw-check-mark-path { stroke-dashoffset: 0; }
+  .sol-cw-row .sol-cw-cta { opacity: 1; }
 }
 `;
 
@@ -265,7 +265,7 @@ function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
         viewBox="0 0 64 64"
         width={64}
         height={64}
-        className="sol-wc-spin absolute inset-0"
+        className="sol-cw-spin absolute inset-0"
       >
         <circle
           cx={32}
@@ -282,7 +282,7 @@ function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
   );
 }
 
-export function WalletConnect({
+export function ConnectWallet({
   wallets,
   status,
   onSelectWallet,
@@ -298,7 +298,7 @@ export function WalletConnect({
   open: openProp,
   onOpenChange,
   className,
-}: WalletConnectProps) {
+}: ConnectWalletProps) {
   const [openInternal, setOpenInternal] = useState(false);
   const open = openProp ?? openInternal;
   const [present, setPresent] = useState(open);
@@ -359,7 +359,7 @@ export function WalletConnect({
     if (!present) return;
     const root = panelRef.current;
     const target =
-      root?.querySelector<HTMLElement>("[data-wc-row]") ??
+      root?.querySelector<HTMLElement>("[data-cw-row]") ??
       root?.querySelector<HTMLElement>(FOCUSABLE) ??
       root;
     target?.focus();
@@ -517,7 +517,7 @@ export function WalletConnect({
 
   const renderRow = (wallet: WalletOption, index: number) => {
     const rowClasses =
-      "sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2";
+      "sol-cw-item-enter sol-cw-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2";
     const rowStyle = { animationDelay: `${index * 40}ms` };
     const isConnected = wallet.id === connectedWalletId;
     const icon = (
@@ -532,7 +532,7 @@ export function WalletConnect({
         Detected
       </span>
     ) : (
-      <span className="sol-wc-cta text-[11px] text-[var(--sk-text-tertiary,#94969c)]">
+      <span className="sol-cw-cta text-[11px] text-[var(--sk-text-tertiary,#94969c)]">
         Install {"↗"}
       </span>
     );
@@ -543,7 +543,7 @@ export function WalletConnect({
           href={wallet.installUrl}
           target="_blank"
           rel="noopener noreferrer"
-          data-wc-row={index === 0 ? "" : undefined}
+          data-cw-row={index === 0 ? "" : undefined}
           className={rowClasses}
           style={rowStyle}
         >
@@ -559,7 +559,7 @@ export function WalletConnect({
       <button
         key={wallet.id}
         type="button"
-        data-wc-row={index === 0 ? "" : undefined}
+        data-cw-row={index === 0 ? "" : undefined}
         onClick={() => selectWallet(wallet)}
         className={rowClasses}
         style={rowStyle}
@@ -588,7 +588,7 @@ export function WalletConnect({
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             title={address}
-            className="sol-wc-step-enter flex cursor-pointer items-center gap-2 border border-[var(--sk-border,#22262f)] bg-transparent py-1.5 pl-2.5 pr-1.5 transition-colors duration-150 hover:bg-[var(--sk-surface,#161b26)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+            className="sol-cw-step-enter flex cursor-pointer items-center gap-2 border border-[var(--sk-border,#22262f)] bg-transparent py-1.5 pl-2.5 pr-1.5 transition-colors duration-150 hover:bg-[var(--sk-surface,#161b26)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
           >
             {chipWallet ? (
               <WalletGlyph
@@ -617,7 +617,7 @@ export function WalletConnect({
               ref={menuRef}
               role="menu"
               onKeyDown={menuKeyDown}
-              className="sol-wc-panel-enter absolute right-0 top-full z-50 mt-1.5 w-40 border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+              className="sol-cw-panel-enter absolute right-0 top-full z-50 mt-1.5 w-40 border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
             >
               <button
                 type="button"
@@ -654,10 +654,10 @@ export function WalletConnect({
           tabIndex={-1}
           onKeyDown={trapFocus}
           className={`absolute right-0 top-full z-50 mt-2 w-[290px] origin-top-right overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
-            exiting ? "sol-wc-panel-exit" : "sol-wc-panel-enter"
+            exiting ? "sol-cw-panel-exit" : "sol-cw-panel-enter"
           }`}
         >
-          <div ref={stepRef} key={view} className="sol-wc-step-enter">
+          <div ref={stepRef} key={view} className="sol-cw-step-enter">
             {view === "list" &&
               (helpView ? (
                 <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
@@ -740,7 +740,7 @@ export function WalletConnect({
                       <button
                         type="button"
                         onClick={() => setShowAll(true)}
-                        className="sol-wc-item-enter sol-wc-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+                        className="sol-cw-item-enter sol-cw-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
                         style={{ animationDelay: `${visibleWallets.length * 40}ms` }}
                       >
                         <span
@@ -891,7 +891,7 @@ export function WalletConnect({
                   className="mx-auto"
                 >
                   <circle
-                    className="sol-wc-check-circle-path"
+                    className="sol-cw-check-circle-path"
                     cx={24}
                     cy={24}
                     r={21}
@@ -899,7 +899,7 @@ export function WalletConnect({
                     strokeWidth={2.5}
                   />
                   <path
-                    className="sol-wc-check-mark-path"
+                    className="sol-cw-check-mark-path"
                     d="M15 24.5L21 30.5L33 17.5"
                     stroke="var(--sk-success,#17b26a)"
                     strokeWidth={3}

@@ -21,7 +21,7 @@
  *   // then read publicKey.toBase58() — connect() itself returns void.
  */
 
-import type { WalletOption } from "./wallet-connect-modal";
+import type { WalletOption } from "./connect-wallet-modal";
 
 export interface WalletLayer {
   listWallets(): WalletOption[];

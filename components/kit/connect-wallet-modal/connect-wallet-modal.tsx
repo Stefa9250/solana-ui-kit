@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * WalletConnectModal — Solana UI Kit
+ * ConnectWalletModal — Solana UI Kit
  *
  * Wallet selection, connecting, rejected, and connected states in one
  * accessible modal. Self-contained: copy this file into your project.
@@ -13,7 +13,7 @@
  * inlined as fallback (e.g. var(--sk-surface,#161b26)). Define --sk-* on any
  * ancestor to retheme without touching this file.
  *
- * <WalletConnectModal
+ * <ConnectWalletModal
  *   open={open}
  *   onClose={() => setOpen(false)}
  *   wallets={wallets}
@@ -53,29 +53,29 @@ export interface WalletOption {
   recommended?: boolean;
 }
 
-export type WalletConnectStatus =
+export type ConnectWalletStatus =
   | "list"
   | "connecting"
   | "rejected"
   | "connected";
 
-export interface WalletConnectErrorRule {
+export interface ConnectWalletErrorRule {
   test: RegExp;
   text: string;
 }
 
-export interface WalletConnectModalProps {
+export interface ConnectWalletModalProps {
   open: boolean;
   /** Escape, backdrop click, close button, and connected auto-dismiss. */
   onClose: () => void;
   wallets: WalletOption[];
   /** Called when a detected wallet is picked (also powers Try again). */
   onSelectWallet?: (wallet: WalletOption) => void;
-  status?: WalletConnectStatus;
+  status?: ConnectWalletStatus;
   /** Raw connection error shown (mapped) in the rejected state. */
   error?: string;
   /** Your own connect-error rules, matched before the built-in defaults. */
-  errorMap?: WalletConnectErrorRule[];
+  errorMap?: ConnectWalletErrorRule[];
   /** Which wallet is connecting/rejected/connected, when driven externally. */
   selectedWalletId?: string;
   /** Connected address (full base58 is fine — truncated for display). */
@@ -89,7 +89,7 @@ export interface WalletConnectModalProps {
 }
 
 /** Includes the error names @solana/wallet-adapter actually throws. */
-const DEFAULT_CONNECT_ERROR_MAP: WalletConnectErrorRule[] = [
+const DEFAULT_CONNECT_ERROR_MAP: ConnectWalletErrorRule[] = [
   {
     test: /walletnotready|not ready/i,
     text: "Wallet isn’t ready. Make sure the extension is enabled.",
@@ -114,7 +114,7 @@ const DEFAULT_CONNECT_ERROR_MAP: WalletConnectErrorRule[] = [
 
 function friendlyConnectError(
   raw: string | undefined,
-  errorMap?: WalletConnectErrorRule[],
+  errorMap?: ConnectWalletErrorRule[],
 ): { text: string; raw: string } {
   if (!raw) return { text: "Something went wrong connecting. Try again.", raw: "" };
   const rules = errorMap
@@ -210,39 +210,39 @@ function useKitStyles(id: string, css: string) {
 const FOCUSABLE =
   'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
-const STYLE_ID = "sol-wcm-styles";
+const STYLE_ID = "sol-cwm-styles";
 const KEYFRAMES = `
-@keyframes sol-wcm-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes sol-wcm-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
-@keyframes sol-wcm-modal-in { from { opacity: 0; transform: scale(0.96) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-@keyframes sol-wcm-modal-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(2px); } }
-@keyframes sol-wcm-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-wcm-breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.85; } }
-@keyframes sol-wcm-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
-@keyframes sol-wcm-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
-.sol-wcm-backdrop-enter { animation: sol-wcm-backdrop-in 200ms ease-out both; }
-.sol-wcm-backdrop-exit { animation: sol-wcm-backdrop-out 150ms ease-in both; }
-.sol-wcm-modal-enter { animation: sol-wcm-modal-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-wcm-modal-exit { animation: sol-wcm-modal-out 150ms ease-in both; }
-.sol-wcm-item-enter { animation: sol-wcm-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-wcm-breathe { animation: sol-wcm-breathe 1.8s ease-in-out infinite; }
-.sol-wcm-check-circle-path { stroke-dasharray: 132; animation: sol-wcm-check-circle 420ms cubic-bezier(0.65,0,0.35,1) forwards; }
-.sol-wcm-check-mark-path { stroke-dasharray: 24; animation: sol-wcm-check-mark 240ms cubic-bezier(0.65,0,0.35,1) 360ms forwards; }
-.sol-wcm-wallet-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
-.sol-wcm-wallet-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
-.sol-wcm-wallet-row .sol-wcm-install { opacity: 0; transition: opacity 150ms ease; }
-.sol-wcm-wallet-row:hover .sol-wcm-install { opacity: 1; }
+@keyframes sol-cwm-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sol-cwm-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes sol-cwm-modal-in { from { opacity: 0; transform: scale(0.96) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes sol-cwm-modal-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(2px); } }
+@keyframes sol-cwm-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sol-cwm-breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.85; } }
+@keyframes sol-cwm-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
+@keyframes sol-cwm-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+.sol-cwm-backdrop-enter { animation: sol-cwm-backdrop-in 200ms ease-out both; }
+.sol-cwm-backdrop-exit { animation: sol-cwm-backdrop-out 150ms ease-in both; }
+.sol-cwm-modal-enter { animation: sol-cwm-modal-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-cwm-modal-exit { animation: sol-cwm-modal-out 150ms ease-in both; }
+.sol-cwm-item-enter { animation: sol-cwm-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-cwm-breathe { animation: sol-cwm-breathe 1.8s ease-in-out infinite; }
+.sol-cwm-check-circle-path { stroke-dasharray: 132; animation: sol-cwm-check-circle 420ms cubic-bezier(0.65,0,0.35,1) forwards; }
+.sol-cwm-check-mark-path { stroke-dasharray: 24; animation: sol-cwm-check-mark 240ms cubic-bezier(0.65,0,0.35,1) 360ms forwards; }
+.sol-cwm-wallet-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
+.sol-cwm-wallet-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
+.sol-cwm-wallet-row .sol-cwm-install { opacity: 0; transition: opacity 150ms ease; }
+.sol-cwm-wallet-row:hover .sol-cwm-install { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
-  .sol-wcm-backdrop-enter, .sol-wcm-backdrop-exit, .sol-wcm-modal-enter, .sol-wcm-modal-exit,
-  .sol-wcm-item-enter, .sol-wcm-breathe, .sol-wcm-check-circle-path, .sol-wcm-check-mark-path, .sol-wcm-wallet-row {
+  .sol-cwm-backdrop-enter, .sol-cwm-backdrop-exit, .sol-cwm-modal-enter, .sol-cwm-modal-exit,
+  .sol-cwm-item-enter, .sol-cwm-breathe, .sol-cwm-check-circle-path, .sol-cwm-check-mark-path, .sol-cwm-wallet-row {
     animation: none !important; transition: none !important;
   }
-  .sol-wcm-check-circle-path, .sol-wcm-check-mark-path { stroke-dashoffset: 0; }
-  .sol-wcm-wallet-row .sol-wcm-install { opacity: 1; }
+  .sol-cwm-check-circle-path, .sol-cwm-check-mark-path { stroke-dashoffset: 0; }
+  .sol-cwm-wallet-row .sol-cwm-install { opacity: 1; }
 }
 `;
 
-export function WalletConnectModal({
+export function ConnectWalletModal({
   open,
   onClose,
   wallets,
@@ -255,7 +255,7 @@ export function WalletConnectModal({
   connectedWalletId,
   termsUrl,
   privacyUrl,
-}: WalletConnectModalProps) {
+}: ConnectWalletModalProps) {
   const [present, setPresent] = useState(open);
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -316,7 +316,7 @@ export function WalletConnectModal({
     prevFocusRef.current = document.activeElement as HTMLElement | null;
     const root = modalRef.current;
     const target =
-      root?.querySelector<HTMLElement>("[data-wcm-row]") ??
+      root?.querySelector<HTMLElement>("[data-cwm-row]") ??
       root?.querySelector<HTMLElement>(FOCUSABLE) ??
       root;
     target?.focus();
@@ -407,7 +407,7 @@ export function WalletConnectModal({
     const isSelected = isConnecting && wallet.id === effectiveSelectedId;
     const isDimmed = isConnecting && !isSelected;
     const isConnected = wallet.id === connectedWalletId;
-    const rowClasses = `sol-wcm-item-enter sol-wcm-wallet-row flex w-full items-center gap-3.5 border px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 ${
+    const rowClasses = `sol-cwm-item-enter sol-cwm-wallet-row flex w-full items-center gap-3.5 border px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 ${
       isSelected
         ? "border-[var(--sk-accent,#34d399)]/50 bg-[var(--sk-accent,#34d399)]/[0.08]"
         : "border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)]"
@@ -418,7 +418,7 @@ export function WalletConnectModal({
         wallet={wallet}
         sizeClass="size-9"
         textClass="text-[13px]"
-        className={isSelected ? "sol-wcm-breathe" : ""}
+        className={isSelected ? "sol-cwm-breathe" : ""}
       />
     );
     const name = (
@@ -442,7 +442,7 @@ export function WalletConnectModal({
         Detected
       </span>
     ) : (
-      <span className="sol-wcm-install text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+      <span className="sol-cwm-install text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
         Install {"↗"}
       </span>
     );
@@ -454,7 +454,7 @@ export function WalletConnectModal({
           href={wallet.installUrl}
           target="_blank"
           rel="noopener noreferrer"
-          data-wcm-row={index === 0 ? "" : undefined}
+          data-cwm-row={index === 0 ? "" : undefined}
           className={rowClasses}
           style={rowStyle}
         >
@@ -468,7 +468,7 @@ export function WalletConnectModal({
       <button
         key={wallet.id}
         type="button"
-        data-wcm-row={index === 0 ? "" : undefined}
+        data-cwm-row={index === 0 ? "" : undefined}
         data-disabled={isDimmed ? "true" : "false"}
         disabled={isDimmed}
         onClick={() => !isConnecting && selectWallet(wallet)}
@@ -494,14 +494,14 @@ export function WalletConnectModal({
         aria-hidden
         onClick={onClose}
         className={`absolute inset-0 bg-black/60 backdrop-blur-[4px] ${
-          exiting ? "sol-wcm-backdrop-exit" : "sol-wcm-backdrop-enter"
+          exiting ? "sol-cwm-backdrop-exit" : "sol-cwm-backdrop-enter"
         }`}
       />
       <div
         ref={modalRef}
         tabIndex={-1}
         className={`relative m-6 max-h-[min(85vh,640px)] w-full max-w-[400px] overflow-y-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-[22px] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
-          exiting ? "sol-wcm-modal-exit" : "sol-wcm-modal-enter"
+          exiting ? "sol-cwm-modal-exit" : "sol-cwm-modal-enter"
         }`}
       >
         <div role="status" aria-live="polite" className="sr-only">
@@ -519,7 +519,7 @@ export function WalletConnectModal({
 
         {(status === "list" || status === "connecting") &&
           (helpView ? (
-            <div className="sol-wcm-item-enter flex flex-col items-center gap-3.5 px-1 py-3 text-center">
+            <div className="sol-cwm-item-enter flex flex-col items-center gap-3.5 px-1 py-3 text-center">
               <div className="flex size-12 items-center justify-center bg-[var(--sk-raised,#1f242f)]">
                 <Wallet
                   aria-hidden
@@ -600,7 +600,7 @@ export function WalletConnectModal({
                     type="button"
                     onClick={() => setShowAll(true)}
                     disabled={status === "connecting"}
-                    className={`sol-wcm-item-enter sol-wcm-wallet-row flex w-full items-center gap-3.5 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 ${
+                    className={`sol-cwm-item-enter sol-cwm-wallet-row flex w-full items-center gap-3.5 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 ${
                       status === "connecting" ? "opacity-40" : "cursor-pointer"
                     }`}
                     style={{ animationDelay: `${visibleWallets.length * 40}ms` }}
@@ -633,7 +633,7 @@ export function WalletConnectModal({
           ))}
 
         {status === "rejected" && (
-          <div className="sol-wcm-item-enter flex flex-col gap-4 py-1">
+          <div className="sol-cwm-item-enter flex flex-col gap-4 py-1">
             <div className="flex items-center gap-3.5">
               <WalletGlyph
                 wallet={selectedWallet}
@@ -689,7 +689,7 @@ export function WalletConnectModal({
         )}
 
         {status === "connected" && (
-          <div className="sol-wcm-item-enter flex items-center gap-3.5 py-2">
+          <div className="sol-cwm-item-enter flex items-center gap-3.5 py-2">
             <div className="relative shrink-0">
               <WalletGlyph
                 wallet={selectedWallet}
@@ -705,7 +705,7 @@ export function WalletConnectModal({
                 className="absolute -bottom-1 -right-1 rounded-full bg-[var(--sk-surface,#161b26)]"
               >
                 <circle
-                  className="sol-wcm-check-circle-path"
+                  className="sol-cwm-check-circle-path"
                   cx={10}
                   cy={10}
                   r={9}
@@ -713,7 +713,7 @@ export function WalletConnectModal({
                   strokeWidth={2}
                 />
                 <path
-                  className="sol-wcm-check-mark-path"
+                  className="sol-cwm-check-mark-path"
                   d="M6 10.2L8.7 13L14 7.5"
                   stroke="var(--sk-success,#17b26a)"
                   strokeWidth={2}
