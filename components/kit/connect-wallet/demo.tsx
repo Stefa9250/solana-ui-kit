@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Docs demo for WalletConnect. A faux dApp navbar hosts the real component;
+ * Docs demo for ConnectWallet. A faux dApp navbar hosts the real component;
  * organic clicks run the full flow (Phantom approves then asks for a
  * signature, Solflare rejects). State buttons force each step.
  * Not part of the copy-paste component.
@@ -9,10 +9,10 @@
 
 import { useRef, useState } from "react";
 import {
-  WalletConnect,
-  type WalletConnectFlowStatus,
+  ConnectWallet,
+  type ConnectWalletFlowStatus,
   type WalletOption,
-} from "./wallet-connect";
+} from "./connect-wallet";
 import { WALLET_LOGOS } from "@/components/docs/wallet-logos";
 
 const WALLETS: WalletOption[] = [
@@ -64,8 +64,8 @@ const NONE_DETECTED = WALLETS.map((w) => ({ ...w, detected: false }));
 // Full base58 address — the components truncate for display themselves.
 const ADDRESS = "GK7zVzHYf7hM4dQxkNvR8mW2jL5tYbAcD9eF6gHiJkMq";
 
-export default function WalletConnectDemo() {
-  const [status, setStatus] = useState<WalletConnectFlowStatus>("disconnected");
+export default function ConnectWalletDemo() {
+  const [status, setStatus] = useState<ConnectWalletFlowStatus>("disconnected");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>();
@@ -74,7 +74,7 @@ export default function WalletConnectDemo() {
   const attemptRef = useRef(0);
 
   const force = (
-    next: WalletConnectFlowStatus,
+    next: ConnectWalletFlowStatus,
     opts: {
       open?: boolean;
       wallets?: WalletOption[];
@@ -208,7 +208,7 @@ export default function WalletConnectDemo() {
               demo dApp
             </span>
           </div>
-          <WalletConnect
+          <ConnectWallet
             wallets={wallets}
             status={status}
             open={open}

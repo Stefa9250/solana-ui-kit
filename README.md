@@ -45,8 +45,8 @@ There is nothing to install. Each component is a single self-contained file.
 | Component | Description |
 | --- | --- |
 | [Transaction Status](components/kit/transaction-status/transaction-status.tsx) | Pending → confirming (`12 of 31`) → confirmed / failed, with mapped Solana errors, Solscan links, Retry, and a collapsible raw-error view. |
-| [Wallet Connect](components/kit/wallet-connect/wallet-connect.tsx) | The full connect flow: trigger button → anchored panel morphing through wallet list, connecting, optional sign-in-with-Solana, success → connected account chip. |
-| [Wallet Connect Modal](components/kit/wallet-connect-modal/wallet-connect-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, calm rejection, auto-dismiss. Focus-trapped and keyboard-friendly. |
+| [Connect Wallet](components/kit/connect-wallet/connect-wallet.tsx) | The full connect flow: trigger button → anchored panel morphing through wallet list, connecting, optional sign-in-with-Solana, success → connected account chip. |
+| [Connect Wallet Modal](components/kit/connect-wallet-modal/connect-wallet-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, calm rejection, auto-dismiss. Focus-trapped and keyboard-friendly. |
 
 Each component folder also contains its docs demo (`demo.tsx`) and, where
 useful, a mock layer (`mock-wallet.ts`) with `TODO` markers showing exactly
@@ -79,7 +79,7 @@ useEffect(() => {
 }, [signature]);
 ```
 
-**Wallet connect.** Map `useWallet()` onto `WalletOption[]` — icons come for
+**Connect wallet.** Map `useWallet()` onto `WalletOption[]` — icons come for
 free from the adapter:
 
 ```tsx

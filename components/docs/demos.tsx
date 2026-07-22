@@ -2,8 +2,8 @@
 
 import type { ComponentType } from "react";
 import TransactionStatusDemo from "@/components/kit/transaction-status/demo";
-import WalletConnectDemo from "@/components/kit/wallet-connect/demo";
-import WalletConnectModalDemo from "@/components/kit/wallet-connect-modal/demo";
+import ConnectWalletDemo from "@/components/kit/connect-wallet/demo";
+import ConnectWalletModalDemo from "@/components/kit/connect-wallet-modal/demo";
 
 /**
  * Maps a registry slug to its live docs demo.
@@ -12,6 +12,6 @@ import WalletConnectModalDemo from "@/components/kit/wallet-connect-modal/demo";
  */
 export const demos: Record<string, ComponentType> = {
   "transaction-status": TransactionStatusDemo,
-  "wallet-connect": WalletConnectDemo,
-  "wallet-connect-modal": WalletConnectModalDemo,
+  "connect-wallet": ConnectWalletDemo,
+  "connect-wallet-modal": ConnectWalletModalDemo,
 };
