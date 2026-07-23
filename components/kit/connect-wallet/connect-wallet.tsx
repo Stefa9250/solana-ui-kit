@@ -218,14 +218,14 @@ const KEYFRAMES = `
 @keyframes sol-cw-panel-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(-2px); } }
 @keyframes sol-cw-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes sol-cw-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-cw-spin { to { transform: rotate(360deg); } }
+@keyframes sol-cw-trace { from { stroke-dashoffset: 240; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 .sol-cw-panel-enter { animation: sol-cw-panel-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cw-panel-exit { animation: sol-cw-panel-out 150ms ease-in both; }
 .sol-cw-step-enter { animation: sol-cw-step-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cw-item-enter { animation: sol-cw-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-cw-spin { animation: sol-cw-spin 1.2s linear infinite; }
+.sol-cw-trace-path { stroke-dasharray: 60 180; animation: sol-cw-trace 1.4s linear infinite; }
 .sol-cw-check-circle-path { stroke-dasharray: 132; animation: sol-cw-check-circle 450ms cubic-bezier(0.65,0,0.35,1) forwards; }
 .sol-cw-check-mark-path { stroke-dasharray: 24; animation: sol-cw-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 380ms forwards; }
 .sol-cw-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
@@ -234,15 +234,20 @@ const KEYFRAMES = `
 .sol-cw-row:hover:not([data-disabled="true"]) .sol-cw-cta { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .sol-cw-panel-enter, .sol-cw-panel-exit, .sol-cw-step-enter, .sol-cw-item-enter,
-  .sol-cw-spin, .sol-cw-check-circle-path, .sol-cw-check-mark-path, .sol-cw-row {
+  .sol-cw-trace-path, .sol-cw-check-circle-path, .sol-cw-check-mark-path, .sol-cw-row {
     animation: none !important; transition: none !important;
   }
   .sol-cw-check-circle-path, .sol-cw-check-mark-path { stroke-dashoffset: 0; }
+  .sol-cw-trace-path { stroke-dasharray: none; }
   .sol-cw-row .sol-cw-cta { opacity: 1; }
 }
 `;
 
-/** Wallet avatar with an arc spinner orbiting it. */
+/**
+ * Wallet avatar framed by a square outline with a segment tracing its
+ * perimeter — the loader follows the icon's shape (and matches the
+ * block-trace language used by TransactionStatus).
+ */
 function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
   return (
     <div className="relative mx-auto size-16" aria-hidden>
@@ -261,21 +266,25 @@ function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
           {wallet ? initials(wallet.name) : "?"}
         </div>
       )}
-      <svg
-        viewBox="0 0 64 64"
-        width={64}
-        height={64}
-        className="sol-cw-spin absolute inset-0"
-      >
-        <circle
-          cx={32}
-          cy={32}
-          r={29}
+      <svg viewBox="0 0 64 64" width={64} height={64} className="absolute inset-0">
+        <rect
+          x={2}
+          y={2}
+          width={60}
+          height={60}
+          fill="none"
+          stroke="var(--sk-border,#22262f)"
+          strokeWidth={2.5}
+        />
+        <rect
+          className="sol-cw-trace-path"
+          x={2}
+          y={2}
+          width={60}
+          height={60}
           fill="none"
           stroke="var(--sk-accent,#34d399)"
           strokeWidth={2.5}
-          strokeDasharray="60 122"
-          strokeLinecap="round"
         />
       </svg>
     </div>
