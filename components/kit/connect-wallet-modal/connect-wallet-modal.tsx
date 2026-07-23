@@ -217,7 +217,7 @@ const KEYFRAMES = `
 @keyframes sol-cwm-modal-in { from { opacity: 0; transform: scale(0.96) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes sol-cwm-modal-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(2px); } }
 @keyframes sol-cwm-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-cwm-breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.85; } }
+@keyframes sol-cwm-trace { from { stroke-dashoffset: 164; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cwm-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cwm-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 .sol-cwm-backdrop-enter { animation: sol-cwm-backdrop-in 200ms ease-out both; }
@@ -225,7 +225,7 @@ const KEYFRAMES = `
 .sol-cwm-modal-enter { animation: sol-cwm-modal-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cwm-modal-exit { animation: sol-cwm-modal-out 150ms ease-in both; }
 .sol-cwm-item-enter { animation: sol-cwm-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-cwm-breathe { animation: sol-cwm-breathe 1.8s ease-in-out infinite; }
+.sol-cwm-trace-path { stroke-dasharray: 41 123; animation: sol-cwm-trace 1.4s linear infinite; }
 .sol-cwm-check-circle-path { stroke-dasharray: 132; animation: sol-cwm-check-circle 420ms cubic-bezier(0.65,0,0.35,1) forwards; }
 .sol-cwm-check-mark-path { stroke-dasharray: 24; animation: sol-cwm-check-mark 240ms cubic-bezier(0.65,0,0.35,1) 360ms forwards; }
 .sol-cwm-wallet-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
@@ -234,10 +234,11 @@ const KEYFRAMES = `
 .sol-cwm-wallet-row:hover .sol-cwm-install { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .sol-cwm-backdrop-enter, .sol-cwm-backdrop-exit, .sol-cwm-modal-enter, .sol-cwm-modal-exit,
-  .sol-cwm-item-enter, .sol-cwm-breathe, .sol-cwm-check-circle-path, .sol-cwm-check-mark-path, .sol-cwm-wallet-row {
+  .sol-cwm-item-enter, .sol-cwm-trace-path, .sol-cwm-check-circle-path, .sol-cwm-check-mark-path, .sol-cwm-wallet-row {
     animation: none !important; transition: none !important;
   }
   .sol-cwm-check-circle-path, .sol-cwm-check-mark-path { stroke-dashoffset: 0; }
+  .sol-cwm-trace-path { stroke-dasharray: none; }
   .sol-cwm-wallet-row .sol-cwm-install { opacity: 1; }
 }
 `;
@@ -413,13 +414,31 @@ export function ConnectWalletModal({
         : "border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)]"
     } ${isDimmed ? "opacity-40" : "cursor-pointer"}`;
     const rowStyle = { animationDelay: `${index * 40}ms` };
-    const icon = (
-      <WalletGlyph
-        wallet={wallet}
-        sizeClass="size-9"
-        textClass="text-[13px]"
-        className={isSelected ? "sol-cwm-breathe" : ""}
-      />
+    // While connecting, the selected wallet's logo is framed by a square
+    // outline whose segment traces the perimeter — same loader language as
+    // ConnectWallet and TransactionStatus.
+    const icon = isSelected ? (
+      <span className="relative flex size-9 shrink-0 items-center justify-center">
+        <WalletGlyph wallet={wallet} sizeClass="size-9" textClass="text-[13px]" />
+        <svg
+          viewBox="0 0 44 44"
+          aria-hidden
+          className="pointer-events-none absolute -inset-1"
+        >
+          <rect
+            className="sol-cwm-trace-path"
+            x={1.5}
+            y={1.5}
+            width={41}
+            height={41}
+            fill="none"
+            stroke="var(--sk-accent,#34d399)"
+            strokeWidth={2}
+          />
+        </svg>
+      </span>
+    ) : (
+      <WalletGlyph wallet={wallet} sizeClass="size-9" textClass="text-[13px]" />
     );
     const name = (
       <div className="flex-1">
