@@ -46,6 +46,7 @@ There is nothing to install. Each component is a single self-contained file.
 | --- | --- |
 | [Transaction Status](components/kit/transaction-status/transaction-status.tsx) | Pending → confirming (`12 of 31`) → confirmed / failed, with mapped Solana errors, Solscan links, Retry, and a collapsible raw-error view. |
 | [Token Amount Input](components/kit/token-amount-input/token-amount-input.tsx) | Exact per-token decimals, thousands separators as you type, USD ⇄ token toggle, MAX that reserves rent, and a calm insufficient-balance correction. |
+| [Fee Explainer](components/kit/fee-explainer/fee-explainer.tsx) | Priority fees in plain language — "~$0.002 · confirms in ~2s". Breakdown on demand, Normal/Fast/Turbo selector, calm congestion notice, and an honest fallback when the estimate is missing. |
 | [Connect Wallet](components/kit/connect-wallet/connect-wallet.tsx) | The full connect flow: trigger button → anchored panel morphing through wallet list, connecting, optional sign-in-with-Solana, success → connected account chip. |
 | [Connect Wallet Modal](components/kit/connect-wallet-modal/connect-wallet-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, calm rejection, auto-dismiss. Focus-trapped and keyboard-friendly. |
 
