@@ -132,6 +132,96 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
+    name: "Token Amount Input",
+    slug: "token-amount-input",
+    description:
+      "A token amount field that handles decimals exactly, formats as you type, reserves rent when maxing, and corrects rather than alarms when the amount is too large.",
+    path: "components/kit/token-amount-input/token-amount-input.tsx",
+    usage: `<TokenAmountInput
+  token={SOL}
+  balance={12.45}
+  price={172.18}
+  value={amount}
+  onChange={setAmount}
+  onMax={(v) => track("max", v)}
+  tokens={MOCK_TOKENS}
+  onSelectToken={setToken}
+/>`,
+    note: "All comparison and MAX arithmetic runs in base units (BigInt), so amounts never round-trip through a float — no 0.30000000000000004. `value` is always in token units even while the user is typing in USD.",
+    props: [
+      {
+        name: "token",
+        type: "TokenInfo",
+        description:
+          "{ symbol, decimals, icon?, color?, feeReserve? }. `decimals` caps what can be typed (SOL 9, USDC 6); `feeReserve` is what MAX holds back for rent + fees on native SOL.",
+      },
+      {
+        name: "balance",
+        type: "number",
+        description:
+          "Human-unit balance. Omit while it's still fetching to show the skeleton.",
+      },
+      {
+        name: "price",
+        type: "number",
+        description:
+          "USD price per whole token. Omit while fetching; the USD toggle disables without it.",
+      },
+      {
+        name: "value",
+        type: "string",
+        description:
+          "Amount as a plain decimal string, always in token units — even when the user is typing in USD.",
+      },
+      {
+        name: "onChange",
+        type: "(value: string) => void",
+        description:
+          "Receives the sanitized token amount. Invalid characters and excess decimals are silently dropped, never surfaced as an error.",
+      },
+      {
+        name: "onMax",
+        type: "(value: string) => void",
+        description: "Fired after MAX fills the field, with the amount it used.",
+      },
+      {
+        name: "loading",
+        type: "boolean",
+        default: "false",
+        description:
+          "Balance/price still fetching — shimmers the balance and conversion lines and disables input.",
+      },
+      {
+        name: "disabled",
+        type: "boolean",
+        default: "false",
+        description: "Disables the field and its controls.",
+      },
+      {
+        name: "label",
+        type: "string",
+        default: '"Amount"',
+        description: "Visible field label, bound to the input.",
+      },
+      {
+        name: "tokens",
+        type: "TokenInfo[]",
+        description:
+          "Supplying more than one (with onSelectToken) turns the token pill into a picker.",
+      },
+      {
+        name: "onSelectToken",
+        type: "(token: TokenInfo) => void",
+        description: "Called when a token is chosen from the picker.",
+      },
+      {
+        name: "className",
+        type: "string",
+        description: "Extra classes for the root element.",
+      },
+    ],
+  },
+  {
     name: "Connect Wallet",
     slug: "connect-wallet",
     description:
