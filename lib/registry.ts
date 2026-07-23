@@ -139,33 +139,34 @@ export const registry: RegistryEntry[] = [
     path: "components/kit/token-amount-input/token-amount-input.tsx",
     usage: `<TokenAmountInput
   token={SOL}
-  balance={12.45}
-  price={172.18}
+  balance="12.45"
+  price="172.18"
   value={amount}
   onChange={setAmount}
   onMax={(v) => track("max", v)}
+  onValidityChange={({ valid }) => setCanSubmit(valid)}
   tokens={MOCK_TOKENS}
   onSelectToken={setToken}
 />`,
-    note: "All comparison and MAX arithmetic runs in base units (BigInt), so amounts never round-trip through a float — no 0.30000000000000004. `value` is always in token units even while the user is typing in USD.",
+    note: "Every comparison, MAX subtraction and balance check runs on BigInt base units and truncates, never rounds, so MAX can't exceed the real balance. The USD conversion is float maths — a display estimate that never decides validity. Pass `balance`/`price` as strings to avoid the precision a JS number loses above 2^53 raw units. `value` is always in token units, even while typing in USD.",
     props: [
       {
         name: "token",
         type: "TokenInfo",
         description:
-          "{ symbol, decimals, icon?, color?, feeReserve? }. `decimals` caps what can be typed (SOL 9, USDC 6); `feeReserve` is what MAX holds back for rent + fees on native SOL.",
+          "{ symbol, name?, mint?, decimals, icon?, color?, feeReserve? }. `decimals` caps what can be typed (SOL 9, USDC 6); `mint` keys token lists, since symbols aren't unique on Solana; `feeReserve` is what MAX holds back on native SOL — a constant is a simplification for rentExemptMin + fees + accounts created.",
       },
       {
         name: "balance",
-        type: "number",
+        type: "number | string",
         description:
-          "Human-unit balance. Omit while it's still fetching to show the skeleton.",
+          "Human-unit balance. Prefer a string — a JS number loses bits above 2^53 raw units (~9B USDC, ~9M SOL). Omit while fetching to show the skeleton.",
       },
       {
         name: "price",
-        type: "number",
+        type: "number | string",
         description:
-          "USD price per whole token. Omit while fetching; the USD toggle disables without it.",
+          "USD price per whole token. Display only — never decides validity. Omit while fetching; the USD toggle disables without it.",
       },
       {
         name: "value",
@@ -183,6 +184,12 @@ export const registry: RegistryEntry[] = [
         name: "onMax",
         type: "(value: string) => void",
         description: "Fired after MAX fills the field, with the amount it used.",
+      },
+      {
+        name: "onValidityChange",
+        type: "(v: { valid, insufficient, exceedsReserve }) => void",
+        description:
+          "Fires when validity changes so a parent can gate its own submit button without re-deriving the base-unit maths. `exceedsReserve` means the amount fits the balance but would leave nothing to pay fees.",
       },
       {
         name: "loading",
