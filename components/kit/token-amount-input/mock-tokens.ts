@@ -20,10 +20,12 @@
  */
 
 import type { TokenInfo } from "./token-amount-input";
+import { TOKEN_LOGOS } from "@/components/docs/token-logos";
 
 export const MOCK_TOKENS: TokenInfo[] = [
   {
     symbol: "SOL",
+    icon: TOKEN_LOGOS.sol,
     name: "Solana",
     // Symbols are not unique on Solana — duplicate-symbol scam tokens are
     // routine — so lists key on the mint.
@@ -38,6 +40,7 @@ export const MOCK_TOKENS: TokenInfo[] = [
   },
   {
     symbol: "USDC",
+    icon: TOKEN_LOGOS.usdc,
     name: "USD Coin",
     mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
     decimals: 6,
@@ -45,6 +48,7 @@ export const MOCK_TOKENS: TokenInfo[] = [
   },
   {
     symbol: "BONK",
+    icon: TOKEN_LOGOS.bonk,
     name: "Bonk",
     mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
     decimals: 5,
