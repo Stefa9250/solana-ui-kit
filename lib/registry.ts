@@ -229,6 +229,103 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
+    name: "Fee Explainer",
+    slug: "fee-explainer",
+    description:
+      "Translates Solana priority fees into plain language — cost in dollars, time in seconds. Lamports never reach the user, and a missing estimate never blocks them.",
+    path: "components/kit/fee-explainer/fee-explainer.tsx",
+    usage: `<FeeExplainer
+  feeUsd={0.0021}
+  feeSol={0.000012}
+  confirmTime={[2, 5]}
+  baseFeeUsd={0.00086}
+  priorityFeeUsd={0.00124}
+  speed={speed}
+  onSpeedChange={setSpeed}
+  speedOptions={speedOptions}
+  congested={congested}
+/>`,
+    note: "Confirmation times take a tuple to render an honest range (\"2–5s\") rather than inventing precision. Omit feeUsd entirely and the component falls back to “typically under $0.01” instead of blocking — a fee estimate should never gate a send.",
+    props: [
+      {
+        name: "feeUsd",
+        type: "number",
+        description:
+          "Total cost in USD — the primary figure everywhere. Omit for the unavailable fallback.",
+      },
+      {
+        name: "feeSol",
+        type: "number",
+        description: "The same total in SOL, shown as the secondary reference.",
+      },
+      {
+        name: "confirmTime",
+        type: "number | [number, number]",
+        description:
+          "Seconds. A tuple renders as a range (“2–5s”); a single number renders as “~2s”.",
+      },
+      {
+        name: "baseFeeUsd / baseFeeSol",
+        type: "number",
+        description:
+          "Base fee portion. With the priority pair, the info affordance expands into the breakdown.",
+      },
+      {
+        name: "priorityFeeUsd / priorityFeeSol",
+        type: "number",
+        description:
+          "Priority fee portion, explained in one plain sentence in the breakdown.",
+      },
+      {
+        name: "speed",
+        type: '"normal" | "fast" | "turbo"',
+        description:
+          "Selected tier. With onSpeedChange and speedOptions, renders the selector as a keyboard-navigable radio group.",
+      },
+      {
+        name: "onSpeedChange",
+        type: "(speed: FeeSpeed) => void",
+        description: "Called when a speed tier is chosen.",
+      },
+      {
+        name: "speedOptions",
+        type: "FeeSpeedOption[]",
+        description:
+          "{ speed, label, feeUsd, confirmTime } per tier — each option shows its own cost and time.",
+      },
+      {
+        name: "congested",
+        type: "boolean",
+        default: "false",
+        description:
+          "Raises a calm “network is busy” notice using the kit's warning treatment, and eases it back out when congestion clears.",
+      },
+      {
+        name: "loading",
+        type: "boolean",
+        default: "false",
+        description: "Shimmers the fee line while the estimate is in flight.",
+      },
+      {
+        name: "open",
+        type: "boolean",
+        description:
+          "Control the breakdown externally. Omit to let the component manage it.",
+      },
+      {
+        name: "onOpenChange",
+        type: "(open: boolean) => void",
+        description: "Notified when the breakdown wants to open or close.",
+      },
+      {
+        name: "label",
+        type: "string",
+        default: '"Network fee"',
+        description: "Row label.",
+      },
+    ],
+  },
+  {
     name: "Connect Wallet",
     slug: "connect-wallet",
     description:
