@@ -174,5 +174,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Adding a component is one folder under
 
 ## License
 
-[MIT](LICENSE). Wallet logos shown in the demos are trademarks of their
-respective owners, used nominatively to identify each wallet.
+[MIT](LICENSE). Wallet and token logos shown in the demos are trademarks of
+their respective owners, used nominatively to identify each wallet and token.
