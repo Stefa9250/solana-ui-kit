@@ -3,12 +3,17 @@
 /**
  * FeeExplainer — Solana UI Kit
  *
- * Translates Solana fees into plain language: cost in the user's currency and
- * time in seconds. Lamports and micro-lamports never reach the screen. USD is
- * primary everywhere, SOL is the secondary reference.
+ * Translates Solana fees into plain language: cost in USD and time in
+ * seconds. Lamports and micro-lamports never reach the screen. USD is
+ * primary, SOL is the secondary reference.
  *
- * A missing estimate is never a blocker — the component falls back to an
- * honest "typically under $0.01" rather than stopping the user.
+ * Two rules this component holds to, because it is a money surface:
+ *   1. Costs round UP. Never show a price lower than what the runtime debits.
+ *   2. Nothing unknown is ever rendered as a number. A missing or malformed
+ *      figure shows "—" or the unavailable fallback — never "$0.00", which
+ *      is a claim that is never true of a Solana transaction.
+ *
+ * A missing estimate never blocks the user.
  *
  * Self-contained: copy this file into your project.
  * Dependencies: React, Tailwind CSS, lucide-react.
@@ -20,11 +25,11 @@
  *   --sk-border --sk-border-strong --sk-accent
  *   --sk-btn --sk-btn-text --sk-btn-hover
  *   --sk-text --sk-text-secondary --sk-text-tertiary --sk-text-quaternary
- *   --sk-warning --sk-warning-border
+ *   --sk-warning
  *
  * <FeeExplainer
- *   feeUsd={0.0021}
- *   feeSol={0.000012}
+ *   feeUsd={0.00172}
+ *   feeSol={0.00001}
  *   confirmTime={[2, 5]}
  *   speed={speed}
  *   onSpeedChange={setSpeed}
@@ -38,10 +43,8 @@ import {
   useInsertionEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type KeyboardEvent,
 } from "react";
-import { Info } from "lucide-react";
 
 export type FeeSpeed = "normal" | "fast" | "turbo";
 
@@ -51,17 +54,18 @@ export type ConfirmTime = number | [number, number];
 export interface FeeSpeedOption {
   speed: FeeSpeed;
   label: string;
-  feeUsd: number;
+  /** Omit when there's no estimate — the tier still shows its time. */
+  feeUsd?: number;
   confirmTime: ConfirmTime;
 }
 
 export interface FeeExplainerProps {
-  /** Total cost in USD. Omit (with feeSol) for the unavailable fallback. */
+  /** Total cost in USD. Omit (or pass a non-finite value) for the fallback. */
   feeUsd?: number;
-  /** Same total in SOL — shown as the secondary reference. */
+  /** The same total in SOL — the secondary reference. */
   feeSol?: number;
   confirmTime?: ConfirmTime;
-  /** Breakdown; when both parts are present the info affordance expands. */
+  /** Breakdown; with both parts finite, the disclosure appears. */
   baseFeeUsd?: number;
   baseFeeSol?: number;
   priorityFeeUsd?: number;
@@ -76,23 +80,43 @@ export interface FeeExplainerProps {
   loading?: boolean;
   /** Row label. Defaults to "Network fee". */
   label?: string;
-  /** Control the breakdown externally (defaults to internal state). */
+  /**
+   * Control the disclosure. Pair with onOpenChange for a fully controlled
+   * panel; passing it alone just sets the state (the trigger keeps working).
+   */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   className?: string;
 }
 
 /* ------------------------------------------------------------------ *
- * Formatting — users see money and seconds, never lamports.
+ * Formatting. Users see money and seconds, never lamports.
  * ------------------------------------------------------------------ */
 
-/** Tiny values collapse to a threshold rather than "$0.0004". */
-function formatUsd(v: number): string {
-  if (!Number.isFinite(v) || v < 0) return "$0.00";
-  if (v === 0) return "$0.00";
+/** The single gate: anything not a real number is unknown, not zero. */
+function finite(v: number | undefined): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** Costs round up — the runtime does not round in the user's favour. */
+function ceilTo(v: number, dp: number): number {
+  const f = 10 ** dp;
+  // Nudge to absorb binary representation error before ceiling.
+  return Math.ceil(v * f - 1e-9) / f;
+}
+
+function usdAt(v: number, dp: number): string {
+  return `$${ceilTo(v, dp).toFixed(dp)}`;
+}
+
+/** Headline formatting — coarse and scannable. */
+function formatUsd(v: number | null): string | null {
+  if (v === null) return null;
+  if (v <= 0) return null;
   if (v < 0.001) return "<$0.001";
-  if (v < 1) return `$${v.toFixed(3)}`;
-  return v.toLocaleString("en-US", {
+  if (v < 0.1) return usdAt(v, 3);
+  if (v < 1) return usdAt(v, 2);
+  return ceilTo(v, 2).toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
@@ -100,36 +124,41 @@ function formatUsd(v: number): string {
   });
 }
 
+/**
+ * The breakdown is an audit trail, so it may use more digits than the
+ * headline. Picks the coarsest precision at which every part is still
+ * visible — without this, two sub-cent parts both collapse to "<$0.001"
+ * and visibly fail to sum to the total.
+ */
+function breakdownPrecision(parts: (number | null)[]): number {
+  const positives = parts.filter((v): v is number => v !== null && v > 0);
+  if (!positives.length) return 2;
+  const min = Math.min(...positives);
+  for (const dp of [2, 3, 4, 5, 6]) if (min >= 1 / 10 ** dp) return dp;
+  return 6;
+}
+
 /** Trimmed, never exponential — 0.000005 not 5e-6. */
-function formatSol(v: number): string {
-  if (!Number.isFinite(v) || v <= 0) return "0 SOL";
+function formatSol(v: number | null): string | null {
+  if (v === null || v <= 0) return null;
   const s = v.toFixed(9).replace(/0+$/, "").replace(/\.$/, "");
   return `${s} SOL`;
 }
 
-function formatTime(t: ConfirmTime): string {
+function formatTime(t: ConfirmTime | undefined): string | null {
+  if (t === undefined) return null;
   if (Array.isArray(t)) {
-    const [lo, hi] = t;
-    return lo === hi ? `~${lo}s` : `${lo}–${hi}s`;
+    const lo = finite(t[0]);
+    const hi = finite(t[1]);
+    if (lo === null || hi === null) return null;
+    const [a, b] = lo <= hi ? [lo, hi] : [hi, lo];
+    return a === b ? `~${a}s` : `${a}–${b}s`;
   }
-  return `~${t}s`;
+  const n = finite(t);
+  return n === null ? null : `~${n}s`;
 }
 
 /* ------------------------------------------------------------------ */
-
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
-function useReducedMotion(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const mq = window.matchMedia(REDUCED_MOTION_QUERY);
-      mq.addEventListener("change", onChange);
-      return () => mq.removeEventListener("change", onChange);
-    },
-    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
-    () => false,
-  );
-}
 
 /** Inject the kit stylesheet once per document, however many mount. */
 function useKitStyles(id: string, css: string) {
@@ -143,16 +172,16 @@ function useKitStyles(id: string, css: string) {
 }
 
 const STYLE_ID = "sol-fee-styles";
+// prefers-reduced-motion is handled entirely in CSS — no matchMedia hook, so
+// there's no per-render evaluation and no hydration double-render.
 const KEYFRAMES = `
 @keyframes sol-fee-tick { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-fee-note { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes sol-fee-shimmer { from { transform: translateX(-100%); } to { transform: translateX(220%); } }
 .sol-fee-tick { animation: sol-fee-tick 150ms cubic-bezier(0.32,0.72,0,1) both; }
-.sol-fee-note { animation: sol-fee-note 200ms cubic-bezier(0.32,0.72,0,1) both; }
 .sol-fee-skeleton { position: relative; overflow: hidden; }
 .sol-fee-skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); animation: sol-fee-shimmer 1.6s cubic-bezier(0.4,0,0.2,1) infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .sol-fee-tick, .sol-fee-note { animation: none !important; }
+  .sol-fee-tick { animation: none !important; }
   .sol-fee-skeleton::after { animation: none !important; display: none; }
 }
 `;
@@ -175,41 +204,63 @@ export function FeeExplainer({
   onOpenChange,
   className,
 }: FeeExplainerProps) {
-  const [openInternal, setOpenInternal] = useState(false);
-  const open = openProp ?? openInternal;
-  const setOpen = (next: boolean) => {
-    if (openProp === undefined) setOpenInternal(next);
-    onOpenChange?.(next);
-  };
+  const [openInternal, setOpenInternal] = useState(openProp ?? false);
+  const [prevOpenProp, setPrevOpenProp] = useState(openProp);
   const [announcement, setAnnouncement] = useState("");
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const baseId = useId();
   const detailsId = `${baseId}-details`;
 
-  const reduceMotion = useReducedMotion();
   useKitStyles(STYLE_ID, KEYFRAMES);
 
-  const hasEstimate = feeUsd !== undefined && Number.isFinite(feeUsd);
-  const hasBreakdown =
-    baseFeeUsd !== undefined && priorityFeeUsd !== undefined && hasEstimate;
+  // Fully controlled only when a handler comes with the prop. Passing `open`
+  // alone still works — it seeds the state instead of freezing the trigger.
+  const isControlled = openProp !== undefined && onOpenChange !== undefined;
+  const open = isControlled ? openProp! : openInternal;
+  if (openProp !== prevOpenProp) {
+    setPrevOpenProp(openProp);
+    if (!isControlled && openProp !== undefined) setOpenInternal(openProp);
+  }
+  const setOpen = (next: boolean) => {
+    if (isControlled) onOpenChange!(next);
+    else setOpenInternal(next);
+  };
+
+  /* --- everything unknown stays unknown --- */
+  const fee = finite(feeUsd);
+  const sol = finite(feeSol);
+  const base = finite(baseFeeUsd);
+  const baseSol = finite(baseFeeSol);
+  const priority = finite(priorityFeeUsd);
+  const prioritySol = finite(priorityFeeSol);
+
+  const hasEstimate = fee !== null && fee > 0;
+  const hasBreakdown = hasEstimate && base !== null && priority !== null;
   const showSelector =
     !!speedOptions && speedOptions.length > 0 && !!onSpeedChange && !!speed;
 
-  const feeText = hasEstimate ? formatUsd(feeUsd!) : null;
-  const timeText = confirmTime !== undefined ? formatTime(confirmTime) : null;
-  const solText = feeSol !== undefined ? formatSol(feeSol) : null;
-  // Keys the value nodes so a changed estimate replays the tick.
-  const feeKey = `${feeText}-${timeText}`;
+  const feeText = formatUsd(fee);
+  const timeText = formatTime(confirmTime);
+  const solText = formatSol(sol);
 
-  /* --- announce a settled estimate, not every intermediate poll --- */
+  // Shared precision so the parts and the panel total reconcile exactly.
+  const dp = breakdownPrecision([base, priority]);
+  const baseText = base !== null ? usdAt(base, dp) : null;
+  const priorityText = priority !== null ? usdAt(priority, dp) : null;
+  const totalText = fee !== null ? usdAt(fee, dp) : null;
+
+  /* --- announce the settled state; never a figure the screen disclaims,
+         and never the same string twice (which would re-fire the region) --- */
   useEffect(() => {
-    if (loading || !hasEstimate) return;
+    const next = loading
+      ? "Estimating network fee."
+      : !hasEstimate
+        ? "Fee estimate unavailable. Typically under one cent."
+        : `Network fee about ${feeText}${
+            timeText ? `, confirms in ${timeText}` : ""
+          }${congested ? ". Network is busy, fees are higher than usual." : ""}`;
     const t = setTimeout(() => {
-      setAnnouncement(
-        `Network fee about ${feeText}${timeText ? `, confirms in ${timeText}` : ""}${
-          congested ? ". Network is busy, fees are higher than usual." : ""
-        }`,
-      );
+      setAnnouncement((prev) => (prev === next ? prev : next));
     }, 600);
     return () => clearTimeout(t);
   }, [feeText, timeText, congested, loading, hasEstimate]);
@@ -219,34 +270,30 @@ export function FeeExplainer({
 
   const onRadioKeys = (e: KeyboardEvent) => {
     if (!speedOptions || !onSpeedChange) return;
-    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
-    const back = e.key === "ArrowLeft" || e.key === "ArrowUp";
-    if (!forward && !back) return;
-    e.preventDefault();
     const len = speedOptions.length;
     const from = selectedIndex < 0 ? 0 : selectedIndex;
-    const next = (from + (forward ? 1 : -1) + len) % len;
+    let next: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (from + 1) % len;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
+      next = (from - 1 + len) % len;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = len - 1;
+    if (next === null) return;
+    e.preventDefault();
     onSpeedChange(speedOptions[next].speed);
     optionRefs.current[next]?.focus();
   };
 
-  const borderColor = congested
-    ? "var(--sk-warning-border,#8a6c2f)"
-    : "var(--sk-border,#22262f)";
-
   return (
     <div className={className}>
-      <div
-        style={{ borderColor }}
-        className="border bg-[var(--sk-surface,#161b26)] p-4 transition-colors duration-200 ease-out"
-      >
+      <div className="border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-5">
         {/* One calm line: what it costs, how long it takes. */}
         <div className="flex items-center justify-between gap-3">
           <span className="text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
             {label}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex h-5 items-center gap-2">
             {loading ? (
               <span
                 className="sol-fee-skeleton block h-3 w-28 bg-[var(--sk-skeleton,#22262f)]"
@@ -254,17 +301,15 @@ export function FeeExplainer({
               />
             ) : hasEstimate ? (
               <span
-                key={feeKey}
-                className={`text-[13px] tabular-nums text-[var(--sk-text,#f7f7f7)] ${
-                  reduceMotion ? "" : "sol-fee-tick"
-                }`}
+                key={`${feeText}-${timeText}`}
+                className="sol-fee-tick text-[13px] tabular-nums text-[var(--sk-text,#f7f7f7)]"
               >
-                <span className="font-semibold">{feeText}</span>
+                <span className="font-semibold">≈ {feeText}</span>
                 {timeText && (
                   <>
                     <span
                       aria-hidden
-                      className="mx-1.5 text-[var(--sk-text-quaternary,#61656c)]"
+                      className="mx-1.5 text-[var(--sk-text-tertiary,#94969c)]"
                     >
                       ·
                     </span>
@@ -273,34 +318,41 @@ export function FeeExplainer({
                     </span>
                   </>
                 )}
+                {/* Without a breakdown to hold it, the SOL reference would
+                    otherwise be silently dropped. */}
+                {!hasBreakdown && solText && (
+                  <span className="ml-1.5 text-[var(--sk-text-tertiary,#94969c)]">
+                    ({solText})
+                  </span>
+                )}
               </span>
             ) : (
-              // Never block on a missing estimate.
               <span className="text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
                 Fee estimate unavailable{" "}
-                <span className="text-[var(--sk-text-quaternary,#61656c)]">
+                <span className="text-[var(--sk-text-tertiary,#94969c)]">
                   — typically under $0.01
                 </span>
               </span>
             )}
-
-            {hasBreakdown && !loading && (
-              <button
-                type="button"
-                onClick={() => setOpen(!open)}
-                aria-expanded={open}
-                aria-controls={detailsId}
-                aria-label={open ? "Hide fee breakdown" : "Show fee breakdown"}
-                className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--sk-text-quaternary,#61656c)] transition-colors duration-150 hover:bg-[var(--sk-border,#22262f)] hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 active:scale-[0.97]"
-              >
-                <Info aria-hidden className="size-3.5" />
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Congestion — eases in and back out, same treatment as the token
-            input's insufficient-balance correction. Never alarm-red. */}
+        {/* Text affordance, matching transaction-status's disclosure. Stays
+            mounted during loading so the row doesn't reflow twice a cycle. */}
+        {hasBreakdown && (
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-controls={detailsId}
+            className="mt-2 cursor-pointer text-[12px] text-[var(--sk-text-tertiary,#94969c)] underline underline-offset-2 transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+          >
+            {open ? "Hide breakdown" : "Show breakdown"}
+          </button>
+        )}
+
+        {/* Congestion — ambient weather, not a blocking error, so it does not
+            borrow the card-border treatment used for user mistakes. */}
         <div
           aria-hidden={!congested}
           className={`grid transition-all duration-200 ease-out ${
@@ -310,79 +362,95 @@ export function FeeExplainer({
           }`}
         >
           <div className="overflow-hidden">
-            <p className="text-[12px] leading-relaxed text-[var(--sk-warning,#e8b562)]">
-              Network is busy — fees are higher than usual.
-            </p>
+            {/* Only in the DOM when true, so page search and copy don't pick
+                up "network is busy" on a calm network. */}
+            {congested && (
+              <p className="text-[12px] leading-relaxed text-[var(--sk-warning,#e8b562)]">
+                Network is busy — fees are higher than usual.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Breakdown — same smooth height+fade collapsible as the kit.
-            Not rendered at all without a breakdown to show, so there's no
-            dead panel behind a trigger that doesn't exist. */}
         {hasBreakdown && (
-        <div
-          id={detailsId}
-          aria-hidden={!open}
-          className={`grid transition-all duration-200 ease-out ${
-            open
-              ? "mt-3 grid-rows-[1fr] opacity-100"
-              : "pointer-events-none mt-0 grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="border-t border-[var(--sk-border,#22262f)] pt-3">
-              <dl className="flex flex-col gap-2.5">
-                <div className="flex items-start justify-between gap-3">
-                  <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
-                    Base fee
-                  </dt>
-                  <dd className="text-right">
-                    <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
-                      {baseFeeUsd !== undefined ? formatUsd(baseFeeUsd) : "—"}
-                    </div>
-                    {baseFeeSol !== undefined && (
-                      <div className="text-[11px] tabular-nums text-[var(--sk-text-quaternary,#61656c)]">
-                        {formatSol(baseFeeSol)}
+          <div
+            id={detailsId}
+            aria-hidden={!open}
+            className={`grid transition-all duration-200 ease-out ${
+              open
+                ? "mt-3 grid-rows-[1fr] opacity-100"
+                : "pointer-events-none mt-0 grid-rows-[0fr] opacity-0"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="border-t border-[var(--sk-border,#22262f)] pt-3">
+                <dl className="flex flex-col gap-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+                      Network base cost
+                      <span className="ml-1.5 text-[11px] text-[var(--sk-text-quaternary,#61656c)]">
+                        fixed by Solana
+                      </span>
+                    </dt>
+                    <dd className="text-right">
+                      <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
+                        {baseText ?? "—"}
                       </div>
-                    )}
-                  </dd>
-                </div>
+                      {formatSol(baseSol) && (
+                        <div className="text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
+                          {formatSol(baseSol)}
+                        </div>
+                      )}
+                    </dd>
+                  </div>
 
-                <div className="flex items-start justify-between gap-3">
-                  <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
-                    Priority fee
-                  </dt>
-                  <dd className="text-right">
-                    <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
-                      {priorityFeeUsd !== undefined
-                        ? formatUsd(priorityFeeUsd)
-                        : "—"}
+                  <div>
+                    <div className="flex items-start justify-between gap-3">
+                      <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+                        Priority fee
+                      </dt>
+                      <dd className="text-right">
+                        <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
+                          {priorityText ?? "—"}
+                        </div>
+                        {formatSol(prioritySol) && (
+                          <div className="text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
+                            {formatSol(prioritySol)}
+                          </div>
+                        )}
+                      </dd>
                     </div>
-                    {priorityFeeSol !== undefined && (
-                      <div className="text-[11px] tabular-nums text-[var(--sk-text-quaternary,#61656c)]">
-                        {formatSol(priorityFeeSol)}
-                      </div>
+                    {/* Attached to the row it describes, not orphaned below
+                        both of them where it reads as describing the total. */}
+                    <p className="mt-1 max-w-[85%] text-[11px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
+                      A small tip that gets your transaction processed faster
+                      during busy periods.
+                    </p>
+                  </div>
+                </dl>
+
+                {/* The number the panel exists to reconcile — so it is the
+                    largest thing in it, at the parts' own precision. */}
+                <div className="mt-3 flex items-start justify-between gap-3 border-t border-[var(--sk-border,#22262f)] pt-3">
+                  <span className="text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
+                    Total
+                  </span>
+                  <span className="text-right">
+                    <span className="block text-[13px] font-semibold tabular-nums text-[var(--sk-text,#f7f7f7)]">
+                      {totalText ?? "—"}
+                    </span>
+                    {solText && (
+                      <span className="block text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
+                        {solText}
+                      </span>
                     )}
-                  </dd>
+                  </span>
                 </div>
-              </dl>
-
-              <p className="mt-3 text-[12px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
-                A small tip that gets your transaction processed faster during
-                busy periods.
-              </p>
-
-              {solText && (
-                <p className="mt-2 text-[11px] tabular-nums text-[var(--sk-text-quaternary,#61656c)]">
-                  Total {solText}
-                </p>
-              )}
+              </div>
             </div>
           </div>
-        </div>
         )}
 
-        {/* Speed selector */}
         {showSelector && (
           <div className="mt-4 border-t border-[var(--sk-border,#22262f)] pt-3">
             <div
@@ -393,6 +461,8 @@ export function FeeExplainer({
             >
               {speedOptions!.map((opt, i) => {
                 const active = opt.speed === speed;
+                const optFee = formatUsd(finite(opt.feeUsd));
+                const optTime = formatTime(opt.confirmTime);
                 return (
                   <button
                     key={opt.speed}
@@ -414,18 +484,24 @@ export function FeeExplainer({
                       {opt.label}
                     </span>
                     <span
-                      key={`${opt.feeUsd}-${
-                        Array.isArray(opt.confirmTime)
-                          ? opt.confirmTime.join("-")
-                          : opt.confirmTime
-                      }`}
-                      className={`mt-0.5 block text-[11px] tabular-nums ${
+                      key={`${optFee}-${optTime}`}
+                      className={`sol-fee-tick mt-0.5 block text-[11px] tabular-nums ${
                         active
                           ? "text-[var(--sk-btn-text,#18e3a5)] opacity-80"
-                          : "text-[var(--sk-text-quaternary,#61656c)]"
-                      } ${reduceMotion ? "" : "sol-fee-tick"}`}
+                          : "text-[var(--sk-text-tertiary,#94969c)]"
+                      }`}
                     >
-                      {formatUsd(opt.feeUsd)} · {formatTime(opt.confirmTime)}
+                      {/* Without a total we can't honestly quote tiers — the
+                          time still stands on its own. */}
+                      {hasEstimate && optFee ? (
+                        <>
+                          {optFee}
+                          <span aria-hidden className="mx-1">
+                            ·
+                          </span>
+                        </>
+                      ) : null}
+                      {optTime}
                     </span>
                   </button>
                 );
@@ -436,7 +512,7 @@ export function FeeExplainer({
       </div>
 
       <div role="status" aria-live="polite" className="sr-only">
-        {loading ? "" : announcement}
+        {announcement}
       </div>
     </div>
   );
