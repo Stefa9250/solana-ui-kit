@@ -245,7 +245,7 @@ export const registry: RegistryEntry[] = [
   speedOptions={speedOptions}
   congested={congested}
 />`,
-    note: "Confirmation times take a tuple to render an honest range (\"2–5s\") rather than inventing precision. Omit feeUsd entirely and the component falls back to “typically under $0.01” instead of blocking — a fee estimate should never gate a send.",
+    note: "Costs round UP, never to nearest, and the displayed total is the sum of the rounded parts — so the breakdown always reconciles with the headline. Nothing unknown renders as a number: a null or NaN shows “—”, never “$0.00”. Pass `extraCosts` for account rent or tips, otherwise the headline understates a first-time token transfer by ~270× (ATA rent is ~0.00204 SOL against a ~$0.001 fee).",
     props: [
       {
         name: "feeUsd",
@@ -292,6 +292,12 @@ export const registry: RegistryEntry[] = [
         type: "FeeSpeedOption[]",
         description:
           "{ speed, label, feeUsd, confirmTime } per tier — each option shows its own cost and time.",
+      },
+      {
+        name: "extraCosts",
+        type: "{ label, usd?, sol?, hint? }[]",
+        description:
+          "Costs beyond the network fee — account rent, bundle tips. When present the headline becomes the total the user actually pays and the label defaults to “Estimated cost”. Creating an associated token account costs ~0.00204 SOL, which dwarfs the fee itself.",
       },
       {
         name: "congested",

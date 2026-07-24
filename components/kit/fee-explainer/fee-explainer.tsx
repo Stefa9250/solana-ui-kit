@@ -59,6 +59,20 @@ export interface FeeSpeedOption {
   confirmTime: ConfirmTime;
 }
 
+/**
+ * A cost the user pays that isn't the network fee — account rent, a bundle
+ * tip. Creating an associated token account costs ~0.00204 SOL, which dwarfs
+ * the fee itself, so leaving these out understates a first-time transfer by
+ * orders of magnitude.
+ */
+export interface FeeExtraCost {
+  label: string;
+  usd?: number;
+  sol?: number;
+  /** e.g. "one-time, refunded if the account is closed" */
+  hint?: string;
+}
+
 export interface FeeExplainerProps {
   /** Total cost in USD. Omit (or pass a non-finite value) for the fallback. */
   feeUsd?: number;
@@ -74,6 +88,12 @@ export interface FeeExplainerProps {
   speed?: FeeSpeed;
   onSpeedChange?: (speed: FeeSpeed) => void;
   speedOptions?: FeeSpeedOption[];
+  /**
+   * Costs beyond the network fee (account rent, tips). When present the
+   * headline becomes the total the user actually pays, and each is itemised
+   * in the breakdown.
+   */
+  extraCosts?: FeeExtraCost[];
   /** Network is busy — raises a calm notice, never an alarm. */
   congested?: boolean;
   /** Estimating — shimmers the fee line. */
@@ -125,17 +145,15 @@ function formatUsd(v: number | null): string | null {
 }
 
 /**
- * The breakdown is an audit trail, so it may use more digits than the
- * headline. Picks the coarsest precision at which every part is still
- * visible — without this, two sub-cent parts both collapse to "<$0.001"
- * and visibly fail to sum to the total.
+ * One precision for the whole component, scaled to the total. Sub-cent fees
+ * need four decimals or every part collapses to "<$0.001" and visibly fails
+ * to sum; dollar amounts need two or they read as noise.
  */
-function breakdownPrecision(parts: (number | null)[]): number {
-  const positives = parts.filter((v): v is number => v !== null && v > 0);
-  if (!positives.length) return 2;
-  const min = Math.min(...positives);
-  for (const dp of [2, 3, 4, 5, 6]) if (min >= 1 / 10 ** dp) return dp;
-  return 6;
+function costPrecision(total: number | null): number {
+  if (total === null || total <= 0) return 2;
+  if (total >= 1) return 2;
+  if (total >= 0.01) return 3;
+  return 4;
 }
 
 /** Trimmed, never exponential — 0.000005 not 5e-6. */
@@ -197,9 +215,10 @@ export function FeeExplainer({
   speed,
   onSpeedChange,
   speedOptions,
+  extraCosts,
   congested = false,
   loading = false,
-  label = "Network fee",
+  label,
   open: openProp,
   onOpenChange,
   className,
@@ -234,20 +253,54 @@ export function FeeExplainer({
   const priority = finite(priorityFeeUsd);
   const prioritySol = finite(priorityFeeSol);
 
+  const extras = (extraCosts ?? []).filter(
+    (e) => finite(e.usd) !== null || finite(e.sol) !== null,
+  );
+  const extrasUsd = extras.reduce((sum, e) => sum + (finite(e.usd) ?? 0), 0);
+  const extrasSol = extras.reduce((sum, e) => sum + (finite(e.sol) ?? 0), 0);
+
   const hasEstimate = fee !== null && fee > 0;
-  const hasBreakdown = hasEstimate && base !== null && priority !== null;
+  // The headline is what the user actually pays, not just the network fee.
+  const totalUsd = hasEstimate ? fee! + extrasUsd : null;
+  const totalSol = sol !== null ? sol + extrasSol : null;
+  const hasBreakdown =
+    hasEstimate && ((base !== null && priority !== null) || extras.length > 0);
   const showSelector =
     !!speedOptions && speedOptions.length > 0 && !!onSpeedChange && !!speed;
 
-  const feeText = formatUsd(fee);
-  const timeText = formatTime(confirmTime);
-  const solText = formatSol(sol);
+  // "Network fee" stops being true the moment rent or a tip is included.
+  const resolvedLabel = label ?? (extras.length ? "Estimated cost" : "Network fee");
 
-  // Shared precision so the parts and the panel total reconcile exactly.
-  const dp = breakdownPrecision([base, priority]);
+  // One precision everywhere, and the displayed total is the SUM OF THE
+  // ROUNDED PARTS rather than a separately-rounded total — independent
+  // ceiling can't otherwise reconcile, which is how "<$0.001 + <$0.001 =
+  // $0.002" happened. Erring upward is the safe direction for a cost.
+  const dp = costPrecision(totalUsd);
+  const partValues = [
+    base,
+    priority,
+    ...extras.map((e) => finite(e.usd)),
+  ].filter((v): v is number => v !== null);
+  const roundedPartsTotal = partValues.reduce((s, v) => s + ceilTo(v, dp), 0);
+  const displayTotal =
+    hasBreakdown && partValues.length
+      ? roundedPartsTotal
+      : totalUsd !== null
+        ? ceilTo(totalUsd, dp)
+        : null;
+
+  const feeText =
+    displayTotal === null
+      ? null
+      : displayTotal < 0.001
+        ? "<$0.001"
+        : usdAt(displayTotal, dp);
+  const timeText = formatTime(confirmTime);
+  const solText = formatSol(totalSol);
+
   const baseText = base !== null ? usdAt(base, dp) : null;
   const priorityText = priority !== null ? usdAt(priority, dp) : null;
-  const totalText = fee !== null ? usdAt(fee, dp) : null;
+  const totalText = feeText;
 
   /* --- announce the settled state; never a figure the screen disclaims,
          and never the same string twice (which would re-fire the region) --- */
@@ -290,7 +343,7 @@ export function FeeExplainer({
         {/* One calm line: what it costs, how long it takes. */}
         <div className="flex items-center justify-between gap-3">
           <span className="text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
-            {label}
+            {resolvedLabel}
           </span>
 
           <div className="flex h-5 items-center gap-2">
@@ -363,10 +416,13 @@ export function FeeExplainer({
         >
           <div className="overflow-hidden">
             {/* Only in the DOM when true, so page search and copy don't pick
-                up "network is busy" on a calm network. */}
+                up "network is busy" on a calm network. The copy is honest
+                about the real failure mode: under congestion a transaction is
+                more likely to expire than to merely be slow. */}
             {congested && (
               <p className="text-[12px] leading-relaxed text-[var(--sk-warning,#e8b562)]">
-                Network is busy — fees are higher than usual.
+                Network is busy — fees are higher than usual and transactions
+                may need retrying.
               </p>
             )}
           </div>
@@ -385,6 +441,7 @@ export function FeeExplainer({
             <div className="overflow-hidden">
               <div className="border-t border-[var(--sk-border,#22262f)] pt-3">
                 <dl className="flex flex-col gap-2.5">
+                  {base !== null && (
                   <div className="flex items-start justify-between gap-3">
                     <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
                       Network base cost
@@ -403,7 +460,9 @@ export function FeeExplainer({
                       )}
                     </dd>
                   </div>
+                  )}
 
+                  {priority !== null && (
                   <div>
                     <div className="flex items-start justify-between gap-3">
                       <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
@@ -427,6 +486,34 @@ export function FeeExplainer({
                       during busy periods.
                     </p>
                   </div>
+                  )}
+
+                  {extras.map((extra) => (
+                    <div key={extra.label}>
+                      <div className="flex items-start justify-between gap-3">
+                        <dt className="text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
+                          {extra.label}
+                        </dt>
+                        <dd className="text-right">
+                          <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
+                            {finite(extra.usd) !== null
+                              ? usdAt(finite(extra.usd)!, dp)
+                              : "—"}
+                          </div>
+                          {formatSol(finite(extra.sol)) && (
+                            <div className="text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
+                              {formatSol(finite(extra.sol))}
+                            </div>
+                          )}
+                        </dd>
+                      </div>
+                      {extra.hint && (
+                        <p className="mt-1 max-w-[85%] text-[11px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
+                          {extra.hint}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </dl>
 
                 {/* The number the panel exists to reconcile — so it is the
