@@ -24,6 +24,7 @@ const SCENARIOS = [
   "Default",
   "Expanded",
   "Congested",
+  "Creates account",
   "Loading",
   "Unavailable",
   "Minimal",
@@ -42,22 +43,23 @@ export default function FeeExplainerDemo() {
   );
 
   const congested = scenario === "Congested";
+  const createsAta = scenario === "Creates account";
   const forcedLoading = scenario === "Loading";
   const unavailable = scenario === "Unavailable";
   const minimal = scenario === "Minimal";
-  const key = `${speed}-${congested}`;
+  const key = `${speed}-${congested}-${createsAta}`;
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const est = await mockFeeOracle.estimate(speed, congested);
+      const est = await mockFeeOracle.estimate(speed, congested, { createsAta });
       if (cancelled) return;
-      setMarket({ key: `${speed}-${congested}`, est });
+      setMarket({ key: `${speed}-${congested}-${createsAta}`, est });
     })();
     return () => {
       cancelled = true;
     };
-  }, [speed, congested]);
+  }, [speed, congested, createsAta]);
 
   // Null the moment the inputs change — which is what makes `loading` honest.
   const fresh = market?.key === key ? market.est : null;
@@ -112,6 +114,18 @@ export default function FeeExplainerDemo() {
             }
             priorityFeeSol={
               showEstimate && !minimal ? fresh.priorityFeeSol : undefined
+            }
+            extraCosts={
+              showEstimate && fresh.rentUsd !== undefined
+                ? [
+                    {
+                      label: "New account rent",
+                      usd: fresh.rentUsd,
+                      sol: fresh.rentSol,
+                      hint: "One-time, because this recipient has no token account yet. Refunded if the account is ever closed.",
+                    },
+                  ]
+                : undefined
             }
             speed={minimal ? undefined : speed}
             onSpeedChange={minimal ? undefined : setSpeed}
