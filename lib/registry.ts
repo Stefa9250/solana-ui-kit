@@ -332,6 +332,83 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
+    name: "Address Display",
+    slug: "address-display",
+    description:
+      "A Solana address done right: middle-truncated, deterministic avatar, one-tap copy of the full address, and a program/token affordance so nobody sends funds into a program by mistake.",
+    path: "components/kit/address-display/address-display.tsx",
+    usage: `<AddressDisplay
+  address={pubkey}
+  name="jupiter.sol"
+  kind="program"
+  variant="card"
+  showExplorer
+  onCopy={(addr) => track("copy", addr)}
+/>`,
+    note: "Copy always writes the full base58 address, never the shortened form. `kind` is caller-supplied — the component displays it but does not verify executability; resolve it with getAccountInfo → executable and pass the result in. Screen readers get the full address and kind, never “GK7z…4jNq”.",
+    props: [
+      {
+        name: "address",
+        type: "string",
+        description: "Full base58 address. Truncated for display, copied in full.",
+      },
+      {
+        name: "name",
+        type: "string",
+        description:
+          "Known label — a .sol domain, a program name — shown in place of the truncated address, which drops to the secondary line.",
+      },
+      {
+        name: "kind",
+        type: '"wallet" | "program" | "token" | "unknown"',
+        default: '"wallet"',
+        description:
+          "Programs and token mints get a badge (programs an amber warning one) so they aren't mistaken for a personal wallet. Not verified by the component.",
+      },
+      {
+        name: "chars",
+        type: "number",
+        default: "4",
+        description: "Characters shown on each side of the ellipsis.",
+      },
+      {
+        name: "cluster",
+        type: '"mainnet-beta" | "devnet" | "testnet"',
+        default: '"mainnet-beta"',
+        description: "Explorer links point at this cluster.",
+      },
+      {
+        name: "explorerUrl",
+        type: "(address: string) => string",
+        description: "Override the explorer. Defaults to Solscan.",
+      },
+      {
+        name: "showExplorer / showAvatar / showCopy",
+        type: "boolean",
+        description:
+          "Toggle the explorer link (card only), the avatar, and the copy button.",
+      },
+      {
+        name: "onCopy",
+        type: "(address: string) => void",
+        description: "Called after a successful copy, with the full address.",
+      },
+      {
+        name: "loading",
+        type: "boolean",
+        default: "false",
+        description: "Identity still resolving — shows a skeleton.",
+      },
+      {
+        name: "variant",
+        type: '"inline" | "card"',
+        default: '"inline"',
+        description:
+          "Inline is a compact chip; card is a padded row with the name, kind and explorer link.",
+      },
+    ],
+  },
+  {
     name: "Connect Wallet",
     slug: "connect-wallet",
     description:
