@@ -427,7 +427,7 @@ export const registry: RegistryEntry[] = [
   secondaryAction={{ label: "Switch endpoint", onClick: pickRpc }}
   busy={retrying}
 />`,
-    note: "STATE_PRESETS ships copy for rpcDown, congested, noTokens, noTransactions and notConnected — spread one and add your own handlers. The error tone stays a muted coral, never alarm-red; only the error tone uses role=\"alert\".",
+    note: "STATE_PRESETS ships end-user copy for rpcDown, rateLimited, wrongNetwork, noTokens, noTransactions and notConnected — spread one and add handlers. Congestion is deliberately not here: the kit models a busy network as FeeExplainer's inline banner, not a full-screen dead-end. The error tone is a muted coral, never alarm-red, and can reveal the raw error under “technical details”. `busy` shows a spinner and keeps the action's own label (or its busyLabel) — never a baked-in “Retrying…”.",
     props: [
       {
         name: "title",
@@ -447,28 +447,47 @@ export const registry: RegistryEntry[] = [
       },
       {
         name: "tone",
-        type: '"neutral" | "warning" | "error"',
+        type: '"neutral" | "brand" | "warning" | "error"',
         default: '"neutral"',
         description:
-          "Tints the icon and sets the live-region politeness. Error is a muted coral with role=\"alert\"; the rest are role=\"status\".",
+          "Tints the icon. Brand is the inviting emerald for a call-to-action like connect-wallet; error is a muted coral. Announcements are always polite — the full-screen visual carries the urgency.",
       },
       {
         name: "action",
-        type: "{ label, onClick?, href? }",
+        type: "{ label, onClick?, href?, busyLabel?, newTab? }",
         description:
-          "Primary way forward — a button, or a link when href is set. Gets the busy spinner.",
+          "Primary way forward — a button, or a link when href is set (external URLs get a ↗ and open a new tab; override with newTab). onClick fires alongside navigation. Rendered only if it can actually do something.",
       },
       {
         name: "secondaryAction",
-        type: "{ label, onClick?, href? }",
-        description: "A quieter secondary option.",
+        type: "{ label, onClick?, href?, ... }",
+        description: "A quieter secondary option, same shape as action.",
       },
       {
         name: "busy",
         type: "boolean",
         default: "false",
         description:
-          "Spinner on the primary action and “Retrying…” label; disables it while in flight.",
+          "Spinner on the primary action, keeping its own label (or busyLabel); disables it while in flight. A link stays a link — it never becomes a dead button.",
+      },
+      {
+        name: "errorDetail",
+        type: "string",
+        description:
+          "Error tone only — the raw error, revealed under a collapsible “technical details” like TransactionStatus.",
+      },
+      {
+        name: "headingLevel",
+        type: "1 | 2 | 3 | 4",
+        default: "2",
+        description: "Heading level for the title. Set it to fit your page hierarchy.",
+      },
+      {
+        name: "autoFocusAction",
+        type: "boolean",
+        default: "false",
+        description:
+          "Move focus to the primary action on mount — for post-error screens, matching TransactionStatus's autoFocusRetry.",
       },
       {
         name: "compact",

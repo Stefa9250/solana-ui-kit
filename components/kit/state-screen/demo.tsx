@@ -2,7 +2,9 @@
 
 /**
  * Docs demo for StateScreen. Buttons switch between the shipped presets;
- * "RPC down" wires a real retry with a busy spinner.
+ * "RPC down" wires a real retry with a busy spinner and a technical-detail
+ * view. (Network congestion is intentionally NOT here — the kit models that
+ * as FeeExplainer's inline banner, not a full-screen dead-end.)
  * Not part of the copy-paste component.
  */
 
@@ -11,7 +13,8 @@ import { StateScreen, STATE_PRESETS } from "./state-screen";
 
 const SCENARIOS = [
   "RPC down",
-  "Congested",
+  "Rate limited",
+  "Wrong network",
   "No tokens",
   "No transactions",
   "Not connected",
@@ -33,29 +36,29 @@ export default function StateScreenDemo() {
         return (
           <StateScreen
             {...STATE_PRESETS.rpcDown}
-            action={{ label: "Try again", onClick: retry }}
+            action={{ label: "Try again", onClick: retry, busyLabel: "Retrying…" }}
             secondaryAction={{
-              label: "Switch endpoint",
-              onClick: () => {},
+              label: "Network status",
+              href: "https://status.solana.com",
             }}
+            errorDetail="fetch failed: 503 Service Unavailable (api.mainnet-beta.solana.com)"
             busy={retrying}
           />
         );
-      case "Congested":
+      case "Rate limited":
+        return <StateScreen {...STATE_PRESETS.rateLimited} />;
+      case "Wrong network":
         return (
           <StateScreen
-            {...STATE_PRESETS.congested}
-            action={{ label: "Continue anyway", onClick: () => {} }}
+            {...STATE_PRESETS.wrongNetwork}
+            action={{ label: "Switch to mainnet", onClick: () => {} }}
           />
         );
       case "No tokens":
         return (
           <StateScreen
             {...STATE_PRESETS.noTokens}
-            action={{
-              label: "Get SOL",
-              href: "https://solana.com/ecosystem/explore",
-            }}
+            action={{ label: "Receive tokens", onClick: () => {} }}
           />
         );
       case "No transactions":
