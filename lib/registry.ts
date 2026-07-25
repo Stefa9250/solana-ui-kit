@@ -345,7 +345,7 @@ export const registry: RegistryEntry[] = [
   showExplorer
   onCopy={(addr) => track("copy", addr)}
 />`,
-    note: "Copy always writes the full base58 address, never the shortened form. `kind` is caller-supplied — the component displays it but does not verify executability; resolve it with getAccountInfo → executable and pass the result in. Screen readers get the full address and kind, never “GK7z…4jNq”.",
+    note: "Copy always writes the full base58 address (with a clipboard fallback for insecure contexts and a visible failure state), never the shortened form. `kind` defaults to “unknown” — trust is opt-in; declare “wallet” explicitly to drop the badge. The chip and short form are visual anchors, not identity checks: distinct addresses can share a prefix/suffix (address-poisoning grinds exactly that), so verify by copying the full string. Malformed input renders an “Invalid address” affordance rather than a broken link.",
     props: [
       {
         name: "address",
@@ -361,15 +361,22 @@ export const registry: RegistryEntry[] = [
       {
         name: "kind",
         type: '"wallet" | "program" | "token" | "unknown"',
-        default: '"wallet"',
+        default: '"unknown"',
         description:
-          "Programs and token mints get a badge (programs an amber warning one) so they aren't mistaken for a personal wallet. Not verified by the component.",
+          "Programs and token mints get an amber cautionary badge and a shield glyph so they aren't mistaken for a personal wallet; unknown shows “Unverified”. Caller-supplied — not verified by the component.",
       },
       {
         name: "chars",
         type: "number",
-        default: "4",
-        description: "Characters shown on each side of the ellipsis.",
+        default: "6",
+        description:
+          "Characters shown on each side of the ellipsis. Clamped to a floor of 4 — lower lets distinct addresses render identically.",
+      },
+      {
+        name: "onCopyError",
+        type: "() => void",
+        description:
+          "Called if the copy failed (blocked clipboard / insecure context). The button also shows a visible failure state.",
       },
       {
         name: "cluster",
@@ -405,6 +412,70 @@ export const registry: RegistryEntry[] = [
         default: '"inline"',
         description:
           "Inline is a compact chip; card is a padded row with the name, kind and explorer link.",
+      },
+    ],
+  },
+  {
+    name: "State Screen",
+    slug: "state-screen",
+    description:
+      "The empty and error screens nobody designs: RPC down, no tokens, network congested, wallet not connected. One calm layout, three restrained tones, presets with the copy already written.",
+    path: "components/kit/state-screen/state-screen.tsx",
+    usage: `<StateScreen
+  {...STATE_PRESETS.rpcDown}
+  action={{ label: "Try again", onClick: refetch }}
+  secondaryAction={{ label: "Switch endpoint", onClick: pickRpc }}
+  busy={retrying}
+/>`,
+    note: "STATE_PRESETS ships copy for rpcDown, congested, noTokens, noTransactions and notConnected — spread one and add your own handlers. The error tone stays a muted coral, never alarm-red; only the error tone uses role=\"alert\".",
+    props: [
+      {
+        name: "title",
+        type: "string",
+        description: "The headline. Required.",
+      },
+      {
+        name: "description",
+        type: "string",
+        description: "One line of plain-language explanation.",
+      },
+      {
+        name: "icon",
+        type: "LucideIcon | ReactNode",
+        description:
+          "A lucide icon component (rendered at 24px in a tinted circle) or any node for full control.",
+      },
+      {
+        name: "tone",
+        type: '"neutral" | "warning" | "error"',
+        default: '"neutral"',
+        description:
+          "Tints the icon and sets the live-region politeness. Error is a muted coral with role=\"alert\"; the rest are role=\"status\".",
+      },
+      {
+        name: "action",
+        type: "{ label, onClick?, href? }",
+        description:
+          "Primary way forward — a button, or a link when href is set. Gets the busy spinner.",
+      },
+      {
+        name: "secondaryAction",
+        type: "{ label, onClick?, href? }",
+        description: "A quieter secondary option.",
+      },
+      {
+        name: "busy",
+        type: "boolean",
+        default: "false",
+        description:
+          "Spinner on the primary action and “Retrying…” label; disables it while in flight.",
+      },
+      {
+        name: "compact",
+        type: "boolean",
+        default: "false",
+        description:
+          "Tighter vertical padding for use inside a card rather than a full page.",
       },
     ],
   },

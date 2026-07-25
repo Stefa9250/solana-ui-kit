@@ -7,6 +7,7 @@ import ConnectWalletModalDemo from "@/components/kit/connect-wallet-modal/demo";
 import TokenAmountInputDemo from "@/components/kit/token-amount-input/demo";
 import FeeExplainerDemo from "@/components/kit/fee-explainer/demo";
 import AddressDisplayDemo from "@/components/kit/address-display/demo";
+import StateScreenDemo from "@/components/kit/state-screen/demo";
 
 /**
  * Maps a registry slug to its live docs demo.
@@ -20,4 +21,5 @@ export const demos: Record<string, ComponentType> = {
   "token-amount-input": TokenAmountInputDemo,
   "fee-explainer": FeeExplainerDemo,
   "address-display": AddressDisplayDemo,
+  "state-screen": StateScreenDemo,
 };
