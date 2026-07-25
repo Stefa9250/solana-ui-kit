@@ -4,32 +4,36 @@
  * AddressDisplay — Solana UI Kit
  *
  * Shows a Solana address the way a dApp should: middle-truncated, with a
- * deterministic avatar, one-tap copy of the FULL address (never the shortened
- * form), an optional known name, and — importantly — a "this is a program /
- * token account, not a wallet" affordance so users don't send funds into a
- * program by mistake.
+ * deterministic monogram chip, one-tap copy of the FULL address (never the
+ * shortened form, with a clipboard fallback and a visible failure state),
+ * an optional known name, and a "this is a program / token account, not a
+ * wallet" affordance so users don't send funds into a program by mistake.
  *
- * Honesty note: `kind` is whatever you pass. This component displays that
- * label; it does not fetch the account or verify it's executable. Resolve the
- * kind server-side (getAccountInfo → executable) and pass the result in.
+ * Two safety stances, both deliberate:
+ *   1. `kind` defaults to "unknown", not "wallet". An unclassified address is
+ *      shown as Unverified — you must explicitly declare it a wallet before it
+ *      loses its badge. Trust is opt-in.
+ *   2. The chip and short form are visual anchors, NOT identity checks. Two
+ *      addresses can share a prefix/suffix (address-poisoning attacks grind
+ *      exactly that), so the default truncation is 6+6 and the real
+ *      verification path is Copy → paste the full string.
+ *
+ * Honesty note: `kind` is whatever you pass. The badge does not mean the
+ * component checked the chain — resolve it with getAccountInfo → executable
+ * and pass the result in.
  *
  * Self-contained: copy this file into your project.
  * Dependencies: React, Tailwind CSS, lucide-react.
  *
  * Theming: every color is a CSS variable with the kit's dark default inlined
  * as fallback (e.g. var(--sk-surface,#161b26)). Define --sk-* on any ancestor
- * to retheme without touching this file. Tokens used here:
- *   --sk-bg --sk-surface --sk-card --sk-skeleton
- *   --sk-border --sk-border-strong --sk-accent
- *   --sk-text --sk-text-secondary --sk-text-tertiary --sk-text-quaternary
- *   --sk-warning
+ * to retheme without touching this file.
  *
  * <AddressDisplay address={pubkey} kind="program" onCopy={() => {}} />
  */
 
 import {
   useEffect,
-  useId,
   useInsertionEffect,
   useRef,
   useState,
@@ -45,12 +49,13 @@ export interface AddressDisplayProps {
   /** Known label — a .sol domain, a program name ("Jupiter"), etc. */
   name?: string;
   /**
-   * What kind of account this is. Programs and token mints get a badge so a
-   * user doesn't mistake them for a personal wallet. Caller-supplied — the
-   * component does not verify it.
+   * What kind of account this is. Defaults to "unknown" (shown Unverified);
+   * declare "wallet" explicitly to drop the badge. Programs and token mints
+   * get a cautionary badge. Caller-supplied — not verified by the component.
    */
   kind?: AddressKind;
-  /** Characters shown on each side of the ellipsis (default 4). */
+  /** Characters shown on each side of the ellipsis (default 6). Low values
+   *  let distinct addresses render identically — don't go below 4. */
   chars?: number;
   /** Explorer links point at this cluster (default mainnet-beta). */
   cluster?: SolanaCluster;
@@ -64,6 +69,8 @@ export interface AddressDisplayProps {
   showCopy?: boolean;
   /** Called after a successful copy, with the full address. */
   onCopy?: (address: string) => void;
+  /** Called if the copy failed (blocked clipboard, insecure context). */
+  onCopyError?: () => void;
   /** Identity still resolving — shows a skeleton. */
   loading?: boolean;
   /** "inline" is a compact chip; "card" is a padded row with the name/kind. */
@@ -72,6 +79,16 @@ export interface AddressDisplayProps {
 }
 
 /* ------------------------------------------------------------------ */
+
+const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+/** Trim, then confirm it's plausibly a base58 pubkey (not an EVM 0x…, empty,
+ *  or whitespace-laden paste). Rendering a broken explorer link or a shield
+ *  on garbage is worse than admitting the input is malformed. */
+function normalizeAddress(raw: string): { address: string; valid: boolean } {
+  const address = (raw ?? "").trim();
+  return { address, valid: BASE58_RE.test(address) };
+}
 
 /** Deterministic 32-bit hash (FNV-1a). Total — never throws on any string. */
 function hashAddress(s: string): number {
@@ -83,19 +100,21 @@ function hashAddress(s: string): number {
   return h >>> 0;
 }
 
-/**
- * Middle-truncate. Short strings pass through untouched rather than growing
- * ("ab…cd" is longer than "abcd"), and the divider is a real ellipsis.
- */
+/** Middle-truncate. Short strings pass through untouched; real ellipsis. */
 function truncate(address: string, chars: number): string {
-  const n = Math.max(1, chars);
+  const n = Math.max(4, Math.floor(chars) || 4);
   if (address.length <= n * 2 + 1) return address;
   return `${address.slice(0, n)}…${address.slice(-n)}`;
 }
 
+function monogram(name: string | undefined, address: string): string {
+  const src = name?.trim() || address;
+  return src.slice(0, 2).toUpperCase();
+}
+
 function defaultExplorerUrl(address: string, cluster: SolanaCluster): string {
   const suffix = cluster === "mainnet-beta" ? "" : `?cluster=${cluster}`;
-  return `https://solscan.io/account/${address}${suffix}`;
+  return `https://solscan.io/account/${encodeURIComponent(address)}${suffix}`;
 }
 
 function explorerLabel(href: string): string {
@@ -114,14 +133,42 @@ const KIND_BADGE: Record<
   Exclude<AddressKind, "wallet">,
   { label: string; warn: boolean }
 > = {
+  // Both program and mint are cautionary — sending funds to either is a
+  // footgun — so both are amber; only the label distinguishes them.
   program: { label: "Program", warn: true },
-  token: { label: "Token", warn: false },
+  token: { label: "Token mint", warn: true },
   unknown: { label: "Unverified", warn: false },
 };
 
+/** Copies text with a fallback for insecure contexts / denied permission. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through to the execCommand path */
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 
-/** Inject the kit stylesheet once per document, however many mount. */
 function useKitStyles(id: string, css: string) {
   useInsertionEffect(() => {
     if (document.getElementById(id)) return;
@@ -133,7 +180,6 @@ function useKitStyles(id: string, css: string) {
 }
 
 const STYLE_ID = "sol-addr-styles";
-// Reduced motion handled in CSS — no matchMedia hook, no per-render cost.
 const KEYFRAMES = `
 @keyframes sol-addr-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 @keyframes sol-addr-shimmer { from { transform: translateX(-100%); } to { transform: translateX(220%); } }
@@ -147,54 +193,85 @@ const KEYFRAMES = `
 `;
 
 /**
- * Deterministic account avatar. A two-hue gradient blob is the Solana
- * ecosystem convention (Phantom, Solflare, Backpack all use one), and the
- * "no gradients" house rule is about decorative background gradients — an
- * identicon is functional identity, not chrome.
+ * Monogram chip — a flat solid-color glyph with a letterform, matching the
+ * kit's WalletGlyph / TokenGlyph idiom. It's a visual anchor, not an identity
+ * checksum: derive one hue from the hash and keep it flat (no gradient).
  */
-function Avatar({ address, size }: { address: string; size: number }) {
-  const h = hashAddress(address);
-  const hueA = h % 360;
-  const hueB = (hueA + 90 + ((h >> 16) % 120)) % 360;
-  const angle = (h >> 8) % 360;
+function Glyph({
+  name,
+  address,
+  kind,
+  size,
+}: {
+  name?: string;
+  address: string;
+  kind: AddressKind;
+  size: number;
+}) {
+  // Programs and mints are not people — show the caution glyph, not a chip.
+  if (kind === "program" || kind === "token") {
+    return (
+      <span
+        aria-hidden
+        className="flex shrink-0 items-center justify-center rounded-full bg-[var(--sk-warning-bg,rgba(232,181,98,0.14))] text-[var(--sk-warning,#e8b562)]"
+        style={{ width: size, height: size }}
+      >
+        <ShieldAlert style={{ width: size * 0.5, height: size * 0.5 }} />
+      </span>
+    );
+  }
+  const hue = hashAddress(address) % 360;
   return (
     <span
       aria-hidden
-      className="block shrink-0 rounded-full"
+      className="flex shrink-0 items-center justify-center rounded-full font-bold text-[var(--sk-bg,#0c0e12)]"
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(${angle}deg, hsl(${hueA} 68% 56%), hsl(${hueB} 70% 48%))`,
+        fontSize: size * 0.42,
+        background: `hsl(${hue} 52% 56%)`,
       }}
-    />
+    >
+      {monogram(name, address)}
+    </span>
   );
 }
 
 export function AddressDisplay({
-  address,
+  address: rawAddress,
   name,
-  kind = "wallet",
-  chars = 4,
+  kind = "unknown",
+  chars = 6,
   cluster = "mainnet-beta",
   explorerUrl: explorerUrlProp,
   showExplorer = false,
   showAvatar = true,
   showCopy = true,
   onCopy,
+  onCopyError,
   loading = false,
   variant = "inline",
   className,
 }: AddressDisplayProps) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [prevAddress, setPrevAddress] = useState(rawAddress);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCopyRef = useRef(onCopy);
-  const liveId = useId();
+  const onCopyErrorRef = useRef(onCopyError);
 
   useKitStyles(STYLE_ID, KEYFRAMES);
 
+  // A copy confirmation must never outlive the value it referred to
+  // (render-phase reset — https://react.dev/learn/you-might-not-need-an-effect).
+  if (rawAddress !== prevAddress) {
+    setPrevAddress(rawAddress);
+    if (status !== "idle") setStatus("idle");
+  }
+
   useEffect(() => {
     onCopyRef.current = onCopy;
-  }, [onCopy]);
+    onCopyErrorRef.current = onCopyError;
+  });
 
   useEffect(
     () => () => {
@@ -203,40 +280,46 @@ export function AddressDisplay({
     [],
   );
 
+  const { address, valid } = normalizeAddress(rawAddress);
   const isCard = variant === "card";
   const short = truncate(address, chars);
   const badge = kind !== "wallet" ? KIND_BADGE[kind] : null;
-  const explorerHref = explorerUrlProp
-    ? explorerUrlProp(address)
-    : defaultExplorerUrl(address, cluster);
 
   const copy = async () => {
-    // Always the full address — copying the truncated form is a classic bug.
-    try {
-      await navigator.clipboard.writeText(address);
-    } catch {
-      return; // clipboard blocked (insecure context / permissions) — no-op
+    const ok = await copyText(address);
+    if (ok) {
+      setStatus("copied");
+      onCopyRef.current?.(address);
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setStatus("idle"), 1500);
+    } else {
+      setStatus("error");
+      onCopyErrorRef.current?.();
     }
-    setCopied(true);
-    onCopyRef.current?.(address);
-    if (copiedTimer.current) clearTimeout(copiedTimer.current);
-    copiedTimer.current = setTimeout(() => setCopied(false), 1500);
   };
 
   const avatarSize = isCard ? 32 : 18;
 
-  const copyButton = showCopy && (
+  const copyButton = showCopy && valid && (
     <button
       type="button"
       onClick={copy}
-      aria-label={copied ? "Address copied" : "Copy address"}
-      className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--sk-text-quaternary,#61656c)] transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 active:scale-[0.9]"
+      aria-label={
+        status === "copied"
+          ? "Address copied"
+          : status === "error"
+            ? "Copy failed — select the address manually"
+            : "Copy full address"
+      }
+      className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:text-[var(--sk-text,#f7f7f7)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 active:scale-[0.97]"
     >
-      {copied ? (
+      {status === "copied" ? (
         <Check
           aria-hidden
           className="sol-addr-pop size-3.5 text-[var(--sk-accent,#34d399)]"
         />
+      ) : status === "error" ? (
+        <ShieldAlert aria-hidden className="size-3.5 text-[var(--sk-warning,#e8b562)]" />
       ) : (
         <Copy aria-hidden className="size-3.5" />
       )}
@@ -245,25 +328,49 @@ export function AddressDisplay({
 
   const kindBadge = badge && (
     <span
-      className={`inline-flex items-center gap-1 border px-1.5 py-px text-[10px] font-semibold ${
+      title={
+        badge.warn
+          ? "Caller-asserted account type — not verified on-chain"
+          : undefined
+      }
+      className={`inline-flex items-center gap-1 border px-1.5 py-0.5 text-[11px] font-semibold ${
         badge.warn
           ? "border-[var(--sk-warning,#e8b562)] text-[var(--sk-warning,#e8b562)]"
           : "border-[var(--sk-border-strong,#373a41)] text-[var(--sk-text-tertiary,#94969c)]"
       }`}
     >
-      {badge.warn && <ShieldAlert aria-hidden className="size-2.5" />}
+      {badge.warn && <ShieldAlert aria-hidden className="size-3" />}
       {badge.label}
     </span>
   );
 
-  // A screen reader gets the full address (and name/kind), never "GK7z…4jNq".
-  const srLabel = `${name ? `${name}, ` : ""}${
-    kind !== "wallet" ? `${badge?.label} account, ` : ""
-  }address ${address.split("").join(" ")}`;
+  // Screen readers get name, kind, and the full address as one token — then
+  // Copy is the exact-verification path. (Reading 44 chars one-by-one can't
+  // convey base58 case anyway, so it isn't offered as a false guarantee.)
+  const srLabel = valid
+    ? `${name ? `${name}, ` : ""}${
+        kind !== "wallet" ? `${badge?.label} account, ` : ""
+      }address ${address}`
+    : `Invalid address: ${address || "(empty)"}`;
 
   const liveRegion = (
-    <span id={liveId} role="status" aria-live="polite" className="sr-only">
-      {copied ? "Address copied to clipboard" : ""}
+    <span role="status" aria-live="polite" className="sr-only">
+      {status === "copied"
+        ? "Address copied to clipboard"
+        : status === "error"
+          ? "Couldn’t copy. Select the address manually."
+          : ""}
+    </span>
+  );
+
+  const invalidChip = (
+    <span
+      className="inline-flex items-center gap-1.5 border border-[var(--sk-warning,#e8b562)] px-2 py-1 text-[13px] text-[var(--sk-warning,#e8b562)]"
+      role="img"
+      aria-label={srLabel}
+    >
+      <ShieldAlert aria-hidden className="size-3.5" />
+      <span aria-hidden>Invalid address</span>
     </span>
   );
 
@@ -273,7 +380,9 @@ export function AddressDisplay({
       return (
         <span
           className={`inline-flex items-center gap-1.5 ${className ?? ""}`}
+          role="status"
           aria-busy="true"
+          aria-label="Loading address"
         >
           {showAvatar && (
             <span
@@ -288,18 +397,39 @@ export function AddressDisplay({
         </span>
       );
     }
+    if (!valid) {
+      return (
+        <span className={`inline-flex align-middle ${className ?? ""}`}>
+          {invalidChip}
+        </span>
+      );
+    }
     return (
       <span
         className={`inline-flex items-center gap-1.5 align-middle ${className ?? ""}`}
       >
-        {showAvatar && <Avatar address={address} size={avatarSize} />}
+        {showAvatar && (
+          <Glyph name={name} address={address} kind={kind} size={avatarSize} />
+        )}
         <span className="sr-only">{srLabel}</span>
         <span
           aria-hidden
           title={address}
           className="font-mono text-[13px] text-[var(--sk-text,#f7f7f7)]"
         >
-          {name ?? short}
+          {/* Name is verifiable at a glance — the short address rides along so
+              a spoofed .sol can't hide behind a name with no address shown. */}
+          {name ? (
+            <>
+              <span className="font-sans font-semibold">{name}</span>
+              <span className="mx-1 text-[var(--sk-text-quaternary,#61656c)]">
+                ·
+              </span>
+              {short}
+            </>
+          ) : (
+            short
+          )}
         </span>
         {kindBadge}
         {copyButton}
@@ -309,9 +439,24 @@ export function AddressDisplay({
   }
 
   /* ---- card row ---- */
+  const explorerHref = valid
+    ? (() => {
+        try {
+          return explorerUrlProp
+            ? explorerUrlProp(address)
+            : defaultExplorerUrl(address, cluster);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+
   return (
     <div
       className={`flex items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-3 ${className ?? ""}`}
+      role={loading ? "status" : undefined}
+      aria-busy={loading || undefined}
+      aria-label={loading ? "Loading address" : undefined}
     >
       {showAvatar &&
         (loading ? (
@@ -319,8 +464,15 @@ export function AddressDisplay({
             className="sol-addr-skeleton block size-8 shrink-0 rounded-full bg-[var(--sk-skeleton,#22262f)]"
             aria-hidden
           />
+        ) : valid ? (
+          <Glyph name={name} address={address} kind={kind} size={avatarSize} />
         ) : (
-          <Avatar address={address} size={avatarSize} />
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--sk-warning-bg,rgba(232,181,98,0.14))] text-[var(--sk-warning,#e8b562)]"
+          >
+            <ShieldAlert className="size-4" />
+          </span>
         ))}
 
       <div className="min-w-0 flex-1">
@@ -334,6 +486,19 @@ export function AddressDisplay({
               className="sol-addr-skeleton block h-3 w-40 bg-[var(--sk-skeleton,#22262f)]"
               aria-hidden
             />
+          </>
+        ) : !valid ? (
+          <>
+            <span className="sr-only">{srLabel}</span>
+            <div aria-hidden className="text-[14px] font-semibold text-[var(--sk-warning,#e8b562)]">
+              Invalid address
+            </div>
+            <div
+              aria-hidden
+              className="mt-0.5 truncate font-mono text-[12px] text-[var(--sk-text-tertiary,#94969c)]"
+            >
+              {address || "(empty)"}
+            </div>
           </>
         ) : (
           <>
@@ -357,16 +522,16 @@ export function AddressDisplay({
         )}
       </div>
 
-      {!loading && (
+      {!loading && valid && (
         <div className="flex shrink-0 items-center gap-1">
           {copyButton}
-          {showExplorer && (
+          {showExplorer && explorerHref && (
             <a
               href={explorerHref}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`View on ${explorerLabel(explorerHref)}`}
-              className="flex size-6 items-center justify-center text-[var(--sk-text-quaternary,#61656c)] transition-colors duration-150 hover:text-[var(--sk-text-secondary,#cecfd2)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
+              className="flex size-6 items-center justify-center text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:text-[var(--sk-text,#f7f7f7)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2"
             >
               <ExternalLink aria-hidden className="size-3.5" />
             </a>

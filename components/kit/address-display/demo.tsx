@@ -14,7 +14,14 @@ const WALLET = "GK7zVzHYf7hM4dQxkNvR8mW2jL5tYbAcD9eF6gHiJkMq";
 const PROGRAM = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"; // Jupiter v6
 const MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"; // USDC
 
-const SCENARIOS = ["Wallet", "Named", "Program", "Token mint", "Loading"] as const;
+const SCENARIOS = [
+  "Wallet",
+  "Named",
+  "Program",
+  "Token mint",
+  "Loading",
+  "Invalid",
+] as const;
 type Scenario = (typeof SCENARIOS)[number];
 
 export default function AddressDisplayDemo() {
@@ -34,7 +41,9 @@ export default function AddressDisplayDemo() {
           ? { address: MINT, kind: "token", name: "USD Coin" }
           : scenario === "Loading"
             ? { address: WALLET, kind: "wallet", loading: true }
-            : { address: WALLET, kind: "wallet" };
+            : scenario === "Invalid"
+              ? { address: "0xAbC123notBase58", kind: "unknown" }
+              : { address: WALLET, kind: "wallet" };
 
   return (
     <div className="flex flex-col gap-4">
