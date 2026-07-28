@@ -132,6 +132,81 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
+    name: "Transaction Review",
+    slug: "transaction-review",
+    description:
+      "The screen that decides trust: a plain-language, simulation-driven preview of what a transaction does before signing — net balance changes, fee, and warnings, with a safe / warn / block verdict that makes Reject prominent when it matters.",
+    path: "components/kit/transaction-review/transaction-review.tsx",
+    usage: `<TransactionReview
+  origin="jup.ag"
+  assets={[
+    { symbol: "SOL", amount: "2.5", usd: 430.45, direction: "out" },
+    { symbol: "USDC", amount: "428.10", usd: 428.1, direction: "in" },
+  ]}
+  warnings={[{ level: "warn", title: "New recipient" }]}
+  feeUsd={0.0013}
+  severity="warn"
+  onSign={sign}
+  onReject={reject}
+/>`,
+    note: "Renders a simulation you pass in — it does not run one. Feed `assets` from simulateTransaction (pre/post token deltas) and `warnings` from a scanner. A “block” verdict makes Reject the primary action and demotes Sign to a deliberate “Sign anyway”; a failed simulation degrades to “couldn’t preview — proceed with caution” rather than trapping the user. Severity defaults to the highest warning level.",
+    props: [
+      {
+        name: "origin",
+        type: "string",
+        description:
+          "The dApp domain requesting the signature — shown for phishing awareness.",
+      },
+      {
+        name: "assets",
+        type: "ReviewAsset[]",
+        description:
+          "Net balance changes: { symbol, amount, usd?, direction: \"out\" | \"in\", icon?, color? }. Grouped into “You pay” and “You receive”.",
+      },
+      {
+        name: "warnings",
+        type: "ReviewWarning[]",
+        description:
+          "Scanner findings, most severe first: { level: \"info\" | \"warn\" | \"danger\", title, detail? }. Danger drives the block verdict.",
+      },
+      {
+        name: "feeUsd / feeSol",
+        type: "number",
+        description: "Network fee, shown USD-primary. Falls back to “typically under $0.01”.",
+      },
+      {
+        name: "severity",
+        type: '"safe" | "warn" | "block"',
+        description:
+          "Overall verdict. Block flips Reject to primary and Sign to a cautionary “Sign anyway”. Defaults to the highest warning level.",
+      },
+      {
+        name: "simulating",
+        type: "boolean",
+        default: "false",
+        description: "Simulation in flight — shows skeletons.",
+      },
+      {
+        name: "simulationFailed",
+        type: "boolean",
+        default: "false",
+        description:
+          "Simulation couldn't run — shows a proceed-with-caution notice instead of blocking.",
+      },
+      {
+        name: "signing",
+        type: "boolean",
+        default: "false",
+        description: "Sign in flight — spinner on Sign, both actions disabled.",
+      },
+      {
+        name: "onSign / onReject",
+        type: "() => void",
+        description: "The two terminal actions.",
+      },
+    ],
+  },
+  {
     name: "Token Amount Input",
     slug: "token-amount-input",
     description:
