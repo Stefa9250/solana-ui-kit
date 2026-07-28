@@ -134,8 +134,8 @@ function initials(name: string) {
 /** Full base58 in, short display out. Pre-truncated strings pass through. */
 function shortAddress(address?: string): string {
   if (!address) return "";
-  return address.length > 12
-    ? `${address.slice(0, 4)}…${address.slice(-4)}`
+  return address.length > 13
+    ? `${address.slice(0, 6)}…${address.slice(-6)}`
     : address;
 }
 

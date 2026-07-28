@@ -465,7 +465,7 @@ export function TransactionStatus({
       : defaultExplorerUrl(signature, cluster)
     : undefined;
   const shortSig = signature
-    ? `${signature.slice(0, 4)}…${signature.slice(-4)}`
+    ? `${signature.slice(0, 6)}…${signature.slice(-6)}`
     : "";
   const friendly = friendlyError(error, errorMap);
   const pct = Math.round(
