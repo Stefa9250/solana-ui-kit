@@ -8,6 +8,7 @@ import TokenAmountInputDemo from "@/components/kit/token-amount-input/demo";
 import FeeExplainerDemo from "@/components/kit/fee-explainer/demo";
 import AddressDisplayDemo from "@/components/kit/address-display/demo";
 import StateScreenDemo from "@/components/kit/state-screen/demo";
+import TransactionReviewDemo from "@/components/kit/transaction-review/demo";
 
 /**
  * Maps a registry slug to its live docs demo.
@@ -22,4 +23,5 @@ export const demos: Record<string, ComponentType> = {
   "fee-explainer": FeeExplainerDemo,
   "address-display": AddressDisplayDemo,
   "state-screen": StateScreenDemo,
+  "transaction-review": TransactionReviewDemo,
 };

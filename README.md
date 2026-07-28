@@ -45,6 +45,7 @@ There is nothing to install. Each component is a single self-contained file.
 | Component | Description |
 | --- | --- |
 | [Transaction Status](components/kit/transaction-status/transaction-status.tsx) | Pending → confirming (`12 of 31`) → confirmed / failed, with mapped Solana errors, Solscan links, Retry, and a collapsible raw-error view. |
+| [Transaction Review](components/kit/transaction-review/transaction-review.tsx) | The pre-signature trust screen: a plain-language preview of net balance changes, fee, and warnings, with a safe/warn/block verdict that makes Reject prominent when a transaction is dangerous. |
 | [Token Amount Input](components/kit/token-amount-input/token-amount-input.tsx) | Exact per-token decimals, thousands separators as you type, USD ⇄ token toggle, MAX that reserves rent, and a calm insufficient-balance correction. |
 | [Address Display](components/kit/address-display/address-display.tsx) | Middle-truncated address with a deterministic avatar, full-address copy, and a program/token affordance so nobody sends funds into a program by mistake. Inline chip and card variants. |
 | [State Screen](components/kit/state-screen/state-screen.tsx) | The empty and error screens nobody designs — RPC down, no tokens, network congested, not connected. One calm layout, restrained tones, presets with copy written. |
