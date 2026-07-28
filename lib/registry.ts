@@ -149,19 +149,32 @@ export const registry: RegistryEntry[] = [
   onSign={sign}
   onReject={reject}
 />`,
-    note: "Renders a simulation you pass in — it does not run one. Feed `assets` from simulateTransaction (pre/post token deltas) and `warnings` from a scanner. A “block” verdict makes Reject the primary action and demotes Sign to a deliberate “Sign anyway”; a failed simulation degrades to “couldn’t preview — proceed with caution” rather than trapping the user. Severity defaults to the highest warning level.",
+    note: "Renders a simulation you pass in — it does not run one; see the README's “Wiring up real data” for mapping simulateTransaction deltas into assets (native SOL isn't a token account; the fee is inside the payer's lamport delta; approvals move zero balance). An explicit `severity` can only RAISE the verdict the warnings imply, never hide a danger. A “block” makes Reject primary and gates “Sign anyway” behind an acknowledgement. Approvals are modelled as their own row (unlimited → coral) rather than a fake “−0” balance line, and the empty state warns that a zero-balance tx can still change authorities. The fee rounds up and never shows exponential notation, matching FeeExplainer.",
     props: [
       {
         name: "origin",
         type: "string",
         description:
-          "The dApp domain requesting the signature — shown for phishing awareness.",
+          "The dApp domain requesting the signature — the headline of the anti-phishing header. Pair with originVerified.",
+      },
+      {
+        name: "originVerified",
+        type: "boolean",
+        default: "false",
+        description:
+          "Shows a “Verified” or “Unverified” chip next to the origin. Caller-asserted.",
       },
       {
         name: "assets",
         type: "ReviewAsset[]",
         description:
-          "Net balance changes: { symbol, amount, usd?, direction: \"out\" | \"in\", icon?, color? }. Grouped into “You pay” and “You receive”.",
+          "Net balance changes: { symbol, direction, amount? | rawAmount?+decimals?, usd?, icon?, color? }. Prefer rawAmount+decimals (raw base units) — the component does the conversion. Grouped into “You pay” / “You receive” with a net line.",
+      },
+      {
+        name: "approvals",
+        type: "ReviewApproval[]",
+        description:
+          "Token approvals the tx grants: { symbol, amount?, icon?, color? }. Omitting amount means unlimited, rendered coral — because an approval moves no balance and would otherwise be invisible.",
       },
       {
         name: "warnings",
@@ -178,7 +191,19 @@ export const registry: RegistryEntry[] = [
         name: "severity",
         type: '"safe" | "warn" | "block"',
         description:
-          "Overall verdict. Block flips Reject to primary and Sign to a cautionary “Sign anyway”. Defaults to the highest warning level.",
+          "Overall verdict. An explicit value can only raise the level the warnings imply — it can't demote a danger. Block flips Reject to primary and gates “Sign anyway”. Defaults to the highest warning level.",
+      },
+      {
+        name: "requireAckOnBlock",
+        type: "boolean",
+        default: "true",
+        description:
+          "Require an “I understand this is high-risk” checkbox before Sign is enabled on a block verdict.",
+      },
+      {
+        name: "simulatedBy",
+        type: "string",
+        description: "Quiet attribution (“Simulated by Blowfish”) so users can calibrate trust in the preview.",
       },
       {
         name: "simulating",
