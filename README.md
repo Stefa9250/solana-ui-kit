@@ -84,6 +84,31 @@ useEffect(() => {
 }, [signature]);
 ```
 
+**Transaction review.** Map a `simulateTransaction` result into `assets` —
+and mind the cases a naive balance-diff misses:
+
+```tsx
+// SPL token deltas — pass RAW base units + decimals; the component converts.
+const assets = tokenDeltas.map((d) => ({
+  symbol: d.symbol,
+  direction: d.delta > 0n ? "in" : "out",
+  rawAmount: (d.delta < 0n ? -d.delta : d.delta).toString(),
+  decimals: d.decimals,
+  usd: d.usd,
+}));
+
+// Native SOL is NOT a token account — its delta is in pre/postBalances, and
+// the fee is already inside the payer's lamport delta, so subtract it out.
+// Approvals move zero balance — parse instructions, pass them as `approvals`
+// (omit amount for unlimited). setAuthority/closeAccount are warnings, not
+// deltas. Token-2022 transfer fees mean received != sent.
+
+const warnings = await scanner.scan(tx); // Blowfish, or your heuristics
+```
+
+A failed simulation should pass `simulationFailed` — never block the user on
+a missing preview.
+
 **Connect wallet.** Map `useWallet()` onto `WalletOption[]` — icons come for
 free from the adapter:
 

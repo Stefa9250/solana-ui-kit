@@ -78,10 +78,13 @@ export default function TransactionReviewDemo() {
         <div className="mx-auto max-w-[400px]">
           <TransactionReview
             origin={failed ? "free-airdrop-claim.xyz" : fresh?.origin}
+            originVerified={fresh?.originVerified}
             assets={fresh?.assets}
+            approvals={fresh?.approvals}
             warnings={fresh?.warnings}
             feeUsd={fresh?.feeUsd}
             feeSol={fresh?.feeSol}
+            simulatedBy={fresh?.simulatedBy}
             severity={fresh?.severity}
             simulating={simulating}
             simulationFailed={failed}
