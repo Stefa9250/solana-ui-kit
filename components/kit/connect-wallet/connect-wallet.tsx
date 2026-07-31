@@ -190,8 +190,13 @@ function useReducedMotion(): boolean {
   return useSyncExternalStore(
     (onChange) => {
       const mq = window.matchMedia(REDUCED_MOTION_QUERY);
-      mq.addEventListener("change", onChange);
-      return () => mq.removeEventListener("change", onChange);
+      // iOS < 14 WKWebView only has the deprecated addListener/removeListener.
+      if (typeof mq.addEventListener === "function") {
+        mq.addEventListener("change", onChange);
+        return () => mq.removeEventListener("change", onChange);
+      }
+      mq.addListener(onChange);
+      return () => mq.removeListener(onChange);
     },
     () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     () => false,
@@ -230,8 +235,11 @@ const KEYFRAMES = `
 .sol-cw-check-mark-path { stroke-dasharray: 24; animation: sol-cw-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 380ms forwards; }
 .sol-cw-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
 .sol-cw-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
-.sol-cw-row .sol-cw-cta { opacity: 0; transition: opacity 150ms ease; }
-.sol-cw-row:hover:not([data-disabled="true"]) .sol-cw-cta { opacity: 1; }
+.sol-cw-row .sol-cw-cta { opacity: 1; transition: opacity 150ms ease; }
+@media (hover: hover) {
+  .sol-cw-row .sol-cw-cta { opacity: 0; }
+  .sol-cw-row:hover:not([data-disabled="true"]) .sol-cw-cta { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sol-cw-panel-enter, .sol-cw-panel-exit, .sol-cw-step-enter, .sol-cw-item-enter,
   .sol-cw-trace-path, .sol-cw-check-circle-path, .sol-cw-check-mark-path, .sol-cw-row {
@@ -385,13 +393,15 @@ export function ConnectWallet({
   // Escape and outside click close the panel (and the chip menu).
   useEffect(() => {
     if (!present && !menuOpen) return;
-    const onDocDown = (e: MouseEvent) => {
+    const onDocDown = (e: Event) => {
       if (rootRef.current?.contains(e.target as Node)) return;
       closeRef.current();
       setMenuOpen(false);
     };
-    document.addEventListener("mousedown", onDocDown);
-    return () => document.removeEventListener("mousedown", onDocDown);
+    // pointerdown covers mouse + touch + pen in one listener; plain mousedown
+    // is unreliable for tap-to-dismiss in some mobile webviews.
+    document.addEventListener("pointerdown", onDocDown);
+    return () => document.removeEventListener("pointerdown", onDocDown);
   }, [present, menuOpen]);
 
   // "Check your wallet" hint after 3s of connecting.

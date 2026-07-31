@@ -249,8 +249,13 @@ function useReducedMotion(): boolean {
   return useSyncExternalStore(
     (onChange) => {
       const mq = window.matchMedia(REDUCED_MOTION_QUERY);
-      mq.addEventListener("change", onChange);
-      return () => mq.removeEventListener("change", onChange);
+      // iOS < 14 WKWebView only has the deprecated addListener/removeListener.
+      if (typeof mq.addEventListener === "function") {
+        mq.addEventListener("change", onChange);
+        return () => mq.removeEventListener("change", onChange);
+      }
+      mq.addListener(onChange);
+      return () => mq.removeListener(onChange);
     },
     () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     () => false,
@@ -559,7 +564,9 @@ export function TokenAmountInput({
     onChange(maxAmount);
     onMax?.(maxAmount);
     setSettling(true);
-    inputRef.current?.focus();
+    // Refocus for continued editing on desktop; on touch this only re-summons
+    // the keyboard over the amount, so skip it for coarse pointers.
+    if (window.matchMedia?.("(hover: hover)").matches) inputRef.current?.focus();
   };
 
   const toggleMode = () => {
@@ -675,7 +682,19 @@ export function TokenAmountInput({
               placeholder="0.00"
               value={displayValue}
               onChange={handleInput}
-              onFocus={() => setFocused(true)}
+              onFocus={(e) => {
+                setFocused(true);
+                // On touch, the software keyboard can cover the field and the
+                // MAX / "leaves nothing for fees" row below it. Once it opens,
+                // pull the input to center so both stay visible.
+                if (window.matchMedia?.("(hover: none)").matches) {
+                  const el = e.currentTarget;
+                  window.setTimeout(
+                    () => el.scrollIntoView({ block: "center", behavior: "smooth" }),
+                    300,
+                  );
+                }
+              }}
               onBlur={handleBlur}
               disabled={isBusy}
               aria-label={`${label} in ${mode === "usd" ? "US dollars" : token.symbol}`}
@@ -748,7 +767,7 @@ export function TokenAmountInput({
           </div>
         </div>
 
-        <div className="mt-2 flex h-5 items-center">
+        <div className="mt-2 flex min-h-5 items-center">
           {loading ? (
             <span
               className="sol-tai-skeleton block h-3 w-24 bg-[var(--sk-skeleton,#22262f)]"

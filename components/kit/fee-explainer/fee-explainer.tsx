@@ -342,11 +342,11 @@ export function FeeExplainer({
       <div className="border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-5">
         {/* One calm line: what it costs, how long it takes. */}
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
+          <span className="shrink-0 text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
             {resolvedLabel}
           </span>
 
-          <div className="flex h-5 items-center gap-2">
+          <div className="flex min-h-5 min-w-0 shrink items-center justify-end gap-2 text-right">
             {loading ? (
               <span
                 className="sol-fee-skeleton block h-3 w-28 bg-[var(--sk-skeleton,#22262f)]"
