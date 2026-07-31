@@ -51,6 +51,15 @@ export interface WalletOption {
    * "More wallets" row. Omit on every wallet to show a single flat list.
    */
   recommended?: boolean;
+  /**
+   * Builds this wallet's mobile deeplink from the current dApp URL. On a phone,
+   * an undetected wallet with a deeplink shows "Open ↗" instead of a dead-end
+   * install link — tapping it opens your site inside the wallet's in-app
+   * browser, where the provider is injected and the normal flow takes over.
+   * Phantom and Solflare are recognised by name for free; supply this for
+   * other wallets (e.g. (url) => `mywallet://browse/${encodeURIComponent(url)}`).
+   */
+  mobileDeeplink?: (dappUrl: string) => string;
 }
 
 export type ConnectWalletStatus =
@@ -129,6 +138,57 @@ function friendlyConnectError(
 
 function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
+}
+
+type Platform = "desktop" | "ios" | "android";
+
+/** Coarse platform read for choosing the mobile connect affordance. */
+function detectPlatform(): Platform {
+  if (typeof navigator === "undefined") return "desktop";
+  const ua = navigator.userAgent || "";
+  if (/android/i.test(ua)) return "android";
+  // iPadOS 13+ masquerades as Mac; touch points disambiguate.
+  if (/ip(hone|ad|od)/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))
+    return "ios";
+  return "desktop";
+}
+
+/**
+ * Built-in "open this dApp in the wallet's in-app browser" universal links.
+ * Inside that browser the wallet injects its provider, so the ordinary
+ * detected-wallet flow connects — no per-wallet crypto handshake needed here.
+ */
+const KNOWN_BROWSE_LINKS: { match: RegExp; build: (url: string) => string }[] = [
+  {
+    match: /phantom/i,
+    build: (url) =>
+      `https://phantom.app/ul/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
+  },
+  {
+    match: /solflare/i,
+    build: (url) =>
+      `https://solflare.com/ul/v1/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
+  },
+];
+
+/** The mobile deeplink for an undetected wallet, or null if none is known. */
+function mobileBrowseUrl(wallet: WalletOption): string | null {
+  if (typeof window === "undefined") return null;
+  const dappUrl = window.location.href;
+  if (wallet.mobileDeeplink) return wallet.mobileDeeplink(dappUrl);
+  const known = KNOWN_BROWSE_LINKS.find(
+    (k) => k.match.test(wallet.name) || k.match.test(wallet.id),
+  );
+  return known ? known.build(dappUrl) : null;
+}
+
+/** Platform, resolved after mount so SSR and first paint agree (desktop). */
+function usePlatform(): Platform {
+  return useSyncExternalStore(
+    () => () => {},
+    () => detectPlatform(),
+    () => "desktop",
+  );
 }
 
 /** Full base58 in, short display out. Pre-truncated strings pass through. */
@@ -221,6 +281,8 @@ const KEYFRAMES = `
 @keyframes sol-cwm-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
 @keyframes sol-cwm-modal-in { from { opacity: 0; transform: scale(0.96) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes sol-cwm-modal-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(2px); } }
+@keyframes sol-cwm-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes sol-cwm-sheet-out { from { transform: translateY(0); } to { transform: translateY(100%); } }
 @keyframes sol-cwm-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes sol-cwm-trace { from { stroke-dashoffset: 164; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cwm-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
@@ -239,6 +301,12 @@ const KEYFRAMES = `
 @media (hover: hover) {
   .sol-cwm-wallet-row .sol-cwm-install { opacity: 0; }
   .sol-cwm-wallet-row:hover .sol-cwm-install { opacity: 1; }
+}
+/* Below the sm breakpoint the surface docks to the bottom as a sheet and
+   slides up/down instead of scaling from the center. */
+@media (max-width: 639px) {
+  .sol-cwm-modal-enter { animation: sol-cwm-sheet-in 300ms cubic-bezier(0.16,1,0.3,1) both; }
+  .sol-cwm-modal-exit { animation: sol-cwm-sheet-out 200ms ease-in both; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sol-cwm-backdrop-enter, .sol-cwm-backdrop-exit, .sol-cwm-modal-enter, .sol-cwm-modal-exit,
@@ -277,6 +345,7 @@ export function ConnectWalletModal({
   const onCloseRef = useRef(onClose);
   const reduceMotion = useReducedMotion();
   const mounted = useMounted();
+  const platform = usePlatform();
 
   useKitStyles(STYLE_ID, KEYFRAMES);
 
@@ -305,7 +374,8 @@ export function ConnectWalletModal({
   // Let the exit animation play, then unmount.
   useEffect(() => {
     if (!exiting) return;
-    const t = setTimeout(() => setPresent(false), reduceMotion ? 0 : 160);
+    // Covers the longer of the two exits (sheet-out 200ms on mobile).
+    const t = setTimeout(() => setPresent(false), reduceMotion ? 0 : 220);
     return () => clearTimeout(t);
   }, [exiting, reduceMotion]);
 
@@ -476,6 +546,10 @@ export function ConnectWalletModal({
         )}
       </div>
     );
+    // On a phone, an undetected wallet that has a deeplink opens in its in-app
+    // browser instead of dead-ending at an install page.
+    const mobileUrl =
+      !wallet.detected && platform !== "desktop" ? mobileBrowseUrl(wallet) : null;
     const badge = isConnecting ? null : isConnected ? (
       <span className="border border-[var(--sk-success,#17b26a)] px-2.5 py-[3px] text-[11px] font-semibold text-[var(--sk-accent,#34d399)]">
         Connected
@@ -484,6 +558,10 @@ export function ConnectWalletModal({
       <span className="border border-[var(--sk-border-strong,#373a41)] px-2.5 py-[3px] text-[11px] font-semibold text-[var(--sk-text-secondary,#cecfd2)]">
         Detected
       </span>
+    ) : mobileUrl ? (
+      <span className="sol-cwm-install text-[12px] font-semibold text-[var(--sk-accent,#34d399)]">
+        Open {"↗"}
+      </span>
     ) : (
       <span className="sol-cwm-install text-[12px] text-[var(--sk-text-tertiary,#94969c)]">
         Install {"↗"}
@@ -491,12 +569,14 @@ export function ConnectWalletModal({
     );
 
     if (!wallet.detected) {
+      // Deeplinks navigate (the OS hands off to the wallet app); install links
+      // open a new tab.
+      const external = !mobileUrl;
       return (
         <a
           key={wallet.id}
-          href={wallet.installUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={mobileUrl ?? wallet.installUrl}
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           data-cwm-row={index === 0 ? "" : undefined}
           className={rowClasses}
           style={rowStyle}
@@ -531,11 +611,8 @@ export function ConnectWalletModal({
       aria-modal="true"
       aria-label="Connect wallet"
       onKeyDown={trapFocus}
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{
-        paddingTop: "env(safe-area-inset-top)",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div
         aria-hidden
@@ -547,13 +624,20 @@ export function ConnectWalletModal({
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative m-6 max-h-[min(85dvh,640px)] w-full max-w-[400px] overflow-y-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-[22px] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
+        className={`relative w-full max-h-[85dvh] overflow-y-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-[22px] pb-[calc(22px+env(safe-area-inset-bottom))] shadow-[0_-8px_40px_rgba(0,0,0,0.4)] outline-none sm:m-6 sm:max-h-[min(85dvh,640px)] sm:max-w-[400px] sm:pb-[22px] sm:shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${
           exiting ? "sol-cwm-modal-exit" : "sol-cwm-modal-enter"
         }`}
       >
         <div role="status" aria-live="polite" className="sr-only">
           {liveText}
         </div>
+
+        {/* Grabber — signals the sheet is draggable-feeling on touch; hidden
+            on desktop where the surface is a centered card. */}
+        <div
+          aria-hidden
+          className="mx-auto -mt-1 mb-3 h-1 w-9 rounded-full bg-[var(--sk-border-strong,#373a41)] sm:hidden"
+        />
 
         <button
           type="button"

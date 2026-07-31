@@ -55,6 +55,15 @@ export interface WalletOption {
    * "More wallets" row. Omit on every wallet to show a single flat list.
    */
   recommended?: boolean;
+  /**
+   * Builds this wallet's mobile deeplink from the current dApp URL. On a phone,
+   * an undetected wallet with a deeplink shows "Open ↗" instead of a dead-end
+   * install link — tapping it opens your site inside the wallet's in-app
+   * browser, where the provider is injected and the normal flow takes over.
+   * Phantom and Solflare are recognised by name for free; supply this for
+   * other wallets (e.g. (url) => `mywallet://browse/${encodeURIComponent(url)}`).
+   */
+  mobileDeeplink?: (dappUrl: string) => string;
 }
 
 export type ConnectWalletFlowStatus =
@@ -140,6 +149,57 @@ function friendlyConnectError(
 
 function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
+}
+
+type Platform = "desktop" | "ios" | "android";
+
+/** Coarse platform read for choosing the mobile connect affordance. */
+function detectPlatform(): Platform {
+  if (typeof navigator === "undefined") return "desktop";
+  const ua = navigator.userAgent || "";
+  if (/android/i.test(ua)) return "android";
+  // iPadOS 13+ masquerades as Mac; touch points disambiguate.
+  if (/ip(hone|ad|od)/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))
+    return "ios";
+  return "desktop";
+}
+
+/**
+ * Built-in "open this dApp in the wallet's in-app browser" universal links.
+ * Inside that browser the wallet injects its provider, so the ordinary
+ * detected-wallet flow connects — no per-wallet crypto handshake needed here.
+ */
+const KNOWN_BROWSE_LINKS: { match: RegExp; build: (url: string) => string }[] = [
+  {
+    match: /phantom/i,
+    build: (url) =>
+      `https://phantom.app/ul/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
+  },
+  {
+    match: /solflare/i,
+    build: (url) =>
+      `https://solflare.com/ul/v1/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
+  },
+];
+
+/** The mobile deeplink for an undetected wallet, or null if none is known. */
+function mobileBrowseUrl(wallet: WalletOption): string | null {
+  if (typeof window === "undefined") return null;
+  const dappUrl = window.location.href;
+  if (wallet.mobileDeeplink) return wallet.mobileDeeplink(dappUrl);
+  const known = KNOWN_BROWSE_LINKS.find(
+    (k) => k.match.test(wallet.name) || k.match.test(wallet.id),
+  );
+  return known ? known.build(dappUrl) : null;
+}
+
+/** Platform, resolved after mount so SSR and first paint agree (desktop). */
+function usePlatform(): Platform {
+  return useSyncExternalStore(
+    () => () => {},
+    () => detectPlatform(),
+    () => "desktop",
+  );
 }
 
 /** Full base58 in, short display out. Pre-truncated strings pass through. */
@@ -333,6 +393,7 @@ export function ConnectWallet({
   const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<() => void>(() => {});
   const reduceMotion = useReducedMotion();
+  const platform = usePlatform();
 
   useKitStyles(STYLE_ID, KEYFRAMES);
 
@@ -539,6 +600,10 @@ export function ConnectWallet({
       "sol-cw-item-enter sol-cw-row flex w-full cursor-pointer items-center gap-3 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] px-3 py-3 text-left focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2";
     const rowStyle = { animationDelay: `${index * 40}ms` };
     const isConnected = wallet.id === connectedWalletId;
+    // On a phone, an undetected wallet that has a deeplink opens in its in-app
+    // browser instead of dead-ending at an install page.
+    const mobileUrl =
+      !wallet.detected && platform !== "desktop" ? mobileBrowseUrl(wallet) : null;
     const icon = (
       <WalletGlyph wallet={wallet} sizeClass="size-7" textClass="text-[11px]" />
     );
@@ -550,18 +615,24 @@ export function ConnectWallet({
       <span className="border border-[var(--sk-border-strong,#373a41)] px-2 py-[2px] text-[10.5px] font-semibold text-[var(--sk-text-secondary,#cecfd2)]">
         Detected
       </span>
+    ) : mobileUrl ? (
+      <span className="sol-cw-cta text-[11px] font-semibold text-[var(--sk-accent,#34d399)]">
+        Open {"↗"}
+      </span>
     ) : (
       <span className="sol-cw-cta text-[11px] text-[var(--sk-text-tertiary,#94969c)]">
         Install {"↗"}
       </span>
     );
     if (!wallet.detected) {
+      // Deeplinks navigate (the OS hands off to the wallet app); install links
+      // open a new tab.
+      const external = !mobileUrl;
       return (
         <a
           key={wallet.id}
-          href={wallet.installUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={mobileUrl ?? wallet.installUrl}
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           data-cw-row={index === 0 ? "" : undefined}
           className={rowClasses}
           style={rowStyle}
@@ -672,7 +743,7 @@ export function ConnectWallet({
           aria-label="Connect wallet"
           tabIndex={-1}
           onKeyDown={trapFocus}
-          className={`absolute right-0 top-full z-50 mt-2 w-[290px] origin-top-right overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
+          className={`absolute right-0 top-full z-50 mt-2 w-[290px] max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
             exiting ? "sol-cw-panel-exit" : "sol-cw-panel-enter"
           }`}
         >
