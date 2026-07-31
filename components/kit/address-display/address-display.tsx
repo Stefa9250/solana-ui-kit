@@ -153,12 +153,33 @@ async function copyText(text: string): Promise<boolean> {
   try {
     const ta = document.createElement("textarea");
     ta.value = text;
-    ta.setAttribute("readonly", "");
+    // Kept tiny and on-screen rather than opacity:0 — iOS can suppress
+    // selection on fully transparent nodes. 16px font avoids focus-zoom.
     ta.style.position = "fixed";
     ta.style.top = "0";
-    ta.style.opacity = "0";
+    ta.style.left = "0";
+    ta.style.width = "1px";
+    ta.style.height = "1px";
+    ta.style.padding = "0";
+    ta.style.border = "none";
+    ta.style.fontSize = "16px";
+    ta.setAttribute("readonly", "");
     document.body.appendChild(ta);
-    ta.select();
+    // iOS Safari/WKWebView won't select a readonly textarea via .select();
+    // make it briefly editable, select its contents as a Range, then set the
+    // selection range explicitly. Desktop/Android take the plain .select() path.
+    if (/ip(ad|hone|od)/i.test(navigator.userAgent)) {
+      ta.contentEditable = "true";
+      ta.readOnly = false;
+      const range = document.createRange();
+      range.selectNodeContents(ta);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      ta.setSelectionRange(0, text.length);
+    } else {
+      ta.select();
+    }
     const ok = document.execCommand("copy");
     ta.remove();
     return ok;
@@ -363,6 +384,18 @@ export function AddressDisplay({
     </span>
   );
 
+  // When copy fails (insecure context, denied permission, old webview) the
+  // guidance is "select the address manually" — so give touch users the full
+  // base58 as actually-selectable text, since only the truncated form shows.
+  const copyFallback = status === "error" && valid && (
+    <span
+      className="w-full basis-full break-all font-mono text-[11px] leading-snug text-[var(--sk-text-secondary,#cecfd2)]"
+      style={{ userSelect: "all", WebkitUserSelect: "all" }}
+    >
+      {address}
+    </span>
+  );
+
   const invalidChip = (
     <span
       className="inline-flex items-center gap-1.5 border border-[var(--sk-warning,#e8b562)] px-2 py-1 text-[13px] text-[var(--sk-warning,#e8b562)]"
@@ -406,7 +439,7 @@ export function AddressDisplay({
     }
     return (
       <span
-        className={`inline-flex items-center gap-1.5 align-middle ${className ?? ""}`}
+        className={`inline-flex flex-wrap items-center gap-1.5 align-middle ${className ?? ""}`}
       >
         {showAvatar && (
           <Glyph name={name} address={address} kind={kind} size={avatarSize} />
@@ -433,6 +466,7 @@ export function AddressDisplay({
         </span>
         {kindBadge}
         {copyButton}
+        {copyFallback}
         {liveRegion}
       </span>
     );
@@ -518,6 +552,7 @@ export function AddressDisplay({
                 {short}
               </div>
             )}
+            {copyFallback && <div className="mt-1">{copyFallback}</div>}
           </>
         )}
       </div>

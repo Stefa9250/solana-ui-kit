@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   title: "Solana UI Kit — the missing UX layer for Solana dApps",
   description:
     "Copy-paste React components for the moments Solana dApps get wrong: transaction status, wallet connection, and more. Dark-mode first, accessible, animated.",
+};
+
+// viewportFit: "cover" lets components pad against env(safe-area-inset-*) so
+// fixed overlays clear the notch and home indicator inside wallet webviews.
+export const viewport: Viewport = {
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

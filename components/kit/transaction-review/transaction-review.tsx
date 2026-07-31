@@ -632,7 +632,7 @@ export function TransactionReview({
               type="checkbox"
               checked={ack}
               onChange={(e) => setAck(e.target.checked)}
-              className="mt-0.5 size-3.5 shrink-0 cursor-pointer accent-[var(--sk-danger,#f97066)]"
+              className="mt-px size-[18px] shrink-0 cursor-pointer accent-[var(--sk-danger,#f97066)]"
             />
             <span>
               I understand this transaction is high-risk and I want to sign it

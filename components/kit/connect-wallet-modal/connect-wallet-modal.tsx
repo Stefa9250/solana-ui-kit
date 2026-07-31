@@ -179,8 +179,13 @@ function useReducedMotion(): boolean {
   return useSyncExternalStore(
     (onChange) => {
       const mq = window.matchMedia(REDUCED_MOTION_QUERY);
-      mq.addEventListener("change", onChange);
-      return () => mq.removeEventListener("change", onChange);
+      // iOS < 14 WKWebView only has the deprecated addListener/removeListener.
+      if (typeof mq.addEventListener === "function") {
+        mq.addEventListener("change", onChange);
+        return () => mq.removeEventListener("change", onChange);
+      }
+      mq.addListener(onChange);
+      return () => mq.removeListener(onChange);
     },
     () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     () => false,
@@ -230,8 +235,11 @@ const KEYFRAMES = `
 .sol-cwm-check-mark-path { stroke-dasharray: 24; animation: sol-cwm-check-mark 240ms cubic-bezier(0.65,0,0.35,1) 360ms forwards; }
 .sol-cwm-wallet-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
 .sol-cwm-wallet-row:hover:not([data-disabled="true"]) { background: var(--sk-raised, #1f242f); box-shadow: inset 2px 0 0 var(--sk-accent, #34d399); }
-.sol-cwm-wallet-row .sol-cwm-install { opacity: 0; transition: opacity 150ms ease; }
-.sol-cwm-wallet-row:hover .sol-cwm-install { opacity: 1; }
+.sol-cwm-wallet-row .sol-cwm-install { opacity: 1; transition: opacity 150ms ease; }
+@media (hover: hover) {
+  .sol-cwm-wallet-row .sol-cwm-install { opacity: 0; }
+  .sol-cwm-wallet-row:hover .sol-cwm-install { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sol-cwm-backdrop-enter, .sol-cwm-backdrop-exit, .sol-cwm-modal-enter, .sol-cwm-modal-exit,
   .sol-cwm-item-enter, .sol-cwm-trace-path, .sol-cwm-check-circle-path, .sol-cwm-check-mark-path, .sol-cwm-wallet-row {
@@ -301,13 +309,29 @@ export function ConnectWalletModal({
     return () => clearTimeout(t);
   }, [exiting, reduceMotion]);
 
-  // Lock body scroll while the modal is present.
+  // Lock body scroll while the modal is present. iOS Safari/WKWebView ignores
+  // `overflow: hidden` on <body> for touch scrolling, so pin the body with
+  // `position: fixed` at the current offset and restore scroll on close.
   useEffect(() => {
     if (!present) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const { body } = document;
+    const scrollY = window.scrollY;
+    const prev = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
     return () => {
-      document.body.style.overflow = previous;
+      body.style.overflow = prev.overflow;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      window.scrollTo(0, scrollY);
     };
   }, [present]);
 
@@ -508,6 +532,10 @@ export function ConnectWalletModal({
       aria-label="Connect wallet"
       onKeyDown={trapFocus}
       className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       <div
         aria-hidden
@@ -519,7 +547,7 @@ export function ConnectWalletModal({
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative m-6 max-h-[min(85vh,640px)] w-full max-w-[400px] overflow-y-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-[22px] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
+        className={`relative m-6 max-h-[min(85dvh,640px)] w-full max-w-[400px] overflow-y-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] p-[22px] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
           exiting ? "sol-cwm-modal-exit" : "sol-cwm-modal-enter"
         }`}
       >
