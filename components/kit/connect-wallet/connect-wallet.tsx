@@ -313,7 +313,7 @@ const KEYFRAMES = `
 @keyframes sol-cw-panel-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.97) translateY(-2px); } }
 @keyframes sol-cw-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes sol-cw-item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes sol-cw-trace { from { stroke-dashoffset: 240; } to { stroke-dashoffset: 0; } }
+@keyframes sol-cw-trace { from { stroke-dashoffset: 208; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -328,7 +328,7 @@ const KEYFRAMES = `
 .sol-cw-backdrop-exit { animation: sol-cw-backdrop-out 150ms ease-in both; }
 .sol-cw-step-enter { animation: sol-cw-step-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cw-item-enter { animation: sol-cw-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
-.sol-cw-trace-path { stroke-dasharray: 60 180; animation: sol-cw-trace 1.4s linear infinite; }
+.sol-cw-trace-path { stroke-dasharray: 52 156; animation: sol-cw-trace 1.4s linear infinite; }
 .sol-cw-check-circle-path { stroke-dasharray: 132; animation: sol-cw-check-circle 450ms cubic-bezier(0.65,0,0.35,1) forwards; }
 .sol-cw-check-mark-path { stroke-dasharray: 24; animation: sol-cw-check-mark 260ms cubic-bezier(0.65,0,0.35,1) 380ms forwards; }
 .sol-cw-row { box-shadow: inset 2px 0 0 transparent; transition: background 150ms ease, box-shadow 150ms ease, opacity 200ms ease; }
@@ -375,20 +375,20 @@ function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
       )}
       <svg viewBox="0 0 64 64" width={64} height={64} className="absolute inset-0">
         <rect
-          x={2}
-          y={2}
-          width={60}
-          height={60}
+          x={6}
+          y={6}
+          width={52}
+          height={52}
           fill="none"
           stroke="var(--sk-border,#22262f)"
           strokeWidth={2.5}
         />
         <rect
           className="sol-cw-trace-path"
-          x={2}
-          y={2}
-          width={60}
-          height={60}
+          x={6}
+          y={6}
+          width={52}
+          height={52}
           fill="none"
           stroke="var(--sk-accent,#34d399)"
           strokeWidth={2.5}
