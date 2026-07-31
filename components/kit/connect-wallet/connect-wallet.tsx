@@ -37,7 +37,9 @@ import {
   useState,
   useSyncExternalStore,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { MoreHorizontal, MoreVertical, Wallet } from "lucide-react";
 
 export interface WalletOption {
@@ -202,6 +204,34 @@ function usePlatform(): Platform {
   );
 }
 
+/** SSR-safe "am I on the client" — portals can't render on the server. */
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
+const MOBILE_QUERY = "(max-width: 639px)";
+
+/** True below the sm breakpoint, where the panel becomes a bottom sheet. */
+function useIsMobile(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(MOBILE_QUERY);
+      if (typeof mq.addEventListener === "function") {
+        mq.addEventListener("change", onChange);
+        return () => mq.removeEventListener("change", onChange);
+      }
+      mq.addListener(onChange);
+      return () => mq.removeListener(onChange);
+    },
+    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => false,
+  );
+}
+
 /** Full base58 in, short display out. Pre-truncated strings pass through. */
 function shortAddress(address?: string): string {
   if (!address) return "";
@@ -286,8 +316,16 @@ const KEYFRAMES = `
 @keyframes sol-cw-trace { from { stroke-dashoffset: 240; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-check-circle { from { stroke-dashoffset: 132; } to { stroke-dashoffset: 0; } }
 @keyframes sol-cw-check-mark { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@keyframes sol-cw-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes sol-cw-sheet-out { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes sol-cw-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sol-cw-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
 .sol-cw-panel-enter { animation: sol-cw-panel-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cw-panel-exit { animation: sol-cw-panel-out 150ms ease-in both; }
+.sol-cw-sheet-enter { animation: sol-cw-sheet-in 300ms cubic-bezier(0.16,1,0.3,1) both; }
+.sol-cw-sheet-exit { animation: sol-cw-sheet-out 200ms ease-in both; }
+.sol-cw-backdrop-enter { animation: sol-cw-backdrop-in 200ms ease-out both; }
+.sol-cw-backdrop-exit { animation: sol-cw-backdrop-out 150ms ease-in both; }
 .sol-cw-step-enter { animation: sol-cw-step-in 250ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cw-item-enter { animation: sol-cw-item-in 320ms cubic-bezier(0.16,1,0.3,1) both; }
 .sol-cw-trace-path { stroke-dasharray: 60 180; animation: sol-cw-trace 1.4s linear infinite; }
@@ -302,6 +340,7 @@ const KEYFRAMES = `
 }
 @media (prefers-reduced-motion: reduce) {
   .sol-cw-panel-enter, .sol-cw-panel-exit, .sol-cw-step-enter, .sol-cw-item-enter,
+  .sol-cw-sheet-enter, .sol-cw-sheet-exit, .sol-cw-backdrop-enter, .sol-cw-backdrop-exit,
   .sol-cw-trace-path, .sol-cw-check-circle-path, .sol-cw-check-mark-path, .sol-cw-row {
     animation: none !important; transition: none !important;
   }
@@ -394,6 +433,8 @@ export function ConnectWallet({
   const closeRef = useRef<() => void>(() => {});
   const reduceMotion = useReducedMotion();
   const platform = usePlatform();
+  const isMobile = useIsMobile();
+  const mounted = useMounted();
 
   useKitStyles(STYLE_ID, KEYFRAMES);
 
@@ -425,10 +466,11 @@ export function ConnectWallet({
     focusTriggerRef.current = () => triggerRef.current?.focus();
   });
 
-  // Let the exit animation play, then unmount the panel.
+  // Let the exit animation play, then unmount the panel. 220ms covers the
+  // longer of the two exits (sheet-out 200ms on mobile).
   useEffect(() => {
     if (!exiting) return;
-    const t = setTimeout(() => setPresent(false), reduceMotion ? 0 : 160);
+    const t = setTimeout(() => setPresent(false), reduceMotion ? 0 : 220);
     return () => clearTimeout(t);
   }, [exiting, reduceMotion]);
 
@@ -455,7 +497,11 @@ export function ConnectWallet({
   useEffect(() => {
     if (!present && !menuOpen) return;
     const onDocDown = (e: Event) => {
-      if (rootRef.current?.contains(e.target as Node)) return;
+      const target = e.target as Node;
+      // The sheet portals outside rootRef; a tap inside it (panelRef) is not
+      // "outside". Only a backdrop / off-panel tap dismisses.
+      if (rootRef.current?.contains(target) || panelRef.current?.contains(target))
+        return;
       closeRef.current();
       setMenuOpen(false);
     };
@@ -482,6 +528,12 @@ export function ConnectWallet({
   // View morph: animate the panel's height between steps instead of cutting.
   const view = status === "disconnected" ? "list" : status;
   useEffect(() => {
+    // The bottom sheet resizes from the bottom edge and scrolls; height-
+    // morphing it fights the dock, so only the anchored panel morphs.
+    if (isMobile) {
+      stepHeightRef.current = null;
+      return;
+    }
     const panel = panelRef.current;
     const step = stepRef.current;
     if (!panel || !step) return;
@@ -499,7 +551,7 @@ export function ConnectWallet({
     }, 320);
     return () => clearTimeout(t);
     // helpOpen and showAll change the list view's height without changing `view`.
-  }, [view, helpOpen, showAll, reduceMotion]);
+  }, [view, helpOpen, showAll, reduceMotion, isMobile]);
 
   // Reset the height cache whenever the panel unmounts.
   useEffect(() => {
@@ -663,6 +715,58 @@ export function ConnectWallet({
     );
   };
 
+  // Desktop: an anchored dropdown next to the trigger. Mobile (< sm): a
+  // portaled bottom sheet with a backdrop, so a narrow viewport or an
+  // overflow-clipping ancestor can't cut it off.
+  const renderShell = (children: ReactNode) =>
+    isMobile
+      ? mounted &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center"
+            style={{ paddingTop: "env(safe-area-inset-top)" }}
+          >
+            <div
+              aria-hidden
+              onClick={() => setOpen(false)}
+              className={`absolute inset-0 bg-black/60 backdrop-blur-[4px] ${
+                exiting ? "sol-cw-backdrop-exit" : "sol-cw-backdrop-enter"
+              }`}
+            />
+            <div
+              ref={panelRef}
+              role="dialog"
+              aria-label="Connect wallet"
+              tabIndex={-1}
+              onKeyDown={trapFocus}
+              className={`relative w-full max-h-[85dvh] overflow-y-auto border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_40px_rgba(0,0,0,0.4)] outline-none ${
+                exiting ? "sol-cw-sheet-exit" : "sol-cw-sheet-enter"
+              }`}
+            >
+              <div
+                aria-hidden
+                className="mx-auto mb-1 mt-2.5 h-1 w-9 rounded-full bg-[var(--sk-border-strong,#373a41)]"
+              />
+              {children}
+            </div>
+          </div>,
+          document.body,
+        )
+      : (
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-label="Connect wallet"
+            tabIndex={-1}
+            onKeyDown={trapFocus}
+            className={`absolute right-0 top-full z-50 mt-2 w-[290px] max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
+              exiting ? "sol-cw-panel-exit" : "sol-cw-panel-enter"
+            }`}
+          >
+            {children}
+          </div>
+        );
+
   return (
     <div ref={rootRef} className={`relative inline-block ${className ?? ""}`}>
       <div role="status" aria-live="polite" className="sr-only">
@@ -736,17 +840,8 @@ export function ConnectWallet({
         </button>
       )}
 
-      {present && (
-        <div
-          ref={panelRef}
-          role="dialog"
-          aria-label="Connect wallet"
-          tabIndex={-1}
-          onKeyDown={trapFocus}
-          className={`absolute right-0 top-full z-50 mt-2 w-[290px] max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden border border-[var(--sk-border,#22262f)] bg-[var(--sk-surface,#161b26)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] outline-none ${
-            exiting ? "sol-cw-panel-exit" : "sol-cw-panel-enter"
-          }`}
-        >
+      {present &&
+        renderShell(
           <div ref={stepRef} key={view} className="sol-cw-step-enter">
             {view === "list" &&
               (helpView ? (
@@ -1010,9 +1105,8 @@ export function ConnectWallet({
                 )}
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </div>,
+        )}
     </div>
   );
 }
