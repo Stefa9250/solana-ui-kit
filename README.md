@@ -128,9 +128,33 @@ const options = wallets.map((w) => ({
 // then read publicKey.toBase58() — connect() itself returns void.
 ```
 
-**Scope note:** the connect components target desktop browser extensions.
-Mobile Wallet Adapter and deeplinks are currently out of scope — on mobile
-browsers, undetected wallets fall back to install links.
+**Mobile.** The connect components adapt to phones without extra work:
+
+- **Inside a wallet's in-app browser** (Phantom, Solflare, Backpack…) the
+  wallet injects its provider, so it maps to `detected: true` and connects the
+  same way it does on desktop.
+- **Android** — register
+  [`@solana-mobile/wallet-adapter-mobile`](https://github.com/solana-mobile/mobile-wallet-adapter);
+  it appears in `wallets` as a detected "Mobile Wallet Adapter" entry, and
+  picking it launches the native MWA flow. No component change needed.
+- **iOS / any mobile browser** — an *undetected* wallet with a known deeplink
+  (Phantom and Solflare are built in) shows **"Open ↗"** instead of a dead-end
+  install link; tapping it opens your dApp inside that wallet's in-app browser,
+  where the injected provider takes over and the normal flow completes. For
+  other wallets, pass a `mobileDeeplink` on the `WalletOption`:
+
+  ```tsx
+  {
+    id: "MyWallet",
+    name: "MyWallet",
+    detected: false,
+    installUrl: "https://mywallet.app",
+    mobileDeeplink: (url) => `https://mywallet.app/ul/browse/${encodeURIComponent(url)}`,
+  }
+  ```
+
+`ConnectWalletModal` also renders as a **bottom sheet** below 640px (slide-up,
+thumb-reachable, safe-area padded) and as a centered card above it.
 
 ## Theming
 
