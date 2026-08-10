@@ -182,6 +182,15 @@ export default function ConnectWalletDemo() {
     }
   };
 
+  const code = `<ConnectWallet
+  wallets={wallets}
+  status="${status}"
+  address={address}
+  onSelectWallet={connect}
+  onSign={signIn}
+  onDisconnect={disconnect}
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -201,7 +210,7 @@ export default function ConnectWalletDemo() {
         ))}
       </div>
 
-      <DemoStage padded={false} contentClassName="min-h-[420px]">
+      <DemoStage padded={false} contentClassName="min-h-[420px]" code={code}>
         <div className="flex items-center justify-between border-b border-[var(--sk-border,#22262f)] px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div aria-hidden className="size-3.5 bg-emerald-600" />

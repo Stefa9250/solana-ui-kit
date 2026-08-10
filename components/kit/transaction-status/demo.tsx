@@ -115,6 +115,13 @@ export default function TransactionStatusDemo() {
     s.status === "failed" && s.error === error;
   const detailsPrimary = `${status === "confirmed" ? "Sent" : "Sending"} 2.5 SOL`;
 
+  const code = `<TransactionStatus
+  status="${status}"
+  signature={signature}${error ? "\n  error={error}" : ""}
+  onRetry={retry}
+  onDismiss={dismiss}
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -139,7 +146,7 @@ export default function TransactionStatusDemo() {
         })}
       </div>
 
-      <DemoStage contentClassName="relative min-h-[220px]">
+      <DemoStage contentClassName="relative min-h-[220px]" code={code}>
         {status === "idle" ? (
           <div className="flex h-[172px] flex-col items-center justify-center gap-3.5">
             <div className="flex size-10 items-center justify-center rounded-full border-[1.5px] border-dashed border-[#333741]">

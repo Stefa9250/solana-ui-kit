@@ -46,6 +46,14 @@ export default function AddressDisplayDemo() {
               ? { address: "0xAbC123notBase58", kind: "unknown" }
               : { address: WALLET, kind: "wallet" };
 
+  const code = `<AddressDisplay
+  address={address}${config.name ? `\n  name="${config.name}"` : ""}${
+    config.kind !== "wallet" ? `\n  kind="${config.kind}"` : ""
+  }${config.loading ? "\n  loading" : ""}
+  variant="card"
+  showExplorer
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -65,7 +73,7 @@ export default function AddressDisplayDemo() {
         ))}
       </div>
 
-      <DemoStage contentClassName="flex flex-col gap-6">
+      <DemoStage contentClassName="flex flex-col gap-6" code={code}>
         <div className="flex flex-col gap-2">
           <span className="text-[11px] uppercase tracking-[0.04em] text-[#61656c]">
             Inline

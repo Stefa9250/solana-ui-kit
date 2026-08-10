@@ -83,6 +83,12 @@ export default function FeeExplainerDemo() {
     setBreakdownOpen(label === "Expanded");
   };
 
+  const code = `<FeeExplainer
+  feeUsd={feeUsd}
+  feeSol={feeSol}
+  confirmTime={confirmTime}${minimal ? "" : "\n  speed={speed}\n  onSpeedChange={setSpeed}"}${congested ? "\n  congested" : ""}${loading ? "\n  loading" : ""}
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -102,7 +108,7 @@ export default function FeeExplainerDemo() {
         ))}
       </div>
 
-      <DemoStage contentClassName="mx-auto max-w-[420px]">
+      <DemoStage contentClassName="mx-auto max-w-[420px]" code={code}>
           <FeeExplainer
             feeUsd={showEstimate ? fresh.feeUsd : undefined}
             feeSol={showEstimate ? fresh.feeSol : undefined}

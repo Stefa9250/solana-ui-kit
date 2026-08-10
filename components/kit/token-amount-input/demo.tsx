@@ -104,6 +104,16 @@ export default function TokenAmountInputDemo() {
     }
   };
 
+  const code = `<TokenAmountInput
+  token={token} // ${token.symbol}, ${token.decimals} decimals
+  balance={${effectiveBalance}}
+  value={value}
+  onChange={setValue}
+  onValidityChange={setValidity}${loading ? "\n  loading" : ""}${disabled ? "\n  disabled" : ""}${
+    singleToken ? "" : "\n  tokens={tokens}\n  onSelectToken={setToken}"
+  }
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -143,7 +153,7 @@ export default function TokenAmountInputDemo() {
         ))}
       </div>
 
-      <DemoStage contentClassName="mx-auto max-w-[420px]">
+      <DemoStage contentClassName="mx-auto max-w-[420px]" code={code}>
           <TokenAmountInput
             token={token}
             balance={effectiveBalance}

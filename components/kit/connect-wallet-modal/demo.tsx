@@ -183,6 +183,14 @@ export default function ConnectWalletModalDemo() {
     }
   };
 
+  const code = `<ConnectWalletModal
+  open={open}
+  onClose={close}
+  wallets={wallets}
+  status="${status}"
+  onSelectWallet={connect}
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -202,7 +210,7 @@ export default function ConnectWalletModalDemo() {
         ))}
       </div>
 
-      <DemoStage contentClassName="flex min-h-[220px] items-center justify-center">
+      <DemoStage contentClassName="flex min-h-[220px] items-center justify-center" code={code}>
         <button
           type="button"
           onClick={() => openWith("list")}

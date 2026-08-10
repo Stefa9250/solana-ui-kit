@@ -56,6 +56,22 @@ export default function TransactionReviewDemo() {
     setTimeout(() => setSigning(false), 1600);
   };
 
+  const code = failed
+    ? `<TransactionReview
+  origin="free-airdrop-claim.xyz"
+  simulationFailed
+  onSign={sign}
+  onReject={reject}
+/>`
+    : `<TransactionReview
+  origin="${fresh?.origin ?? "jup.ag"}"${fresh?.originVerified ? "\n  originVerified" : ""}
+  assets={assets}${fresh?.approvals?.length ? "\n  approvals={approvals}" : ""}
+  warnings={warnings}
+  feeSol={${fresh?.feeSol ?? 0.0000075}}${fresh?.simulatedBy ? `\n  simulatedBy="${fresh.simulatedBy}"` : ""}${fresh?.severity ? `\n  severity="${fresh.severity}"` : ""}
+  onSign={sign}
+  onReject={reject}
+/>`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -75,7 +91,7 @@ export default function TransactionReviewDemo() {
         ))}
       </div>
 
-      <DemoStage contentClassName="mx-auto max-w-[400px]">
+      <DemoStage contentClassName="mx-auto max-w-[400px]" code={code}>
         <TransactionReview
           origin={failed ? "free-airdrop-claim.xyz" : fresh?.origin}
           originVerified={fresh?.originVerified}

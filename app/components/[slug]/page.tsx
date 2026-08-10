@@ -236,9 +236,21 @@ export default async function ComponentPage({
           {source ? (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <p className="text-[13px] text-[#94969c]">
-                  Install with the shadcn CLI:
-                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[13px] text-[#94969c]">
+                    Install with the shadcn CLI:
+                  </p>
+                  <a
+                    href={`https://v0.dev/chat/api/open?url=${encodeURIComponent(
+                      `${SITE_URL}/r/${entry.slug}.json`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 font-mono text-[12px] text-[#94969c] transition-colors duration-150 hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                  >
+                    Open in v0 {"↗"}
+                  </a>
+                </div>
                 <InstallTabs url={`${SITE_URL}/r/${entry.slug}.json`} />
               </div>
               <div className="flex flex-col gap-2">
