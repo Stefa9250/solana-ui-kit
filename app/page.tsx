@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Star } from "lucide-react";
 import { registry } from "@/lib/registry";
 import { GITHUB_URL } from "@/lib/site";
+import { getStars, formatStars } from "@/lib/github";
 import { HeroPreview } from "@/components/docs/hero-preview";
 
-export default function Home() {
+export default async function Home() {
+  const stars = await getStars();
   return (
     <main className="flex-1 flex justify-center px-6 py-16 sm:py-24">
       <div className="w-full max-w-[720px] flex flex-col gap-16">
@@ -18,9 +20,15 @@ export default function Home() {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[13px] font-semibold text-[#94969c] transition-colors duration-150 hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#94969c] transition-colors duration-150 hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
               >
-                GitHub {"↗"}
+                <Star aria-hidden className="size-3.5" />
+                {typeof stars === "number" ? (
+                  <span className="tabular-nums">{formatStars(stars)}</span>
+                ) : (
+                  <span>GitHub</span>
+                )}
+                <span aria-hidden>{"↗"}</span>
               </a>
             )}
           </div>

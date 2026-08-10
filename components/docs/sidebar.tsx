@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search, Star } from "lucide-react";
 import { registry, type RegistryEntry } from "@/lib/registry";
 import { GITHUB_URL } from "@/lib/site";
+import { formatStars } from "@/lib/github";
+import { OPEN_SEARCH_EVENT } from "./command-palette";
 
 /** Group order for the sidebar; anything uncategorized falls into "Components". */
 const GROUP_ORDER = ["Transactions", "Inputs", "Connection", "Feedback"];
@@ -50,6 +53,22 @@ function NavList({ pathname }: { pathname: string }) {
   );
 }
 
+function SearchTrigger() {
+  return (
+    <button
+      type="button"
+      onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))}
+      className="flex items-center gap-2.5 border border-[#22262f] bg-[#13161b] px-2.5 py-2 text-[12.5px] text-[#61656c] transition-colors duration-150 hover:border-[#373a41] hover:text-[#94969c] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+    >
+      <Search aria-hidden className="size-3.5" />
+      <span>Search…</span>
+      <kbd className="ml-auto border border-[#373a41] px-1.5 py-0.5 font-mono text-[10px] text-[#61656c]">
+        {"⌘K"}
+      </kbd>
+    </button>
+  );
+}
+
 function Brand() {
   return (
     <Link
@@ -61,7 +80,7 @@ function Brand() {
   );
 }
 
-function Footer() {
+function Footer({ stars }: { stars?: number | null }) {
   return (
     <div className="mt-auto flex items-center justify-between border-t border-[#22262f] px-2 pt-3.5 text-[12px] text-[#61656c]">
       {GITHUB_URL ? (
@@ -69,9 +88,14 @@ function Footer() {
           href={GITHUB_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#94969c] transition-colors duration-150 hover:text-[#f7f7f7]"
+          className="inline-flex items-center gap-1.5 text-[#94969c] transition-colors duration-150 hover:text-[#f7f7f7]"
         >
-          GitHub {"↗"}
+          <Star aria-hidden className="size-3.5" />
+          {typeof stars === "number" ? (
+            <span className="tabular-nums">{formatStars(stars)}</span>
+          ) : (
+            <span>GitHub</span>
+          )}
         </a>
       ) : (
         <span />
@@ -81,7 +105,7 @@ function Footer() {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ stars }: { stars?: number | null }) {
   const pathname = usePathname();
 
   return (
@@ -98,18 +122,20 @@ export function Sidebar() {
               Close −
             </span>
           </summary>
-          <div className="flex flex-col gap-5 border-t border-[#22262f] px-4 pb-5 pt-4">
+          <div className="flex flex-col gap-4 border-t border-[#22262f] px-4 pb-5 pt-4">
+            <SearchTrigger />
             <NavList pathname={pathname} />
-            <Footer />
+            <Footer stars={stars} />
           </div>
         </details>
       </div>
 
       {/* Desktop: fixed left sidebar. */}
-      <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col gap-6 overflow-y-auto border-r border-[#22262f] bg-[#090b0f] px-4 pb-5 pt-6 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col gap-5 overflow-y-auto border-r border-[#22262f] bg-[#090b0f] px-4 pb-5 pt-6 md:flex">
         <Brand />
+        <SearchTrigger />
         <NavList pathname={pathname} />
-        <Footer />
+        <Footer stars={stars} />
       </aside>
     </>
   );

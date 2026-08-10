@@ -34,6 +34,10 @@ export default async function ComponentPage({
     { id: "source", label: "Source" },
   ];
 
+  const index = registry.findIndex((e) => e.slug === slug);
+  const prev = index > 0 ? registry[index - 1] : null;
+  const next = index < registry.length - 1 ? registry[index + 1] : null;
+
   return (
     <main className="mx-auto flex w-full max-w-[1060px] gap-10 px-6 py-12 sm:px-10 sm:py-14">
       <article className="flex min-w-0 flex-1 flex-col gap-12">
@@ -164,6 +168,38 @@ export default async function ComponentPage({
             </div>
           )}
         </section>
+
+        <nav
+          aria-label="Component pagination"
+          className="grid grid-cols-2 gap-3 border-t border-[#22262f] pt-8"
+        >
+          {prev ? (
+            <Link
+              href={`/components/${prev.slug}`}
+              className="group flex flex-col gap-1 border border-[#22262f] bg-[#0f1319] px-4 py-3 transition-colors duration-150 hover:border-[#373a41] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+            >
+              <span className="font-mono text-[11px] text-[#61656c]">← Previous</span>
+              <span className="text-[13px] font-semibold text-[#cecfd2] group-hover:text-[#f7f7f7]">
+                {prev.name}
+              </span>
+            </Link>
+          ) : (
+            <span />
+          )}
+          {next ? (
+            <Link
+              href={`/components/${next.slug}`}
+              className="group flex flex-col items-end gap-1 border border-[#22262f] bg-[#0f1319] px-4 py-3 text-right transition-colors duration-150 hover:border-[#373a41] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+            >
+              <span className="font-mono text-[11px] text-[#61656c]">Next →</span>
+              <span className="text-[13px] font-semibold text-[#cecfd2] group-hover:text-[#f7f7f7]">
+                {next.name}
+              </span>
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
       </article>
 
       <OnThisPage items={railItems} />
