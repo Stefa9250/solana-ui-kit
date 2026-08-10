@@ -34,18 +34,12 @@ function NavList({ pathname }: { pathname: string }) {
                 key={entry.slug}
                 href={`/components/${entry.slug}`}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-2.5 border-l-2 px-2 py-1.5 text-[13px] outline-none transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:-outline-offset-2 ${
+                className={`block border-l-2 px-3 py-1.5 text-[13px] outline-none transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:-outline-offset-2 ${
                   active
                     ? "border-emerald-400 bg-[#13161b] font-semibold text-[#f7f7f7]"
                     : "border-transparent text-[#94969c] hover:bg-[#13161b] hover:text-[#f7f7f7]"
                 }`}
               >
-                <span
-                  aria-hidden
-                  className={`size-[5px] shrink-0 rounded-full transition-colors duration-150 ${
-                    active ? "bg-emerald-400" : "bg-[#373a41]"
-                  }`}
-                />
                 {entry.name}
               </Link>
             );
@@ -60,19 +54,9 @@ function Brand() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2.5 px-2 outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+      className="px-2 text-[14px] font-semibold tracking-[-0.01em] text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
     >
-      <span className="flex size-[26px] items-center justify-center bg-[#00543f] text-[15px] font-bold text-[#18e3a5] shadow-[inset_0_0_0_1px_rgba(52,211,153,0.25)]">
-        ◇
-      </span>
-      <span className="flex flex-col leading-tight">
-        <span className="text-[14px] font-semibold tracking-[-0.01em] text-[#f7f7f7]">
-          Solana UI Kit
-        </span>
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.04em] text-[#61656c]">
-          {registry.length} components
-        </span>
-      </span>
+      Solana UI Kit
     </Link>
   );
 }
