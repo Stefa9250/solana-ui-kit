@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 import { getEntry, registry } from "@/lib/registry";
 import { guidance } from "@/lib/guidance";
+import { SITE_URL } from "@/lib/site";
 import { CopyButton } from "@/components/docs/copy-button";
 import { DemoHost } from "@/components/docs/demo-host";
+import { InstallTabs } from "@/components/docs/install-tabs";
 import { OnThisPage, type RailItem } from "@/components/docs/on-this-page";
 
 export function generateStaticParams() {
@@ -232,18 +234,26 @@ export default async function ComponentPage({
             {source && <CopyButton text={source} label="Copy source" />}
           </div>
           {source ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-[13px] text-[#94969c]">
-                Copy into{" "}
-                <code className="font-mono text-[12px] text-[#cecfd2]">
-                  {entry.path.replace("components/kit/", "components/")}
-                </code>{" "}
-                in your project. Requires Tailwind and{" "}
-                <code className="font-mono text-[12px] text-[#cecfd2]">lucide-react</code>.
-              </p>
-              <pre className="max-h-[480px] overflow-auto border border-[#22262f] bg-[#0a0c10] p-4 font-mono text-[12.5px] leading-relaxed text-[#cecfd2]">
-                <code>{source}</code>
-              </pre>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-[13px] text-[#94969c]">
+                  Install with the shadcn CLI:
+                </p>
+                <InstallTabs url={`${SITE_URL}/r/${entry.slug}.json`} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-[13px] text-[#94969c]">
+                  Or copy the file into{" "}
+                  <code className="font-mono text-[12px] text-[#cecfd2]">
+                    {entry.path.replace("components/kit/", "components/")}
+                  </code>{" "}
+                  yourself. Requires Tailwind and{" "}
+                  <code className="font-mono text-[12px] text-[#cecfd2]">lucide-react</code>.
+                </p>
+                <pre className="max-h-[480px] overflow-auto border border-[#22262f] bg-[#0a0c10] p-4 font-mono text-[12.5px] leading-relaxed text-[#cecfd2]">
+                  <code>{source}</code>
+                </pre>
+              </div>
             </div>
           ) : (
             <div className="border border-dashed border-[#333741] px-6 py-10 text-center text-[14px] text-[#61656c]">
