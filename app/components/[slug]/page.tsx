@@ -2,7 +2,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Check } from "lucide-react";
 import { getEntry, registry } from "@/lib/registry";
+import { guidance } from "@/lib/guidance";
 import { CopyButton } from "@/components/docs/copy-button";
 import { DemoHost } from "@/components/docs/demo-host";
 import { OnThisPage, type RailItem } from "@/components/docs/on-this-page";
@@ -27,10 +29,15 @@ export default async function ComponentPage({
     source = null; // Component not implemented yet — show a placeholder.
   }
 
+  const g = guidance[slug] ?? {};
+
   const railItems: RailItem[] = [
     { id: "demo", label: "Demo" },
+    ...(g.whenToUse ? [{ id: "guidelines", label: "When to use" }] : []),
     ...(entry.usage ? [{ id: "usage", label: "Usage" }] : []),
     { id: "props", label: "Props" },
+    ...(g.anatomy ? [{ id: "anatomy", label: "Anatomy" }] : []),
+    ...(g.accessibility ? [{ id: "accessibility", label: "Accessibility" }] : []),
     { id: "source", label: "Source" },
   ];
 
@@ -75,6 +82,29 @@ export default async function ComponentPage({
             </p>
           )}
         </section>
+
+        {g.whenToUse && (
+          <section
+            id="guidelines"
+            className="flex scroll-mt-24 flex-col gap-4"
+            aria-label="When to use"
+          >
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
+              When to use
+            </h2>
+            <ul className="flex flex-col gap-2.5">
+              {g.whenToUse.map((item) => (
+                <li
+                  key={item}
+                  className="flex gap-2.5 text-[14px] leading-relaxed text-[#cecfd2]"
+                >
+                  <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {entry.usage && (
           <section
@@ -136,6 +166,59 @@ export default async function ComponentPage({
             </table>
           </div>
         </section>
+
+        {g.anatomy && (
+          <section
+            id="anatomy"
+            className="flex scroll-mt-24 flex-col gap-4"
+            aria-label="Anatomy"
+          >
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
+              Anatomy
+            </h2>
+            <dl className="divide-y divide-[#22262f] border border-[#22262f]">
+              {g.anatomy.map((part) => (
+                <div
+                  key={part.name}
+                  className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:gap-5"
+                >
+                  <dt className="shrink-0 font-mono text-[12.5px] text-emerald-300 sm:w-40">
+                    {part.name}
+                  </dt>
+                  <dd className="text-[13px] leading-relaxed text-[#94969c]">
+                    {part.note}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
+        {g.accessibility && (
+          <section
+            id="accessibility"
+            className="flex scroll-mt-24 flex-col gap-4"
+            aria-label="Accessibility"
+          >
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
+              Accessibility
+            </h2>
+            <ul className="flex flex-col gap-2.5">
+              {g.accessibility.map((item) => (
+                <li
+                  key={item}
+                  className="flex gap-2.5 text-[13.5px] leading-relaxed text-[#94969c]"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-[7px] size-1.5 shrink-0 rounded-full bg-[#373a41]"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section
           id="source"
