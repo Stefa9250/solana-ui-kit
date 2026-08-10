@@ -64,10 +64,7 @@ export function HeroPreview() {
   }, []);
 
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none border border-[#22262f] bg-[#161b26] p-6"
-    >
+    <div aria-hidden className="pointer-events-none">
       <TransactionStatus
         status={status}
         signature={SIGNATURE}

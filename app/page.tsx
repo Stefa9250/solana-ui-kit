@@ -1,102 +1,78 @@
 import Link from "next/link";
-import { ArrowUpRight, Star } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import { registry } from "@/lib/registry";
 import { GITHUB_URL } from "@/lib/site";
-import { getStars, formatStars } from "@/lib/github";
-import { HeroPreview } from "@/components/docs/hero-preview";
+import { getStars } from "@/lib/github";
+import { CursorGlow } from "@/components/docs/cursor-glow";
+import { LandingHeader } from "@/components/docs/landing-header";
+import { LandingHero } from "@/components/docs/landing-hero";
+import { ComponentsShowcase } from "@/components/docs/components-showcase";
+
+const FIRST = registry[0]?.slug ?? "transaction-status";
 
 export default async function Home() {
   const stars = await getStars();
+
   return (
-    <main className="flex-1 flex justify-center px-6 py-16 sm:py-24">
-      <div className="w-full max-w-[720px] flex flex-col gap-16">
-        <header className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.02em] text-emerald-400">
-              Solana UI Kit
-            </div>
-            {GITHUB_URL && (
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#94969c] transition-colors duration-150 hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
-              >
-                <Star aria-hidden className="size-3.5" />
-                {typeof stars === "number" ? (
-                  <span className="tabular-nums">{formatStars(stars)}</span>
-                ) : (
-                  <span>GitHub</span>
-                )}
-                <span aria-hidden>{"↗"}</span>
-              </a>
-            )}
-          </div>
-          <h1 className="text-[32px] sm:text-[40px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#f7f7f7]">
-            The missing UX layer
-            <br />
-            for Solana dApps.
-          </h1>
-          <p className="max-w-[520px] text-[15px] leading-relaxed text-[#94969c]">
-            Copy-paste React components for the moments most dApps get wrong:
-            what happens after the user clicks. Transaction status, wallet
-            connection — accessible, animated, dark-mode first. No package to
-            install, no build step. Copy the file, own the code.
-          </p>
-          <div className="flex items-center gap-3 text-[13px] text-[#61656c]">
-            <span>React + Tailwind + lucide-react</span>
-            <span aria-hidden>·</span>
-            <span>MIT licensed</span>
-            <span aria-hidden>·</span>
-            <span>Copy-paste, no install</span>
-          </div>
-        </header>
+    <main className="sk-scanlines relative min-h-screen w-full overflow-hidden">
+      <CursorGlow />
+      <div className="relative z-10">
+        <LandingHeader stars={stars} />
+        <LandingHero />
+        <ComponentsShowcase />
 
-        <HeroPreview />
-
-        <section className="flex flex-col gap-5">
-          <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
-            Components
-          </h2>
-          <ul className="flex flex-col border-t border-[#22262f]">
-            {registry.map((entry) => (
-              <li key={entry.slug} className="border-b border-[#22262f]">
+        <footer className="border-t border-[#22262f]/50 px-5 py-20 sm:px-8 sm:py-28">
+          <div className="mx-auto flex max-w-6xl flex-col gap-12">
+            <div className="flex flex-col gap-6">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
+                Get started
+              </p>
+              <h2 className="max-w-xl text-balance text-[30px] font-semibold leading-tight tracking-[-0.015em] text-[#f7f7f7] sm:text-[40px]">
+                Own the code.{" "}
+                <span className="sk-text-gradient">No install treadmill.</span>
+              </h2>
+              <p className="max-w-lg text-[15px] leading-relaxed text-[#94969c]">
+                Copy a file, or pull it with the shadcn CLI. Either way it lives in
+                your repo — retheme it, fork it, keep it.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`/components/${entry.slug}`}
-                  className="group flex items-start justify-between gap-6 py-5 outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                  href={`/components/${FIRST}`}
+                  className="group inline-flex items-center justify-center gap-2.5 rounded-lg border border-emerald-500 bg-emerald-500/10 px-6 py-3.5 font-mono text-[13px] text-emerald-300 transition-colors duration-300 hover:bg-emerald-500/20 hover:text-emerald-200 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 active:scale-[0.98]"
                 >
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[15px] font-semibold text-[#f7f7f7] group-hover:text-emerald-300 transition-colors duration-150">
-                      {entry.name}
-                    </span>
-                    <span className="max-w-[480px] text-[13px] leading-relaxed text-[#94969c]">
-                      {entry.description}
-                    </span>
-                  </div>
-                  <ArrowUpRight
-                    aria-hidden
-                    className="mt-1 size-4 shrink-0 text-[#61656c] transition-all duration-150 group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
+                  <span>browse components</span>
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+                {GITHUB_URL && (
+                  <a
+                    href={GITHUB_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2.5 rounded-lg border border-[#22262f] px-6 py-3.5 font-mono text-[13px] text-[#94969c] transition-colors duration-300 hover:border-[#373a41] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                  >
+                    <Star className="size-4" />
+                    <span>star on GitHub</span>
+                  </a>
+                )}
+              </div>
+            </div>
 
-        <footer className="flex items-center justify-between border-t border-[#22262f] pt-6 text-[13px] text-[#61656c]">
-          <span>Built for the Solana ecosystem.</span>
-          <div className="flex items-center gap-4">
-            {GITHUB_URL && (
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors duration-150 hover:text-[#cecfd2]"
-              >
-                GitHub
-              </a>
-            )}
-            <span>MIT</span>
+            <div className="flex flex-col items-start justify-between gap-4 border-t border-[#22262f]/50 pt-8 font-mono text-[12px] text-[#61656c] sm:flex-row sm:items-center">
+              <span className="flex items-center gap-2">
+                <span className="relative flex size-2">
+                  <span
+                    aria-hidden
+                    className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75"
+                  />
+                  <span
+                    aria-hidden
+                    className="relative inline-flex size-2 rounded-full bg-emerald-500"
+                  />
+                </span>
+                copy-paste · no install
+              </span>
+              <span>Built for the Solana ecosystem · MIT</span>
+            </div>
           </div>
         </footer>
       </div>
