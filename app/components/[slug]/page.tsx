@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { getEntry, registry } from "@/lib/registry";
 import { CopyButton } from "@/components/docs/copy-button";
 import { DemoHost } from "@/components/docs/demo-host";
+import { OnThisPage, type RailItem } from "@/components/docs/on-this-page";
 
 export function generateStaticParams() {
   return registry.map((entry) => ({ slug: entry.slug }));
@@ -27,22 +27,26 @@ export default async function ComponentPage({
     source = null; // Component not implemented yet — show a placeholder.
   }
 
-  return (
-    <main className="flex-1 flex justify-center px-6 py-16 sm:py-20">
-      <div className="w-full max-w-[820px] flex flex-col gap-12">
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#61656c] transition-colors duration-150 hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
-          >
-            <ArrowLeft aria-hidden className="size-3.5" />
-            All components
-          </Link>
-        </div>
+  const railItems: RailItem[] = [
+    { id: "demo", label: "Demo" },
+    ...(entry.usage ? [{ id: "usage", label: "Usage" }] : []),
+    { id: "props", label: "Props" },
+    { id: "source", label: "Source" },
+  ];
 
+  return (
+    <main className="mx-auto flex w-full max-w-[1060px] gap-10 px-6 py-12 sm:px-10 sm:py-14">
+      <article className="flex min-w-0 flex-1 flex-col gap-12">
         <header className="flex flex-col gap-3">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.02em] text-emerald-400">
-            Solana UI Kit
+          <div className="font-mono text-[11px] tracking-[0.03em] text-[#61656c]">
+            <Link
+              href="/"
+              className="transition-colors duration-150 hover:text-[#cecfd2] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+            >
+              Components
+            </Link>
+            <span className="px-1.5">/</span>
+            <span className="text-[#cecfd2]">{entry.name}</span>
           </div>
           <h1 className="text-[28px] font-semibold tracking-[-0.01em] text-[#f7f7f7]">
             {entry.name}
@@ -52,7 +56,11 @@ export default async function ComponentPage({
           </p>
         </header>
 
-        <section className="flex flex-col gap-4" aria-label="Live demo">
+        <section
+          id="demo"
+          className="flex scroll-mt-24 flex-col gap-4"
+          aria-label="Live demo"
+        >
           <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
             Demo
           </h2>
@@ -65,7 +73,11 @@ export default async function ComponentPage({
         </section>
 
         {entry.usage && (
-          <section className="flex flex-col gap-4" aria-label="Usage">
+          <section
+            id="usage"
+            className="flex scroll-mt-24 flex-col gap-4"
+            aria-label="Usage"
+          >
             <div className="flex items-center justify-between">
               <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
                 Usage
@@ -78,7 +90,11 @@ export default async function ComponentPage({
           </section>
         )}
 
-        <section className="flex flex-col gap-4" aria-label="Props">
+        <section
+          id="props"
+          className="flex scroll-mt-24 flex-col gap-4"
+          aria-label="Props"
+        >
           <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
             Props
           </h2>
@@ -117,7 +133,11 @@ export default async function ComponentPage({
           </div>
         </section>
 
-        <section className="flex flex-col gap-4" aria-label="Source code">
+        <section
+          id="source"
+          className="flex scroll-mt-24 flex-col gap-4"
+          aria-label="Source code"
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#61656c]">
               Source
@@ -144,7 +164,9 @@ export default async function ComponentPage({
             </div>
           )}
         </section>
-      </div>
+      </article>
+
+      <OnThisPage items={railItems} />
     </main>
   );
 }

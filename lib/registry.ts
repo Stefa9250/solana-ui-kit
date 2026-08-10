@@ -17,6 +17,8 @@ export type PropRow = {
 export type RegistryEntry = {
   name: string;
   slug: string;
+  /** Sidebar group heading this component sits under. */
+  category: string;
   description: string;
   /** Repo-relative path to the self-contained component source file. */
   path: string;
@@ -31,6 +33,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Transaction Status",
     slug: "transaction-status",
+    category: "Transactions",
     description:
       "Every state of a Solana transaction — pending, confirming, confirmed, failed — with human-readable errors and calm, purposeful motion.",
     path: "components/kit/transaction-status/transaction-status.tsx",
@@ -134,6 +137,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Transaction Review",
     slug: "transaction-review",
+    category: "Transactions",
     description:
       "The screen that decides trust: a plain-language, simulation-driven preview of what a transaction does before signing — net balance changes, fee, and warnings, with a safe / warn / block verdict that makes Reject prominent when it matters.",
     path: "components/kit/transaction-review/transaction-review.tsx",
@@ -234,6 +238,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Token Amount Input",
     slug: "token-amount-input",
+    category: "Inputs",
     description:
       "A token amount field that handles decimals exactly, formats as you type, reserves rent when maxing, and corrects rather than alarms when the amount is too large.",
     path: "components/kit/token-amount-input/token-amount-input.tsx",
@@ -331,6 +336,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Fee Explainer",
     slug: "fee-explainer",
+    category: "Transactions",
     description:
       "Translates Solana priority fees into plain language — cost in dollars, time in seconds. Lamports never reach the user, and a missing estimate never blocks them.",
     path: "components/kit/fee-explainer/fee-explainer.tsx",
@@ -434,6 +440,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Address Display",
     slug: "address-display",
+    category: "Inputs",
     description:
       "A Solana address done right: middle-truncated, deterministic avatar, one-tap copy of the full address, and a program/token affordance so nobody sends funds into a program by mistake.",
     path: "components/kit/address-display/address-display.tsx",
@@ -518,6 +525,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "State Screen",
     slug: "state-screen",
+    category: "Feedback",
     description:
       "The empty and error screens nobody designs: RPC down, no tokens, network congested, wallet not connected. One calm layout, three restrained tones, presets with the copy already written.",
     path: "components/kit/state-screen/state-screen.tsx",
@@ -601,6 +609,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Connect Wallet",
     slug: "connect-wallet",
+    category: "Connection",
     description:
       "The full connect flow: a trigger that opens an anchored panel, morphs through wallet list → connecting → optional sign-in-with-Solana → success, then becomes a connected account chip.",
     path: "components/kit/connect-wallet/connect-wallet.tsx",
@@ -692,6 +701,7 @@ export const registry: RegistryEntry[] = [
   {
     name: "Connect Wallet Modal",
     slug: "connect-wallet-modal",
+    category: "Connection",
     description:
       "Wallet selection, connecting, rejected, and connected states in one accessible modal. Detected wallets first, install links for the rest.",
     path: "components/kit/connect-wallet-modal/connect-wallet-modal.tsx",
