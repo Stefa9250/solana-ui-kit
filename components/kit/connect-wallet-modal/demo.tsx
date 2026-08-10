@@ -13,6 +13,7 @@ import {
   type ConnectWalletStatus,
   type WalletOption,
 } from "./connect-wallet-modal";
+import { DemoStage } from "@/components/docs/demo-stage";
 import { WALLET_LOGOS } from "@/components/docs/wallet-logos";
 import { mockWalletLayer } from "./mock-wallet";
 
@@ -201,15 +202,15 @@ export default function ConnectWalletModalDemo() {
         ))}
       </div>
 
-      <div className="flex min-h-[220px] items-center justify-center border border-[#22262f] bg-[#0c0e12] p-6">
+      <DemoStage contentClassName="flex min-h-[220px] items-center justify-center">
         <button
           type="button"
           onClick={() => openWith("list")}
-          className="cursor-pointer bg-[#00543f] px-5 py-2.5 text-[14px] font-semibold text-[#18e3a5] transition-colors duration-150 hover:bg-[#006a53] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+          className="cursor-pointer bg-[var(--sk-btn,#00543f)] px-5 py-2.5 text-[14px] font-semibold text-[var(--sk-btn-text,#18e3a5)] transition-colors duration-150 hover:bg-[var(--sk-btn-hover,#006a53)] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
         >
           Connect wallet
         </button>
-      </div>
+      </DemoStage>
 
       <ConnectWalletModal
         open={open}

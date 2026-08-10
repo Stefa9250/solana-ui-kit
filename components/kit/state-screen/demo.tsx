@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { StateScreen, STATE_PRESETS } from "./state-screen";
+import { DemoStage } from "@/components/docs/demo-stage";
 
 const SCENARIOS = [
   "RPC down",
@@ -92,7 +93,7 @@ export default function StateScreenDemo() {
         ))}
       </div>
 
-      <div className="border border-[#22262f] bg-[#0c0e12]">{node}</div>
+      <DemoStage padded={false}>{node}</DemoStage>
     </div>
   );
 }

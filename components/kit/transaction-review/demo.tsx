@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { DemoStage } from "@/components/docs/demo-stage";
 import { TransactionReview } from "./transaction-review";
 import {
   SIMULATION_SCENARIOS,
@@ -74,26 +75,24 @@ export default function TransactionReviewDemo() {
         ))}
       </div>
 
-      <div className="border border-[#22262f] bg-[#0c0e12] p-6">
-        <div className="mx-auto max-w-[400px]">
-          <TransactionReview
-            origin={failed ? "free-airdrop-claim.xyz" : fresh?.origin}
-            originVerified={fresh?.originVerified}
-            assets={fresh?.assets}
-            approvals={fresh?.approvals}
-            warnings={fresh?.warnings}
-            feeUsd={fresh?.feeUsd}
-            feeSol={fresh?.feeSol}
-            simulatedBy={fresh?.simulatedBy}
-            severity={fresh?.severity}
-            simulating={simulating}
-            simulationFailed={failed}
-            signing={signing}
-            onSign={sign}
-            onReject={() => {}}
-          />
-        </div>
-      </div>
+      <DemoStage contentClassName="mx-auto max-w-[400px]">
+        <TransactionReview
+          origin={failed ? "free-airdrop-claim.xyz" : fresh?.origin}
+          originVerified={fresh?.originVerified}
+          assets={fresh?.assets}
+          approvals={fresh?.approvals}
+          warnings={fresh?.warnings}
+          feeUsd={fresh?.feeUsd}
+          feeSol={fresh?.feeSol}
+          simulatedBy={fresh?.simulatedBy}
+          severity={fresh?.severity}
+          simulating={simulating}
+          simulationFailed={failed}
+          signing={signing}
+          onSign={sign}
+          onReject={() => {}}
+        />
+      </DemoStage>
     </div>
   );
 }

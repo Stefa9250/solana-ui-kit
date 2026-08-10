@@ -14,6 +14,7 @@ import {
   type TransactionStatusErrorRule,
   type TransactionStatusState,
 } from "./transaction-status";
+import { DemoStage } from "@/components/docs/demo-stage";
 
 // Anchor custom errors are program-specific — this maps Jupiter's 6001
 // (0x1771). Integrators pass their own program's rules the same way.
@@ -138,7 +139,7 @@ export default function TransactionStatusDemo() {
         })}
       </div>
 
-      <div className="relative min-h-[220px] border border-[#22262f] bg-[#161b26] p-6">
+      <DemoStage contentClassName="relative min-h-[220px]">
         {status === "idle" ? (
           <div className="flex h-[172px] flex-col items-center justify-center gap-3.5">
             <div className="flex size-10 items-center justify-center rounded-full border-[1.5px] border-dashed border-[#333741]">
@@ -173,7 +174,7 @@ export default function TransactionStatusDemo() {
             className="min-h-[172px]"
           />
         )}
-      </div>
+      </DemoStage>
     </div>
   );
 }

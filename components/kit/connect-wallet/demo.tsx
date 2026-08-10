@@ -13,6 +13,7 @@ import {
   type ConnectWalletFlowStatus,
   type WalletOption,
 } from "./connect-wallet";
+import { DemoStage } from "@/components/docs/demo-stage";
 import { WALLET_LOGOS } from "@/components/docs/wallet-logos";
 
 const WALLETS: WalletOption[] = [
@@ -200,11 +201,11 @@ export default function ConnectWalletDemo() {
         ))}
       </div>
 
-      <div className="min-h-[420px] border border-[#22262f] bg-[#0c0e12]">
-        <div className="flex items-center justify-between border-b border-[#22262f] px-4 py-3">
+      <DemoStage padded={false} contentClassName="min-h-[420px]">
+        <div className="flex items-center justify-between border-b border-[var(--sk-border,#22262f)] px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div aria-hidden className="size-3.5 bg-emerald-600" />
-            <span className="text-[13px] font-semibold text-[#94969c]">
+            <span className="text-[13px] font-semibold text-[var(--sk-text-tertiary,#94969c)]">
               demo dApp
             </span>
           </div>
@@ -224,13 +225,13 @@ export default function ConnectWalletDemo() {
           />
         </div>
         <div aria-hidden className="grid grid-cols-3 gap-3 p-4">
-          <div className="col-span-2 h-28 bg-[#12151c]" />
-          <div className="h-28 bg-[#12151c]" />
-          <div className="h-14 bg-[#12151c]" />
-          <div className="h-14 bg-[#12151c]" />
-          <div className="h-14 bg-[#12151c]" />
+          <div className="col-span-2 h-28 bg-[var(--sk-skeleton,#22262f)]" />
+          <div className="h-28 bg-[var(--sk-skeleton,#22262f)]" />
+          <div className="h-14 bg-[var(--sk-skeleton,#22262f)]" />
+          <div className="h-14 bg-[var(--sk-skeleton,#22262f)]" />
+          <div className="h-14 bg-[var(--sk-skeleton,#22262f)]" />
         </div>
-      </div>
+      </DemoStage>
     </div>
   );
 }

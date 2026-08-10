@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { DemoStage } from "@/components/docs/demo-stage";
 import {
   TokenAmountInput,
   type TokenAmountValidity,
@@ -142,8 +143,7 @@ export default function TokenAmountInputDemo() {
         ))}
       </div>
 
-      <div className="border border-[#22262f] bg-[#0c0e12] p-6">
-        <div className="mx-auto max-w-[420px]">
+      <DemoStage contentClassName="mx-auto max-w-[420px]">
           <TokenAmountInput
             token={token}
             balance={effectiveBalance}
@@ -170,8 +170,7 @@ export default function TokenAmountInputDemo() {
                 ? "Leaves nothing for fees"
                 : "Review send"}
           </button>
-        </div>
-      </div>
+      </DemoStage>
     </div>
   );
 }

@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { DemoStage } from "@/components/docs/demo-stage";
 import { FeeExplainer, type FeeSpeed } from "./fee-explainer";
 import {
   SPEEDS,
@@ -101,8 +102,7 @@ export default function FeeExplainerDemo() {
         ))}
       </div>
 
-      <div className="border border-[#22262f] bg-[#0c0e12] p-6">
-        <div className="mx-auto max-w-[420px]">
+      <DemoStage contentClassName="mx-auto max-w-[420px]">
           <FeeExplainer
             feeUsd={showEstimate ? fresh.feeUsd : undefined}
             feeSol={showEstimate ? fresh.feeSol : undefined}
@@ -135,8 +135,7 @@ export default function FeeExplainerDemo() {
             open={breakdownOpen}
             onOpenChange={setBreakdownOpen}
           />
-        </div>
-      </div>
+      </DemoStage>
     </div>
   );
 }

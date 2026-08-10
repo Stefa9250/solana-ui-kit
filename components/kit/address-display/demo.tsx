@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { DemoStage } from "@/components/docs/demo-stage";
 import { AddressDisplay, type AddressKind } from "./address-display";
 
 // Real mainnet addresses, so the avatars and explorer links are genuine.
@@ -64,7 +65,7 @@ export default function AddressDisplayDemo() {
         ))}
       </div>
 
-      <div className="flex flex-col gap-6 border border-[#22262f] bg-[#0c0e12] p-6">
+      <DemoStage contentClassName="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <span className="text-[11px] uppercase tracking-[0.04em] text-[#61656c]">
             Inline
@@ -94,7 +95,7 @@ export default function AddressDisplayDemo() {
             />
           </div>
         </div>
-      </div>
+      </DemoStage>
     </div>
   );
 }
