@@ -12,9 +12,6 @@ const PHRASES = [
   "for wallet connection",
   "for signing trust",
 ];
-// The longest phrase reserves the line's height so the page never reflows
-// as the text types in and out.
-const LONGEST = PHRASES.reduce((a, b) => (b.length >= a.length ? b : a));
 
 /** Typewriter that cycles PHRASES. */
 function useTypewriter() {
@@ -58,15 +55,21 @@ export function LandingHero() {
             </p>
             <h1 className="sk-fade-up sk-d1 text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
               <span className="block">The missing UX layer</span>
-              <span className="relative block">
-                {/* SR reads a stable phrase; the animation is decorative. */}
+              {/* Every phrase is stacked invisibly in one grid cell, so the
+                  line always reserves the tallest phrase's height at the current
+                  width — the page never reflows as the text types in and out. */}
+              <span className="grid">
                 <span className="sr-only">for Solana dApps</span>
-                {/* Invisible sizer reserves the line's height (no reflow). */}
-                <span aria-hidden className="invisible">
-                  {LONGEST}
-                </span>
-                {/* Visible typed text overlays the sizer. */}
-                <span aria-hidden className="absolute inset-0">
+                {PHRASES.map((phrase) => (
+                  <span
+                    key={phrase}
+                    aria-hidden
+                    className="invisible col-start-1 row-start-1"
+                  >
+                    {phrase}
+                  </span>
+                ))}
+                <span aria-hidden className="col-start-1 row-start-1">
                   <span className="sk-text-gradient">{typed}</span>
                   <span className="sk-caret" />
                 </span>
