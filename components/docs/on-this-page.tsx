@@ -25,7 +25,21 @@ export function OnThisPage({ items }: { items: RailItem[] }) {
     );
 
     els.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+
+    // The last section may never reach the top band on a short page; when the
+    // page is scrolled to the bottom, activate it explicitly.
+    const onScroll = () => {
+      const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 8;
+      if (atBottom) setActive(items[items.length - 1].id);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [items]);
 
   return (

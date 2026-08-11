@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Search, Star } from "lucide-react";
 import { registry, GROUP_ORDER, type RegistryEntry } from "@/lib/registry";
@@ -104,12 +105,18 @@ function Footer({ stars }: { stars?: number | null }) {
 
 export function Sidebar({ stars }: { stars?: number | null }) {
   const pathname = usePathname();
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  // Collapse the mobile disclosure after navigating to a component.
+  useEffect(() => {
+    if (detailsRef.current) detailsRef.current.open = false;
+  }, [pathname]);
 
   return (
     <>
       {/* Mobile: a top bar with a disclosure holding the same grouped nav. */}
       <div className="border-b border-[#22262f] bg-[#090b0f] md:hidden">
-        <details className="group">
+        <details ref={detailsRef} className="group">
           <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 [&::-webkit-details-marker]:hidden">
             <Brand />
             <span className="font-mono text-[11px] uppercase tracking-[0.05em] text-[#94969c] group-open:hidden">

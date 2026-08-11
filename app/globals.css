@@ -48,10 +48,6 @@ body {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
-@keyframes sk-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
 @keyframes sk-blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
@@ -60,13 +56,10 @@ body {
 .sk-fade-up { animation: sk-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .sk-fade { animation: sk-fade 0.7s ease both; }
 .sk-scale-in { animation: sk-scale-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.sk-float { animation: sk-float 4s ease-in-out infinite; }
 .sk-d1 { animation-delay: 0.08s; }
 .sk-d2 { animation-delay: 0.16s; }
 .sk-d3 { animation-delay: 0.24s; }
 .sk-d4 { animation-delay: 0.32s; }
-.sk-d5 { animation-delay: 0.4s; }
-.sk-d6 { animation-delay: 0.5s; }
 
 /* Blinking typing caret. */
 .sk-caret::after {
@@ -87,8 +80,8 @@ body {
     0deg,
     transparent,
     transparent 3px,
-    rgba(255, 255, 255, 0.014) 3px,
-    rgba(255, 255, 255, 0.014) 6px
+    rgba(255, 255, 255, 0.022) 3px,
+    rgba(255, 255, 255, 0.022) 6px
   );
 }
 
@@ -110,19 +103,6 @@ body {
   box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
-/* Cursor-following ambient glow (desktop only, set inline position). */
-.sk-cursor-glow {
-  pointer-events: none;
-  position: fixed;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.13) 0%, transparent 65%);
-  transform: translate(-50%, -50%);
-  z-index: 0;
-  filter: blur(12px);
-}
-
 .sk-text-gradient {
   background: linear-gradient(120deg, #6ee7b7, #34d399 55%, #17b26a);
   -webkit-background-clip: text;
@@ -135,7 +115,6 @@ body {
   .sk-fade-up,
   .sk-fade,
   .sk-scale-in,
-  .sk-float,
   .sk-caret::after {
     animation: none !important;
   }

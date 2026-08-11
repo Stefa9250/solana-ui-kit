@@ -7,7 +7,7 @@ import { HeroPreview } from "./hero-preview";
 import { useReducedMotion } from "./use-reduced-motion";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
-const PHRASES = ["for transactions", "for wallets", "for fee clarity", "for signing"];
+const PHRASES = ["for transactions", "for wallets", "for fees", "for signing"];
 
 /** Typewriter that cycles PHRASES. Renders a static phrase under reduced motion. */
 function useTypewriter(reduced: boolean) {
@@ -105,7 +105,7 @@ export function LandingHero() {
                 </span>
               </Link>
             </div>
-            <div className="sk-fade-up sk-d4 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-[#61656c]">
+            <div className="sk-fade-up sk-d4 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-[#94969c]">
               <span>React + Tailwind + lucide-react</span>
               <span aria-hidden>·</span>
               <span>MIT</span>
@@ -130,9 +130,6 @@ export function LandingHero() {
 
             <div className="absolute -right-3 -top-3 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 font-mono text-[11px] text-emerald-300 backdrop-blur">
               v0.1.0
-            </div>
-            <div className="absolute -bottom-3 -left-3 rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-1.5 font-mono text-[11px] text-[#94969c] backdrop-blur">
-              MIT licensed
             </div>
 
             <div

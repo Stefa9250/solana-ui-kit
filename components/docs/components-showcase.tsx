@@ -56,7 +56,7 @@ export function ComponentsShowcase() {
               className="sk-lift sk-glass group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-[#22262f] p-6 transition-colors hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#61656c]">
+                <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#94969c]">
                   {entry.category}
                 </span>
                 <ArrowUpRight

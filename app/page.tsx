@@ -52,7 +52,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex flex-col items-start justify-between gap-4 border-t border-[#22262f]/50 pt-8 font-mono text-[12px] text-[#61656c] sm:flex-row sm:items-center">
+            <div className="flex flex-col items-start justify-between gap-4 border-t border-[#22262f]/50 pt-8 font-mono text-[12px] text-[#94969c] sm:flex-row sm:items-center">
               <span>copy-paste · no install</span>
               <span>Built for the Solana ecosystem · MIT</span>
             </div>
