@@ -3,7 +3,7 @@ import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
-import { getEntry, registry } from "@/lib/registry";
+import { getEntry, registry, orderedRegistry } from "@/lib/registry";
 import { guidance } from "@/lib/guidance";
 import { SITE_URL, SITE_URL_IS_PLACEHOLDER } from "@/lib/site";
 import { CopyButton } from "@/components/docs/copy-button";
@@ -43,9 +43,11 @@ export default async function ComponentPage({
     { id: "source", label: "Source" },
   ];
 
-  const index = registry.findIndex((e) => e.slug === slug);
-  const prev = index > 0 ? registry[index - 1] : null;
-  const next = index < registry.length - 1 ? registry[index + 1] : null;
+  // Pager follows the sidebar's grouped order, not the raw registry order.
+  const index = orderedRegistry.findIndex((e) => e.slug === slug);
+  const prev = index > 0 ? orderedRegistry[index - 1] : null;
+  const next =
+    index < orderedRegistry.length - 1 ? orderedRegistry[index + 1] : null;
 
   return (
     <main className="mx-auto flex w-full max-w-[1060px] gap-10 px-6 py-12 sm:px-10 sm:py-14">

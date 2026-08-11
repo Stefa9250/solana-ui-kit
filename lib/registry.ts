@@ -788,3 +788,13 @@ export const registry: RegistryEntry[] = [
 export function getEntry(slug: string): RegistryEntry | undefined {
   return registry.find((e) => e.slug === slug);
 }
+
+/** Sidebar group order — the single source of truth for how components are
+ *  ordered across the sidebar, the landing filters, and the prev/next pager. */
+export const GROUP_ORDER = ["Transactions", "Inputs", "Connection", "Feedback"];
+
+/** The registry in grouped (sidebar) order, so nav, filters, and pager agree. */
+export const orderedRegistry: RegistryEntry[] = [
+  ...GROUP_ORDER.flatMap((cat) => registry.filter((e) => e.category === cat)),
+  ...registry.filter((e) => !GROUP_ORDER.includes(e.category)),
+];

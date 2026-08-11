@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Star } from "lucide-react";
-import { registry, type RegistryEntry } from "@/lib/registry";
+import { registry, GROUP_ORDER, type RegistryEntry } from "@/lib/registry";
 import { GITHUB_URL } from "@/lib/site";
 import { formatStars } from "@/lib/github";
 import { OPEN_SEARCH_EVENT } from "./command-palette";
-
-/** Group order for the sidebar; anything uncategorized falls into "Components". */
-const GROUP_ORDER = ["Transactions", "Inputs", "Connection", "Feedback"];
 
 function buildGroups() {
   const known = new Set(GROUP_ORDER);

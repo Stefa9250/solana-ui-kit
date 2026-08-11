@@ -117,7 +117,7 @@ export default function TransactionStatusDemo() {
 
   const code = `<TransactionStatus
   status="${status}"
-  signature={signature}${error ? "\n  error={error}" : ""}
+  signature={signature}${error ? "\n  error={error}\n  errorMap={errorMap}" : ""}
   onRetry={retry}
   onDismiss={dismiss}
 />`;

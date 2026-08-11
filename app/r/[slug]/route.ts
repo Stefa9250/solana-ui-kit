@@ -42,9 +42,11 @@ export async function GET(
 
   const source = await readSource(entry.path);
   if (source === null) {
+    // The component is registered but its file couldn't be read — a server
+    // problem, not a missing route.
     return NextResponse.json(
-      { error: "Source unavailable" },
-      { status: 404 },
+      { error: "Component source could not be read" },
+      { status: 500 },
     );
   }
 
@@ -72,7 +74,14 @@ export async function GET(
         `- \`${p.name}\`: \`${p.type}\`${p.default ? ` (default \`${p.default}\`)` : ""} — ${p.description}`,
       );
     });
-    lines.push("", `## Source (${target})`, "", "```tsx", source, "```", "");
+    // Use a fence longer than any backtick run in the source so a component
+    // that itself contains a code fence can't break the markdown.
+    const longestRun = (source.match(/`+/g) ?? []).reduce(
+      (m, r) => Math.max(m, r.length),
+      0,
+    );
+    const fence = "`".repeat(Math.max(3, longestRun + 1));
+    lines.push("", `## Source (${target})`, "", `${fence}tsx`, source, fence, "");
     return new NextResponse(lines.join("\n"), {
       headers: { "Content-Type": "text/markdown; charset=utf-8" },
     });

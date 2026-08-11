@@ -46,10 +46,17 @@ export default function AddressDisplayDemo() {
               ? { address: "0xAbC123notBase58", kind: "unknown" }
               : { address: WALLET, kind: "wallet" };
 
-  const code = `<AddressDisplay
-  address={address}${config.name ? `\n  name="${config.name}"` : ""}${
+  const extra = `${config.name ? `\n  name="${config.name}"` : ""}${
     config.kind !== "wallet" ? `\n  kind="${config.kind}"` : ""
-  }${config.loading ? "\n  loading" : ""}
+  }${config.loading ? "\n  loading" : ""}`;
+  const code = `{/* Inline chip */}
+<AddressDisplay
+  address={address}${extra}
+/>
+
+{/* Card with explorer link */}
+<AddressDisplay
+  address={address}${extra}
   variant="card"
   showExplorer
 />`;

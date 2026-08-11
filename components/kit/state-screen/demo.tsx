@@ -74,6 +74,38 @@ export default function StateScreenDemo() {
     }
   })();
 
+  const code = (() => {
+    switch (scenario) {
+      case "RPC down":
+        return `<StateScreen
+  {...STATE_PRESETS.rpcDown}
+  action={{ label: "Try again", onClick: retry, busyLabel: "Retrying…" }}
+  secondaryAction={{ label: "Network status", href: "https://status.solana.com" }}
+  errorDetail={detail}
+  busy={retrying}
+/>`;
+      case "Rate limited":
+        return `<StateScreen {...STATE_PRESETS.rateLimited} />`;
+      case "Wrong network":
+        return `<StateScreen
+  {...STATE_PRESETS.wrongNetwork}
+  action={{ label: "Switch to mainnet", onClick: switchNetwork }}
+/>`;
+      case "No tokens":
+        return `<StateScreen
+  {...STATE_PRESETS.noTokens}
+  action={{ label: "Receive tokens", onClick: openReceive }}
+/>`;
+      case "No transactions":
+        return `<StateScreen {...STATE_PRESETS.noTransactions} />`;
+      case "Not connected":
+        return `<StateScreen
+  {...STATE_PRESETS.notConnected}
+  action={{ label: "Connect wallet", onClick: connect }}
+/>`;
+    }
+  })();
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Demo states">
@@ -93,7 +125,9 @@ export default function StateScreenDemo() {
         ))}
       </div>
 
-      <DemoStage padded={false}>{node}</DemoStage>
+      <DemoStage padded={false} code={code}>
+        {node}
+      </DemoStage>
     </div>
   );
 }

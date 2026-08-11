@@ -105,8 +105,9 @@ export default function TokenAmountInputDemo() {
   };
 
   const code = `<TokenAmountInput
-  token={token} // ${token.symbol}, ${token.decimals} decimals
-  balance={${effectiveBalance}}
+  token={token} // ${token.symbol}, ${token.decimals} decimals${
+    effectiveBalance == null ? "" : `\n  balance="${effectiveBalance}"`
+  }${price == null ? "" : `\n  price="${price}"`}
   value={value}
   onChange={setValue}
   onValidityChange={setValidity}${loading ? "\n  loading" : ""}${disabled ? "\n  disabled" : ""}${

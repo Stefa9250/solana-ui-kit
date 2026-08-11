@@ -187,7 +187,9 @@ export default function ConnectWalletModalDemo() {
   open={open}
   onClose={close}
   wallets={wallets}
-  status="${status}"
+  status="${status}"${connectedWalletId ? `\n  connectedWalletId="${connectedWalletId}"` : ""}${
+    error ? "\n  error={error}" : ""
+  }${address ? "\n  address={address}" : ""}
   onSelectWallet={connect}
 />`;
 
@@ -210,7 +212,11 @@ export default function ConnectWalletModalDemo() {
         ))}
       </div>
 
-      <DemoStage contentClassName="flex min-h-[220px] items-center justify-center" code={code}>
+      <DemoStage
+        portal
+        contentClassName="flex min-h-[220px] items-center justify-center"
+        code={code}
+      >
         <button
           type="button"
           onClick={() => openWith("list")}

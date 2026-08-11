@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Monitor, Moon, Smartphone, Sun } from "lucide-react";
 import { CopyButton } from "./copy-button";
 
@@ -97,16 +97,30 @@ export function DemoStage({
   contentClassName = "",
   padded = true,
   code,
+  portal = false,
 }: {
   children: ReactNode;
   contentClassName?: string;
   padded?: boolean;
   code?: string;
+  /** Set when the demo renders into a portal (e.g. a modal on document.body),
+   *  so the light theme is applied to <body> too, not just the framed canvas. */
+  portal?: boolean;
 }) {
   const [light, setLight] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [view, setView] = useState<"preview" | "code">("preview");
   const showCode = code !== undefined && view === "code";
+
+  // Portaled demos escape the stage's DOM subtree; mirror the light tokens onto
+  // <body> so the portaled surface themes with the toggle.
+  useEffect(() => {
+    if (!portal || !light) return;
+    const body = document.body;
+    const entries = Object.entries(LIGHT_THEME) as [string, string][];
+    entries.forEach(([k, v]) => body.style.setProperty(k, v));
+    return () => entries.forEach(([k]) => body.style.removeProperty(k));
+  }, [portal, light]);
 
   return (
     <div className="flex flex-col">

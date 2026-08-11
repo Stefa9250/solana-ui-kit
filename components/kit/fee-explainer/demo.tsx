@@ -86,7 +86,13 @@ export default function FeeExplainerDemo() {
   const code = `<FeeExplainer
   feeUsd={feeUsd}
   feeSol={feeSol}
-  confirmTime={confirmTime}${minimal ? "" : "\n  speed={speed}\n  onSpeedChange={setSpeed}"}${congested ? "\n  congested" : ""}${loading ? "\n  loading" : ""}
+  confirmTime={confirmTime}${
+    minimal
+      ? ""
+      : "\n  baseFeeUsd={baseFeeUsd}\n  priorityFeeUsd={priorityFeeUsd}\n  speed={speed}\n  onSpeedChange={setSpeed}\n  speedOptions={speedOptions}"
+  }${fresh?.rentUsd !== undefined ? "\n  extraCosts={extraCosts}" : ""}${
+    congested ? "\n  congested" : ""
+  }${loading ? "\n  loading" : ""}
 />`;
 
   return (

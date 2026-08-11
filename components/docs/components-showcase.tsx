@@ -3,14 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
-import { registry } from "@/lib/registry";
+import { registry, orderedRegistry, GROUP_ORDER } from "@/lib/registry";
 
-const CATEGORIES = ["All", ...Array.from(new Set(registry.map((e) => e.category)))];
+// Same order as the sidebar; only categories that actually have components.
+const CATEGORIES = [
+  "All",
+  ...GROUP_ORDER.filter((c) => registry.some((e) => e.category === c)),
+];
 
 export function ComponentsShowcase() {
   const [filter, setFilter] = useState("All");
   const items =
-    filter === "All" ? registry : registry.filter((e) => e.category === filter);
+    filter === "All"
+      ? orderedRegistry
+      : orderedRegistry.filter((e) => e.category === filter);
 
   return (
     <section id="components" className="scroll-mt-20 px-5 py-20 sm:px-8 sm:py-28">

@@ -6,7 +6,7 @@ import { CopyButton } from "./copy-button";
 const MANAGERS = [
   { id: "pnpm", label: "pnpm", cmd: (u: string) => `pnpm dlx shadcn@latest add ${u}` },
   { id: "npm", label: "npm", cmd: (u: string) => `npx shadcn@latest add ${u}` },
-  { id: "yarn", label: "yarn", cmd: (u: string) => `yarn dlx shadcn@latest add ${u}` },
+  { id: "yarn", label: "yarn", cmd: (u: string) => `npx shadcn@latest add ${u}` },
   { id: "bun", label: "bun", cmd: (u: string) => `bunx --bun shadcn@latest add ${u}` },
 ] as const;
 
