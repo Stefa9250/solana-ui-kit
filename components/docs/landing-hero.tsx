@@ -93,8 +93,6 @@ export function LandingHero() {
               <span>React + Tailwind + lucide-react</span>
               <span aria-hidden>·</span>
               <span>MIT</span>
-              <span aria-hidden>·</span>
-              <span>{registry.length} components</span>
             </div>
           </div>
 
@@ -115,10 +113,7 @@ export function LandingHero() {
             </div>
 
             <div className="sk-float absolute -right-3 -top-3 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 font-mono text-[11px] text-emerald-300 backdrop-blur">
-              <span className="flex items-center gap-1.5">
-                <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
-                v0.1.0
-              </span>
+              v0.1.0
             </div>
             <div
               className="sk-float absolute -bottom-3 -left-3 rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-1.5 font-mono text-[11px] text-[#94969c] backdrop-blur"

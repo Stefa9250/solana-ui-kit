@@ -2,22 +2,17 @@ import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 import { registry } from "@/lib/registry";
 import { GITHUB_URL } from "@/lib/site";
-import { getStars } from "@/lib/github";
-import { CursorGlow } from "@/components/docs/cursor-glow";
 import { LandingHeader } from "@/components/docs/landing-header";
 import { LandingHero } from "@/components/docs/landing-hero";
 import { ComponentsShowcase } from "@/components/docs/components-showcase";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
 
-export default async function Home() {
-  const stars = await getStars();
-
+export default function Home() {
   return (
     <main className="sk-scanlines relative min-h-screen w-full overflow-hidden">
-      <CursorGlow />
       <div className="relative z-10">
-        <LandingHeader stars={stars} />
+        <LandingHeader />
         <LandingHero />
         <ComponentsShowcase />
 
@@ -58,19 +53,7 @@ export default async function Home() {
             </div>
 
             <div className="flex flex-col items-start justify-between gap-4 border-t border-[#22262f]/50 pt-8 font-mono text-[12px] text-[#61656c] sm:flex-row sm:items-center">
-              <span className="flex items-center gap-2">
-                <span className="relative flex size-2">
-                  <span
-                    aria-hidden
-                    className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75"
-                  />
-                  <span
-                    aria-hidden
-                    className="relative inline-flex size-2 rounded-full bg-emerald-500"
-                  />
-                </span>
-                copy-paste · no install
-              </span>
+              <span>copy-paste · no install</span>
               <span>Built for the Solana ecosystem · MIT</span>
             </div>
           </div>

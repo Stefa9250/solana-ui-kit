@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Search, Star } from "lucide-react";
+import { Search } from "lucide-react";
 import { GITHUB_URL } from "@/lib/site";
-import { formatStars } from "@/lib/github";
 import { registry } from "@/lib/registry";
 import { OPEN_SEARCH_EVENT } from "./command-palette";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
 
-export function LandingHeader({ stars }: { stars?: number | null }) {
+export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -29,14 +28,9 @@ export function LandingHeader({ stars }: { stars?: number | null }) {
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-500/10 font-mono text-[15px] text-emerald-400 transition-all duration-300 group-hover:border-emerald-400 group-hover:bg-emerald-500/20">
-            ◇
-          </span>
-          <span className="font-mono text-[13px] tracking-tight text-[#f7f7f7]">
-            solana
-            <span className="sk-text-gradient font-semibold">kit</span>
-          </span>
+        <Link href="/" className="font-mono text-[13px] tracking-tight text-[#f7f7f7]">
+          solana
+          <span className="sk-text-gradient font-semibold">kit</span>
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -65,14 +59,9 @@ export function LandingHeader({ stars }: { stars?: number | null }) {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-2 font-mono text-[12px] text-[#cecfd2] transition-colors duration-200 hover:border-[#373a41] hover:text-[#f7f7f7]"
+              className="rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-2 font-mono text-[12px] text-[#cecfd2] transition-colors duration-200 hover:border-[#373a41] hover:text-[#f7f7f7]"
             >
-              <Star className="size-3.5 text-emerald-400" />
-              {typeof stars === "number" ? (
-                <span className="tabular-nums">{formatStars(stars)}</span>
-              ) : (
-                <span>GitHub</span>
-              )}
+              GitHub
             </a>
           )}
         </div>
