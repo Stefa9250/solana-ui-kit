@@ -27,9 +27,10 @@ export function LandingHeader() {
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
-        <Link
-          href="/"
+      <div className="px-5 py-3.5 sm:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <Link
+            href="/"
           className="rounded font-mono text-[13px] tracking-tight text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
         >
           Solana UI <span className="sk-text-gradient font-semibold">Kit</span>
@@ -66,6 +67,7 @@ export function LandingHeader() {
               GitHub
             </a>
           )}
+        </div>
         </div>
       </div>
     </header>
