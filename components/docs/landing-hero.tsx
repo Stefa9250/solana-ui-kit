@@ -12,6 +12,9 @@ const PHRASES = [
   "for wallet connection",
   "for signing trust",
 ];
+// The longest phrase reserves the line's height so the page never reflows
+// as the text types in and out.
+const LONGEST = PHRASES.reduce((a, b) => (b.length >= a.length ? b : a));
 
 /** Typewriter that cycles PHRASES. */
 function useTypewriter() {
@@ -53,11 +56,21 @@ export function LandingHero() {
             <p className="sk-fade-up font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
               Solana UI Kit · the moments after the click
             </p>
-            <h1 className="sk-fade-up sk-d1 text-balance text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
-              The missing UX layer
-              <br />
-              <span className="sk-text-gradient">{typed}</span>
-              <span aria-hidden className="sk-caret" />
+            <h1 className="sk-fade-up sk-d1 text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
+              <span className="block">The missing UX layer</span>
+              <span className="relative block">
+                {/* SR reads a stable phrase; the animation is decorative. */}
+                <span className="sr-only">for Solana dApps</span>
+                {/* Invisible sizer reserves the line's height (no reflow). */}
+                <span aria-hidden className="invisible">
+                  {LONGEST}
+                </span>
+                {/* Visible typed text overlays the sizer. */}
+                <span aria-hidden className="absolute inset-0">
+                  <span className="sk-text-gradient">{typed}</span>
+                  <span className="sk-caret" />
+                </span>
+              </span>
             </h1>
             <p className="sk-fade-up sk-d2 max-w-lg text-[15px] leading-relaxed text-[#94969c] sm:text-[16px]">
               Copy-paste React components for the seconds most dApps get wrong —
