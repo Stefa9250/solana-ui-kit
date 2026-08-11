@@ -28,21 +28,23 @@ export function LandingHeader() {
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
-        <Link href="/" className="font-mono text-[13px] tracking-tight text-[#f7f7f7]">
-          solana
-          <span className="sk-text-gradient font-semibold">kit</span>
+        <Link
+          href="/"
+          className="rounded font-mono text-[13px] tracking-tight text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+        >
+          Solana UI <span className="sk-text-gradient font-semibold">Kit</span>
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
           <a
             href="#components"
-            className="hidden rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-[#94969c] transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] sm:block"
+            className="hidden rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-[#94969c] outline-none transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 sm:block"
           >
             Components
           </a>
           <Link
             href={`/components/${FIRST}`}
-            className="hidden rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-[#94969c] transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] sm:block"
+            className="hidden rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-[#94969c] outline-none transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 sm:block"
           >
             Docs
           </Link>
@@ -50,7 +52,7 @@ export function LandingHeader() {
             type="button"
             onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))}
             aria-label="Search components"
-            className="flex size-9 items-center justify-center rounded-lg text-[#94969c] transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7]"
+            className="flex size-9 items-center justify-center rounded-lg text-[#94969c] outline-none transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
           >
             <Search className="size-4" />
           </button>
@@ -59,7 +61,7 @@ export function LandingHeader() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-2 font-mono text-[12px] text-[#cecfd2] transition-colors duration-200 hover:border-[#373a41] hover:text-[#f7f7f7]"
+              className="rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-2 font-mono text-[12px] text-[#cecfd2] outline-none transition-colors duration-200 hover:border-[#373a41] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
             >
               GitHub
             </a>

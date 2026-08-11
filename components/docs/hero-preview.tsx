@@ -10,18 +10,21 @@ import {
   TransactionStatus,
   type TransactionStatusState,
 } from "@/components/kit/transaction-status/transaction-status";
+import { useReducedMotion } from "./use-reduced-motion";
 
 const SIGNATURE =
   "2ZE7Rz1DkV5xWqTgH8uJmN4pAeYcF6vKsX9bLd3M7nQaPjS5tUwB1hCiD4fGyRmE8oJx6KpLqNvTaZbWcXdYeUf";
 const TOTAL = 31;
 
 export function HeroPreview() {
+  const reduced = useReducedMotion();
   const [status, setStatus] = useState<TransactionStatusState>("pending");
   const [confirmations, setConfirmations] = useState(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (reduced) return; // no looping animation; a static confirmed state renders
     const timers = timersRef.current;
     const clearAll = () => {
       timers.forEach(clearTimeout);
@@ -61,17 +64,20 @@ export function HeroPreview() {
 
     runCycle();
     return clearAll;
-  }, []);
+  }, [reduced]);
+
+  // Under reduced motion the loop is disabled; show a settled confirmed state.
+  const shownStatus = reduced ? "confirmed" : status;
 
   return (
     <div aria-hidden className="pointer-events-none">
       <TransactionStatus
-        status={status}
+        status={shownStatus}
         signature={SIGNATURE}
-        confirmations={status === "confirming" ? confirmations : undefined}
+        confirmations={shownStatus === "confirming" ? confirmations : undefined}
         totalConfirmations={TOTAL}
         details={{
-          primary: `${status === "confirmed" ? "Sent" : "Sending"} 2.5 SOL`,
+          primary: `${shownStatus === "confirmed" ? "Sent" : "Sending"} 2.5 SOL`,
           secondary: "to wallet.sol",
           meta: "9xQe…F4kM",
         }}

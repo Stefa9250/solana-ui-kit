@@ -4,17 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { registry } from "@/lib/registry";
 import { HeroPreview } from "./hero-preview";
+import { useReducedMotion } from "./use-reduced-motion";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
 const PHRASES = ["for transactions", "for wallets", "for fee clarity", "for signing"];
 
-/** Typewriter that cycles PHRASES. */
-function useTypewriter() {
+/** Typewriter that cycles PHRASES. Renders a static phrase under reduced motion. */
+function useTypewriter(reduced: boolean) {
   const [index, setIndex] = useState(0);
   const [text, setText] = useState("");
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    if (reduced) return; // no timers; a fixed phrase is rendered instead
     const target = PHRASES[index];
     const done = text === target;
     const delay = deleting ? 40 : done ? 2200 : 70;
@@ -31,13 +33,14 @@ function useTypewriter() {
       }
     }, delay);
     return () => clearTimeout(t);
-  }, [text, deleting, index]);
+  }, [text, deleting, index, reduced]);
 
-  return text;
+  return reduced ? PHRASES[0] : text;
 }
 
 export function LandingHero() {
-  const typed = useTypewriter();
+  const reduced = useReducedMotion();
+  const typed = useTypewriter(reduced);
 
   return (
     <section className="relative px-5 pb-16 pt-32 sm:px-8 sm:pb-24 sm:pt-40">
@@ -54,7 +57,9 @@ export function LandingHero() {
                   a single line (nowrap), so the line's height is constant and the
                   typed text never wraps — the page never reflows. */}
               <span className="grid whitespace-nowrap">
-                <span className="sr-only">for transactions</span>
+                <span className="sr-only">
+                  for transactions, wallets, fees, and signing
+                </span>
                 {PHRASES.map((phrase) => (
                   <span
                     key={phrase}

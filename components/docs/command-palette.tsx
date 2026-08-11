@@ -34,6 +34,8 @@ export function CommandPalette() {
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const restoreRef = useRef<HTMLElement | null>(null);
 
   // Global ⌘K / Ctrl+K toggle, and the sidebar trigger event. Opening resets
   // the query and selection so the palette is always fresh. Re-binds on `open`
@@ -59,15 +61,18 @@ export function CommandPalette() {
     };
   }, [open]);
 
-  // Focus the input and lock body scroll while open (no state — DOM only).
+  // Focus the input and lock body scroll while open; restore focus to whatever
+  // opened the palette (the trigger) on close.
   useEffect(() => {
     if (!open) return;
+    restoreRef.current = document.activeElement as HTMLElement | null;
     const t = setTimeout(() => inputRef.current?.focus(), 0);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       clearTimeout(t);
       document.body.style.overflow = prev;
+      restoreRef.current?.focus?.();
     };
   }, [open]);
 
@@ -91,6 +96,24 @@ export function CommandPalette() {
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Tab") {
+      // Trap focus within the panel (input + result rows).
+      const focusables = Array.from(
+        panelRef.current?.querySelectorAll<HTMLElement>("input, button") ?? [],
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const activeEl = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && activeEl === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && activeEl === last) {
+        e.preventDefault();
+        first.focus();
+      }
+      return;
+    }
     if (e.key === "Escape") {
       e.preventDefault();
       setOpen(false);
@@ -128,7 +151,10 @@ export function CommandPalette() {
         onClick={() => setOpen(false)}
         className="sol-cmdk-backdrop absolute inset-0 bg-black/60 backdrop-blur-[3px]"
       />
-      <div className="sol-cmdk-panel relative w-full max-w-[560px] overflow-hidden border border-[#22262f] bg-[#0f1319] shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+      <div
+        ref={panelRef}
+        className="sol-cmdk-panel relative w-full max-w-[560px] overflow-hidden border border-[#22262f] bg-[#0f1319] shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+      >
         <div className="flex items-center gap-3 border-b border-[#22262f] px-4">
           <Search aria-hidden className="size-4 shrink-0 text-[#61656c]" />
           <input

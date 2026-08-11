@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 import { getEntry, registry } from "@/lib/registry";
 import { guidance } from "@/lib/guidance";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_URL_IS_PLACEHOLDER } from "@/lib/site";
 import { CopyButton } from "@/components/docs/copy-button";
 import { DemoHost } from "@/components/docs/demo-host";
 import { InstallTabs } from "@/components/docs/install-tabs";
@@ -252,6 +252,16 @@ export default async function ComponentPage({
                   </a>
                 </div>
                 <InstallTabs url={`${SITE_URL}/r/${entry.slug}.json`} />
+                {SITE_URL_IS_PLACEHOLDER && (
+                  <p className="text-[12px] leading-relaxed text-[#94969c]">
+                    Set{" "}
+                    <code className="font-mono text-[11px] text-[#cecfd2]">
+                      NEXT_PUBLIC_SITE_URL
+                    </code>{" "}
+                    to your deployment origin for a working install command — the
+                    URL above is a local placeholder.
+                  </p>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <p className="text-[13px] text-[#94969c]">
