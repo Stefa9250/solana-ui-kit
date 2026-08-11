@@ -6,12 +6,7 @@ import { registry } from "@/lib/registry";
 import { HeroPreview } from "./hero-preview";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
-const PHRASES = [
-  "for Solana dApps",
-  "for transaction status",
-  "for wallet connection",
-  "for signing trust",
-];
+const PHRASES = ["for transactions", "for wallets", "for fee clarity", "for signing"];
 
 /** Typewriter that cycles PHRASES. */
 function useTypewriter() {
@@ -55,11 +50,11 @@ export function LandingHero() {
             </p>
             <h1 className="sk-fade-up sk-d1 text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
               <span className="block">The missing UX layer</span>
-              {/* Every phrase is stacked invisibly in one grid cell, so the
-                  line always reserves the tallest phrase's height at the current
-                  width — the page never reflows as the text types in and out. */}
-              <span className="grid">
-                <span className="sr-only">for Solana dApps</span>
+              {/* Every phrase is stacked invisibly in one grid cell and kept on
+                  a single line (nowrap), so the line's height is constant and the
+                  typed text never wraps — the page never reflows. */}
+              <span className="grid whitespace-nowrap">
+                <span className="sr-only">for transactions</span>
                 {PHRASES.map((phrase) => (
                   <span
                     key={phrase}
