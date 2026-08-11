@@ -123,13 +123,10 @@ export function LandingHero() {
               </div>
             </div>
 
-            <div className="sk-float absolute -right-3 -top-3 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 font-mono text-[11px] text-emerald-300 backdrop-blur">
+            <div className="absolute -right-3 -top-3 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 font-mono text-[11px] text-emerald-300 backdrop-blur">
               v0.1.0
             </div>
-            <div
-              className="sk-float absolute -bottom-3 -left-3 rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-1.5 font-mono text-[11px] text-[#94969c] backdrop-blur"
-              style={{ animationDelay: "1s" }}
-            >
+            <div className="absolute -bottom-3 -left-3 rounded-lg border border-[#22262f] bg-[#13161b] px-3 py-1.5 font-mono text-[11px] text-[#94969c] backdrop-blur">
               MIT licensed
             </div>
 
