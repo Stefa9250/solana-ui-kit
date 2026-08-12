@@ -12,6 +12,8 @@ import { DemoHost } from "@/components/docs/demo-host";
 import { InstallTabs } from "@/components/docs/install-tabs";
 import { OnThisPage, type RailItem } from "@/components/docs/on-this-page";
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return registry.map((entry) => ({ slug: entry.slug }));
 }

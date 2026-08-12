@@ -13,6 +13,8 @@ import { guidance } from "@/lib/guidance";
  *   /r/<slug>       - same as .json.
  */
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return registry.flatMap((e) => [
     { slug: `${e.slug}.json` },

@@ -220,6 +220,22 @@ This kit deliberately does **not** include:
 There are good projects for all of those. This kit stays focused on the
 universal UX moments every dApp shares.
 
+## Deploying the docs site
+
+The docs site is a standard Next.js app, so it deploys anywhere Next runs
+(Vercel is the zero-config path):
+
+1. Import the repo on Vercel (or run `vercel`). No build config needed - it
+   builds with `next build` and serves static output + edge routes.
+2. Set **`NEXT_PUBLIC_SITE_URL`** to your deployment origin (e.g.
+   `https://your-domain.com`). This is what the `shadcn add` install command,
+   the `/r/<slug>.json` registry endpoints, the `/r/<slug>.md` docs, the "Open
+   in v0" link, and the social/OG image all resolve against. Without it they
+   fall back to a placeholder and won't install anything.
+
+That's it - the component pages and the `/r/*` registry are pre-rendered at
+build time; the GitHub star count refreshes hourly (ISR).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Adding a component is one folder under
