@@ -101,11 +101,13 @@ export default function Home() {
                 your repo — retheme it, fork it, keep it.
               </p>
 
-              <div className="flex max-w-xl items-center gap-3 overflow-x-auto rounded-lg border border-[#22262f] bg-[#0a0c10] px-4 py-3">
-                <code className="whitespace-nowrap font-mono text-[12.5px] text-[#cecfd2]">
-                  {INSTALL_CMD}
-                </code>
-                <span className="ml-auto shrink-0">
+              <div className="flex max-w-xl items-center gap-3 rounded-lg border border-[#22262f] bg-[#0a0c10] px-4 py-3">
+                <div className="min-w-0 flex-1 overflow-x-auto">
+                  <code className="whitespace-nowrap font-mono text-[12.5px] text-[#cecfd2]">
+                    {INSTALL_CMD}
+                  </code>
+                </div>
+                <span className="shrink-0">
                   <CopyButton text={INSTALL_CMD} label="Copy" />
                 </span>
               </div>
