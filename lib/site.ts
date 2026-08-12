@@ -7,10 +7,19 @@ export const GITHUB_URL = "https://github.com/Stefa9250/solana-ui-kit";
  * command and the /r/<slug>.json (registry) and /r/<slug>.md (LLM) endpoints.
  * Set NEXT_PUBLIC_SITE_URL in the deployment environment; the fallback below is
  * a placeholder for local dev only and will NOT install anything until replaced.
+ *
+ * Normalised so an empty, whitespace, protocol-less, or trailing-slash value
+ * can never produce an invalid URL (which would crash `new URL()` at build).
  */
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://solana-ui-kit.vercel.app";
+function normalizeOrigin(raw: string | undefined): string {
+  const trimmed = (raw ?? "").trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+const CONFIGURED_ORIGIN = normalizeOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+
+export const SITE_URL = CONFIGURED_ORIGIN || "https://solana-ui-kit.vercel.app";
 
 /** True while SITE_URL is still the dev placeholder (no real deployment set). */
-export const SITE_URL_IS_PLACEHOLDER = !process.env.NEXT_PUBLIC_SITE_URL;
+export const SITE_URL_IS_PLACEHOLDER = CONFIGURED_ORIGIN === "";
