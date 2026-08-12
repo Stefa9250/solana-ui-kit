@@ -139,7 +139,7 @@ export const registry: RegistryEntry[] = [
     slug: "transaction-review",
     category: "Transactions",
     description:
-      "The screen that decides trust: a plain-language, simulation-driven preview of what a transaction does before signing — net balance changes, fee, and warnings, with a safe / warn / block verdict that makes Reject prominent when it matters.",
+      "The pre-signature trust screen: a plain-language preview of net balance changes, fee, and warnings — with a safe / warn / block verdict that makes Reject prominent when it matters.",
     path: "components/kit/transaction-review/transaction-review.tsx",
     usage: `<TransactionReview
   origin="jup.ag"
@@ -523,7 +523,7 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
-    name: "State Screen",
+    name: "Empty & Error States",
     slug: "state-screen",
     category: "Feedback",
     description:
@@ -607,11 +607,11 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
-    name: "Connect Wallet",
+    name: "Connect Wallet · Dropdown",
     slug: "connect-wallet",
     category: "Connection",
     description:
-      "The full connect flow: a trigger that opens an anchored panel, morphs through wallet list → connecting → optional sign-in-with-Solana → success, then becomes a connected account chip.",
+      "For a navbar Connect button: an anchored panel that morphs through wallet list → connecting → optional sign-in-with-Solana → success, then becomes the account chip.",
     path: "components/kit/connect-wallet/connect-wallet.tsx",
     usage: `<ConnectWallet
   wallets={wallets}
@@ -699,11 +699,11 @@ export const registry: RegistryEntry[] = [
     ],
   },
   {
-    name: "Connect Wallet Modal",
+    name: "Connect Wallet · Modal",
     slug: "connect-wallet-modal",
     category: "Connection",
     description:
-      "Wallet selection, connecting, rejected, and connected states in one accessible modal. Detected wallets first, install links for the rest.",
+      "For triggering connect from anywhere: a centered, focus-trapped modal — wallet selection, connecting, rejected, connected. Detected wallets first, install links for the rest.",
     path: "components/kit/connect-wallet-modal/connect-wallet-modal.tsx",
     usage: `<ConnectWalletModal
   open={open}

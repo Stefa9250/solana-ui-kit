@@ -1,12 +1,34 @@
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 import { registry } from "@/lib/registry";
-import { GITHUB_URL } from "@/lib/site";
+import { GITHUB_URL, SITE_URL } from "@/lib/site";
+import { CopyButton } from "@/components/docs/copy-button";
 import { LandingHeader } from "@/components/docs/landing-header";
 import { LandingHero } from "@/components/docs/landing-hero";
 import { ComponentsShowcase } from "@/components/docs/components-showcase";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
+const INSTALL_CMD = `npx shadcn@latest add ${SITE_URL}/r/transaction-review.json`;
+
+// Real component behaviours, surfaced as proof of rigor (see lib/registry notes).
+const PROOF = [
+  {
+    title: "MAX reserves rent",
+    body: "MAX leaves enough SOL for rent and fees instead of emptying the wallet.",
+  },
+  {
+    title: "Amounts stay exact",
+    body: "Token values keep full precision — no bits lost above 2^53, ever.",
+  },
+  {
+    title: "Poisoning is flagged",
+    body: "Look-alike addresses seeded by address-poisoning scams are surfaced, not trusted.",
+  },
+  {
+    title: "Safe by default",
+    body: "A high-risk transaction makes Reject prominent and gates “Sign anyway” behind a check.",
+  },
+];
 
 export default function Home() {
   return (
@@ -14,7 +36,55 @@ export default function Home() {
       <div className="relative z-10">
         <LandingHeader />
         <LandingHero />
+
+        {/* The wedge: what wallet kits leave you to build. */}
+        <section className="px-5 sm:px-8">
+          <div className="mx-auto max-w-6xl border-y border-[#22262f]/60 py-8">
+            <p className="max-w-3xl text-[15px] leading-relaxed text-[#cecfd2] sm:text-[16px]">
+              <span className="font-medium text-[#f7f7f7]">
+                Wallet kits get you connected.
+              </span>{" "}
+              Then you&apos;re on your own — building transaction status, signing
+              previews, fee explainers, and error states from scratch. This is
+              that layer.
+            </p>
+          </div>
+        </section>
+
         <ComponentsShowcase />
+
+        {/* Proof of rigor — the defaults are the selling point. */}
+        <section className="px-5 py-16 sm:px-8 sm:py-20">
+          <div className="mx-auto flex max-w-6xl flex-col gap-8">
+            <div className="flex flex-col gap-3">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
+                Built at the edges
+              </p>
+              <h2 className="text-[26px] font-semibold tracking-[-0.015em] text-[#f7f7f7] sm:text-[32px]">
+                The defaults are the point.
+              </h2>
+              <p className="max-w-lg text-[14px] leading-relaxed text-[#94969c]">
+                The details that quietly protect users — the ones you&apos;d only
+                learn by shipping and getting burned.
+              </p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {PROOF.map((p) => (
+                <div
+                  key={p.title}
+                  className="flex flex-col gap-2 border-l-2 border-emerald-500/40 pl-4"
+                >
+                  <div className="text-[14px] font-semibold text-[#f7f7f7]">
+                    {p.title}
+                  </div>
+                  <div className="text-[13px] leading-relaxed text-[#94969c]">
+                    {p.body}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         <footer className="border-t border-[#22262f]/50 px-5 py-20 sm:px-8 sm:py-28">
           <div className="mx-auto flex max-w-6xl flex-col gap-12">
@@ -30,6 +100,16 @@ export default function Home() {
                 Copy a file, or pull it with the shadcn CLI. Either way it lives in
                 your repo — retheme it, fork it, keep it.
               </p>
+
+              <div className="flex max-w-xl items-center gap-3 overflow-x-auto rounded-lg border border-[#22262f] bg-[#0a0c10] px-4 py-3">
+                <code className="whitespace-nowrap font-mono text-[12.5px] text-[#cecfd2]">
+                  {INSTALL_CMD}
+                </code>
+                <span className="ml-auto shrink-0">
+                  <CopyButton text={INSTALL_CMD} label="Copy" />
+                </span>
+              </div>
+
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
                   href={`/components/${FIRST}`}

@@ -1,11 +1,11 @@
 # Solana UI Kit
 
-**The missing UX layer for Solana dApps.**
-
 Most Solana dApps get the hard part right — the program, the RPC plumbing, the
-wallet adapter — and then show users a spinner and a raw error code. This kit
-covers the moments *after the click*: transaction status, wallet connection,
-and the other high-anxiety seconds where trust is won or lost.
+wallet adapter — and then show users a spinner and a raw error code.
+
+**The missing UX layer for Solana dApps** — copy-paste React components for the
+moments *after the click*: transaction status, signing review, wallet
+connection, fees, and the other high-anxiety seconds where trust is won or lost.
 
 - **Copy-paste, not a package.** Like shadcn/ui: you copy a component file into
   your project and own the code. No npm install, no versioning treadmill, no

@@ -26,9 +26,13 @@ export function ComponentsShowcase() {
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
               The kit
             </p>
-            <h2 className="text-[30px] font-semibold tracking-[-0.015em] text-[#f7f7f7] sm:text-[38px]">
-              Every component
+            <h2 className="text-balance text-[28px] font-semibold tracking-[-0.015em] text-[#f7f7f7] sm:text-[36px]">
+              Eight components. The whole post-click flow.
             </h2>
+            <p className="max-w-md text-[14px] leading-relaxed text-[#94969c]">
+              Grouped by the moment they cover — transactions, inputs, connection,
+              feedback.
+            </p>
           </div>
           <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
             {CATEGORIES.map((c) => (

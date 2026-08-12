@@ -1,47 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { registry } from "@/lib/registry";
+import { GITHUB_URL } from "@/lib/site";
 import { HeroPreview } from "./hero-preview";
-import { useReducedMotion } from "./use-reduced-motion";
-
-const FIRST = registry[0]?.slug ?? "transaction-status";
-const PHRASES = ["for transactions", "for wallets", "for fees", "for signing"];
-
-/** Typewriter that cycles PHRASES. Renders a static phrase under reduced motion. */
-function useTypewriter(reduced: boolean) {
-  const [index, setIndex] = useState(0);
-  const [text, setText] = useState("");
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    if (reduced) return; // no timers; a fixed phrase is rendered instead
-    const target = PHRASES[index];
-    const done = text === target;
-    const delay = deleting ? 40 : done ? 2200 : 70;
-    const t = setTimeout(() => {
-      if (!deleting && !done) {
-        setText(target.slice(0, text.length + 1));
-      } else if (!deleting && done) {
-        setDeleting(true);
-      } else if (deleting && text.length > 0) {
-        setText(target.slice(0, text.length - 1));
-      } else {
-        setDeleting(false);
-        setIndex((i) => (i + 1) % PHRASES.length);
-      }
-    }, delay);
-    return () => clearTimeout(t);
-  }, [text, deleting, index, reduced]);
-
-  return reduced ? PHRASES[0] : text;
-}
 
 export function LandingHero() {
-  const reduced = useReducedMotion();
-  const typed = useTypewriter(reduced);
-
   return (
     <section className="relative px-5 pb-16 pt-32 sm:px-8 sm:pb-24 sm:pt-40">
       <div className="mx-auto max-w-6xl">
@@ -51,42 +14,22 @@ export function LandingHero() {
             <p className="sk-fade-up font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
               Solana UI Kit · the moments after the click
             </p>
-            <h1 className="sk-fade-up sk-d1 text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
-              <span className="block">The missing UX layer</span>
-              {/* Every phrase is stacked invisibly in one grid cell and kept on
-                  a single line (nowrap), so the line's height is constant and the
-                  typed text never wraps — the page never reflows. */}
-              <span className="grid whitespace-nowrap">
-                <span className="sr-only">
-                  for transactions, wallets, fees, and signing
-                </span>
-                {PHRASES.map((phrase) => (
-                  <span
-                    key={phrase}
-                    aria-hidden
-                    className="invisible col-start-1 row-start-1"
-                  >
-                    {phrase}
-                  </span>
-                ))}
-                <span aria-hidden className="col-start-1 row-start-1">
-                  <span className="sk-text-gradient">{typed}</span>
-                  <span className="sk-caret" />
-                </span>
-              </span>
+            <h1 className="sk-fade-up sk-d1 text-balance text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
+              Win the seconds after they click{" "}
+              <span className="sk-text-gradient">Sign.</span>
             </h1>
             <p className="sk-fade-up sk-d2 max-w-lg text-[15px] leading-relaxed text-[#94969c] sm:text-[16px]">
-              Copy-paste React components for the seconds most dApps get wrong —
-              transaction status, wallet connection, fee clarity, signing trust.
-              Dark-mode first, accessible, animated. No package, no build step.
-              Copy the file, own the code.
+              Copy-paste React components for the moments every Solana dApp gets
+              wrong — transaction status, signing review, wallet connect, fee
+              clarity, error states. Dark-mode first, accessible, animated. No
+              package. Copy the file, own the code.
             </p>
             <div className="sk-fade-up sk-d3 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="#components"
+              <Link
+                href="/components/transaction-review"
                 className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-lg border border-emerald-500 bg-emerald-500/10 px-6 py-3.5 font-mono text-[13px] text-emerald-300 transition-colors duration-500 hover:text-[#06110d] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 active:scale-[0.98]"
               >
-                <span className="relative z-10">explore components</span>
+                <span className="relative z-10">copy your first component</span>
                 <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
                   →
                 </span>
@@ -94,21 +37,27 @@ export function LandingHero() {
                   aria-hidden
                   className="absolute inset-0 -translate-x-full bg-emerald-400 transition-transform duration-500 group-hover:translate-x-0"
                 />
-              </a>
-              <Link
-                href={`/components/${FIRST}`}
-                className="group inline-flex items-center justify-center gap-2.5 rounded-lg border border-[#22262f] px-6 py-3.5 font-mono text-[13px] text-[#94969c] transition-colors duration-300 hover:border-[#373a41] hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 active:scale-[0.98]"
-              >
-                <span>read the docs</span>
-                <span className="-translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                  →
-                </span>
               </Link>
+              {GITHUB_URL && (
+                <a
+                  href={GITHUB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center justify-center gap-2.5 rounded-lg border border-[#22262f] px-6 py-3.5 font-mono text-[13px] text-[#94969c] transition-colors duration-300 hover:border-[#373a41] hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 active:scale-[0.98]"
+                >
+                  <span>star on GitHub</span>
+                  <span className="-translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+                    ↗
+                  </span>
+                </a>
+              )}
             </div>
             <div className="sk-fade-up sk-d4 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-[#94969c]">
+              <span>MIT</span>
+              <span aria-hidden>·</span>
               <span>React + Tailwind + lucide-react</span>
               <span aria-hidden>·</span>
-              <span>MIT</span>
+              <span>nothing to install</span>
             </div>
           </div>
 
@@ -129,7 +78,7 @@ export function LandingHero() {
             </div>
 
             <div className="absolute -right-3 -top-3 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 font-mono text-[11px] text-emerald-300 backdrop-blur">
-              v0.1.0
+              you own the code
             </div>
 
             <div
