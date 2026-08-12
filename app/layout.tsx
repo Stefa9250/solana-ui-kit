@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
 import { CommandPalette } from "@/components/docs/command-palette";
 
 const geistSans = Geist({
@@ -13,10 +14,43 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const TITLE = "Solana UI Kit — the missing UX layer for Solana dApps";
+const DESCRIPTION =
+  "Copy-paste React components for the moments after the click: transaction status, signing review, wallet connect, fees, and error states. Dark-mode first, accessible, MIT.";
+
 export const metadata: Metadata = {
-  title: "Solana UI Kit — the missing UX layer for Solana dApps",
-  description:
-    "Copy-paste React components for the moments Solana dApps get wrong: transaction status, wallet connection, and more. Dark-mode first, accessible, animated.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: TITLE,
+    template: "%s · Solana UI Kit",
+  },
+  description: DESCRIPTION,
+  keywords: [
+    "solana",
+    "solana ui kit",
+    "web3 components",
+    "react",
+    "shadcn",
+    "wallet adapter",
+    "connect wallet",
+    "transaction status",
+    "sign in with solana",
+    "dApp UX",
+    "copy-paste components",
+  ],
+  applicationName: "Solana UI Kit",
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Solana UI Kit",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 // viewportFit: "cover" lets components pad against env(safe-area-inset-*) so

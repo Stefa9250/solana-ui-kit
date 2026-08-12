@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
@@ -13,6 +14,23 @@ import { OnThisPage, type RailItem } from "@/components/docs/on-this-page";
 
 export function generateStaticParams() {
   return registry.map((entry) => ({ slug: entry.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const entry = getEntry(slug);
+  if (!entry) return {};
+  const title = `${entry.name} · Solana UI Kit`;
+  return {
+    title: entry.name, // the root template appends "· Solana UI Kit"
+    description: entry.description,
+    openGraph: { title, description: entry.description },
+    twitter: { title, description: entry.description },
+  };
 }
 
 export default async function ComponentPage({
