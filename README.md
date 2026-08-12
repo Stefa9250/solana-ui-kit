@@ -1,9 +1,9 @@
 # Solana UI Kit
 
-Most Solana dApps get the hard part right — the program, the RPC plumbing, the
-wallet adapter — and then show users a spinner and a raw error code.
+Most Solana dApps get the hard part right - the program, the RPC plumbing, the
+wallet adapter - and then show users a spinner and a raw error code.
 
-**The missing UX layer for Solana dApps** — copy-paste React components for the
+**The missing UX layer for Solana dApps** - copy-paste React components for the
 moments *after the click*: transaction status, signing review, wallet
 connection, fees, and the other high-anxiety seconds where trust is won or lost.
 
@@ -15,7 +15,7 @@ connection, fees, and the other high-anxiety seconds where trust is won or lost.
   navigation, `prefers-reduced-motion` respected.
 - **Calm, purposeful motion.** 200–400ms transitions that explain state, not
   decorate it.
-- **Human-readable errors.** `0x1771` becomes "Price moved too much." — the raw
+- **Human-readable errors.** `0x1771` becomes "Price moved too much." - the raw
   error stays one click away under technical details.
 
 ## Install
@@ -23,7 +23,7 @@ connection, fees, and the other high-anxiety seconds where trust is won or lost.
 There is nothing to install. Each component is a single self-contained file.
 
 1. Make sure your project has **React 18+**, **Tailwind CSS**, and
-   **lucide-react** — the only dependencies any component uses:
+   **lucide-react** - the only dependencies any component uses:
 
    ```bash
    npm install lucide-react
@@ -48,8 +48,8 @@ There is nothing to install. Each component is a single self-contained file.
 | [Transaction Review](components/kit/transaction-review/transaction-review.tsx) | The pre-signature trust screen: a plain-language preview of net balance changes, fee, and warnings, with a safe/warn/block verdict that makes Reject prominent when a transaction is dangerous. |
 | [Token Amount Input](components/kit/token-amount-input/token-amount-input.tsx) | Exact per-token decimals, thousands separators as you type, USD ⇄ token toggle, MAX that reserves rent, and a calm insufficient-balance correction. |
 | [Address Display](components/kit/address-display/address-display.tsx) | Middle-truncated address with a deterministic avatar, full-address copy, and a program/token affordance so nobody sends funds into a program by mistake. Inline chip and card variants. |
-| [State Screen](components/kit/state-screen/state-screen.tsx) | The empty and error screens nobody designs — RPC down, no tokens, network congested, not connected. One calm layout, restrained tones, presets with copy written. |
-| [Fee Explainer](components/kit/fee-explainer/fee-explainer.tsx) | Priority fees in plain language — "~$0.002 · confirms in ~2s". Breakdown on demand, Normal/Fast/Turbo selector, calm congestion notice, and an honest fallback when the estimate is missing. |
+| [State Screen](components/kit/state-screen/state-screen.tsx) | The empty and error screens nobody designs - RPC down, no tokens, network congested, not connected. One calm layout, restrained tones, presets with copy written. |
+| [Fee Explainer](components/kit/fee-explainer/fee-explainer.tsx) | Priority fees in plain language - "~$0.002 · confirms in ~2s". Breakdown on demand, Normal/Fast/Turbo selector, calm congestion notice, and an honest fallback when the estimate is missing. |
 | [Connect Wallet](components/kit/connect-wallet/connect-wallet.tsx) | The full connect flow: trigger button → anchored panel morphing through wallet list, connecting, optional sign-in-with-Solana, success → connected account chip. |
 | [Connect Wallet Modal](components/kit/connect-wallet-modal/connect-wallet-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, calm rejection, auto-dismiss. Focus-trapped and keyboard-friendly. |
 
@@ -61,7 +61,7 @@ component file itself.
 ## Wiring up real data
 
 **Transaction status.** `signatureSubscribe` fires once at a target
-commitment — it can't drive the `confirmations` count. Poll
+commitment - it can't drive the `confirmations` count. Poll
 `getSignatureStatuses` instead (`confirmations: null` means finalized):
 
 ```tsx
@@ -69,10 +69,10 @@ useEffect(() => {
   if (!signature) return;
   const id = setInterval(async () => {
     const { value: [s] } = await connection.getSignatureStatuses([signature]);
-    if (!s) return; // not seen yet — still pending
+    if (!s) return; // not seen yet - still pending
     if (s.err) {
       setStatus("failed");
-      setError(s.err); // objects are fine — the component normalizes them
+      setError(s.err); // objects are fine - the component normalizes them
     } else if (s.confirmations === null) {
       setStatus("confirmed"); // finalized
     } else {
@@ -84,11 +84,11 @@ useEffect(() => {
 }, [signature]);
 ```
 
-**Transaction review.** Map a `simulateTransaction` result into `assets` —
+**Transaction review.** Map a `simulateTransaction` result into `assets` -
 and mind the cases a naive balance-diff misses:
 
 ```tsx
-// SPL token deltas — pass RAW base units + decimals; the component converts.
+// SPL token deltas - pass RAW base units + decimals; the component converts.
 const assets = tokenDeltas.map((d) => ({
   symbol: d.symbol,
   direction: d.delta > 0n ? "in" : "out",
@@ -97,19 +97,19 @@ const assets = tokenDeltas.map((d) => ({
   usd: d.usd,
 }));
 
-// Native SOL is NOT a token account — its delta is in pre/postBalances, and
+// Native SOL is NOT a token account - its delta is in pre/postBalances, and
 // the fee is already inside the payer's lamport delta, so subtract it out.
-// Approvals move zero balance — parse instructions, pass them as `approvals`
+// Approvals move zero balance - parse instructions, pass them as `approvals`
 // (omit amount for unlimited). setAuthority/closeAccount are warnings, not
 // deltas. Token-2022 transfer fees mean received != sent.
 
 const warnings = await scanner.scan(tx); // Blowfish, or your heuristics
 ```
 
-A failed simulation should pass `simulationFailed` — never block the user on
+A failed simulation should pass `simulationFailed` - never block the user on
 a missing preview.
 
-**Connect wallet.** Map `useWallet()` onto `WalletOption[]` — icons come for
+**Connect wallet.** Map `useWallet()` onto `WalletOption[]` - icons come for
 free from the adapter:
 
 ```tsx
@@ -125,7 +125,7 @@ const options = wallets.map((w) => ({
   installUrl: w.adapter.url,
 }));
 // onSelectWallet: select(w.id); await connect();
-// then read publicKey.toBase58() — connect() itself returns void.
+// then read publicKey.toBase58() - connect() itself returns void.
 ```
 
 **Mobile.** The connect components adapt to phones without extra work:
@@ -133,11 +133,11 @@ const options = wallets.map((w) => ({
 - **Inside a wallet's in-app browser** (Phantom, Solflare, Backpack…) the
   wallet injects its provider, so it maps to `detected: true` and connects the
   same way it does on desktop.
-- **Android** — register
+- **Android** - register
   [`@solana-mobile/wallet-adapter-mobile`](https://github.com/solana-mobile/mobile-wallet-adapter);
   it appears in `wallets` as a detected "Mobile Wallet Adapter" entry, and
   picking it launches the native MWA flow. No component change needed.
-- **iOS / any mobile browser** — an *undetected* wallet with a known deeplink
+- **iOS / any mobile browser** - an *undetected* wallet with a known deeplink
   (Phantom and Solflare are built in) shows **"Open ↗"** instead of a dead-end
   install link; tapping it opens your dApp inside that wallet's in-app browser,
   where the injected provider takes over and the normal flow completes. For
@@ -174,7 +174,7 @@ config. To retheme, define `--sk-*` variables on any ancestor:
 ## Patterns
 
 **Program-specific errors.** Anchor custom errors (`0x1770 + N`) mean
-different things per program — pass your program's rules via `errorMap` and
+different things per program - pass your program's rules via `errorMap` and
 they're matched before the built-in defaults:
 
 ```tsx
@@ -205,7 +205,7 @@ For a queue, render a list keyed by signature:
 
 **Commitment levels.** `confirmations` counting to 31 tracks finality, but
 most dApps treat the `confirmed` commitment (~1–2s) as success. If that's
-you, jump straight to `status="confirmed"` — or omit `confirmations` while
+you, jump straight to `status="confirmed"` - or omit `confirmations` while
 confirming for a calm indeterminate bar.
 
 ## Out of scope

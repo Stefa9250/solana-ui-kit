@@ -30,7 +30,7 @@ export function ComponentsShowcase() {
               Eight components. The whole post-click flow.
             </h2>
             <p className="max-w-md text-[14px] leading-relaxed text-[#94969c]">
-              Grouped by the moment they cover — transactions, inputs, connection,
+              Grouped by the moment they cover - transactions, inputs, connection,
               feedback.
             </p>
           </div>

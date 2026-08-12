@@ -3,7 +3,7 @@
 /**
  * Docs demo for TransactionReview. Buttons pick a scenario, which "simulates"
  * through the mock (skeleton for ~900ms) and then shows the review; Sign runs
- * a brief signing state. The "Malicious" scenario shows the block verdict —
+ * a brief signing state. The "Malicious" scenario shows the block verdict -
  * note Reject becomes the prominent action.
  * Not part of the copy-paste component.
  */
@@ -29,7 +29,7 @@ type ScenarioKey = (typeof SCENARIOS)[number]["key"];
 export default function TransactionReviewDemo() {
   const [scenario, setScenario] = useState<ScenarioKey>("swap");
   // Keyed by the scenario it was fetched for, so a stale result can't show
-  // against a newly selected one — and only the async callback sets state.
+  // against a newly selected one - and only the async callback sets state.
   const [sim, setSim] = useState<{ key: ScenarioKey; data: SimulationScenario } | null>(
     null,
   );

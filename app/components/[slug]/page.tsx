@@ -46,7 +46,7 @@ export default async function ComponentPage({
   try {
     source = await fs.readFile(path.join(process.cwd(), entry.path), "utf-8");
   } catch {
-    source = null; // Component not implemented yet — show a placeholder.
+    source = null; // Component not implemented yet - show a placeholder.
   }
 
   const g = guidance[slug] ?? {};
@@ -177,7 +177,7 @@ export default async function ComponentPage({
                       {prop.type}
                     </td>
                     <td className="px-4 py-3 font-mono text-[12px] text-[#61656c] whitespace-nowrap">
-                      {prop.default ?? "—"}
+                      {prop.default ?? "-"}
                     </td>
                     <td className="px-4 py-3 text-[#94969c] leading-relaxed min-w-[200px]">
                       {prop.description}
@@ -278,7 +278,7 @@ export default async function ComponentPage({
                     <code className="font-mono text-[11px] text-[#cecfd2]">
                       NEXT_PUBLIC_SITE_URL
                     </code>{" "}
-                    to your deployment origin for a working install command — the
+                    to your deployment origin for a working install command - the
                     URL above is a local placeholder.
                   </p>
                 )}

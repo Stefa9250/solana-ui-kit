@@ -1,9 +1,9 @@
 /**
- * Mock token market — stands in for an RPC + price feed so the demo works
+ * Mock token market - stands in for an RPC + price feed so the demo works
  * standalone. The input only needs a token, a balance, and a price; swap the
  * internals below and the UI doesn't change.
  *
- * Real integration sketch (inside a React component — hooks can't be called
+ * Real integration sketch (inside a React component - hooks can't be called
  * from the plain functions below):
  *
  *   // Balance: native SOL vs SPL differ.
@@ -13,10 +13,10 @@
  *   const { value } = await connection.getTokenAccountBalance(ata);
  *   const amount = Number(value.amount) / 10 ** value.decimals;
  *
- *   // Price: any feed works — Pyth, Jupiter, Birdeye, CoinGecko.
+ *   // Price: any feed works - Pyth, Jupiter, Birdeye, CoinGecko.
  *   const res = await fetch(`https://price.jup.ag/v6/price?ids=${symbol}`);
  *
- * Decimals below are the real on-chain values — SOL 9, USDC 6, BONK 5.
+ * Decimals below are the real on-chain values - SOL 9, USDC 6, BONK 5.
  */
 
 import type { TokenInfo } from "./token-amount-input";
@@ -27,8 +27,8 @@ export const MOCK_TOKENS: TokenInfo[] = [
     symbol: "SOL",
     icon: TOKEN_LOGOS.sol,
     name: "Solana",
-    // Symbols are not unique on Solana — duplicate-symbol scam tokens are
-    // routine — so lists key on the mint.
+    // Symbols are not unique on Solana - duplicate-symbol scam tokens are
+    // routine - so lists key on the mint.
     mint: "So11111111111111111111111111111111111111112",
     decimals: 9,
     color: "#14f195",
@@ -58,7 +58,7 @@ export const MOCK_TOKENS: TokenInfo[] = [
 
 /**
  * Deliberately awkward numbers: a large balance and a sub-cent price.
- * Strings, not numbers — a JS number loses bits above 2^53 raw units
+ * Strings, not numbers - a JS number loses bits above 2^53 raw units
  * (~9B USDC, ~9M SOL), and the component's exact path accepts strings.
  */
 export const MOCK_BALANCES: Record<string, string> = {
@@ -73,7 +73,7 @@ export const MOCK_PRICES: Record<string, string> = {
   BONK: "0.00002417",
 };
 
-/** A balance smaller than the fee reserve — MAX must not offer anything. */
+/** A balance smaller than the fee reserve - MAX must not offer anything. */
 export const DUST_SOL_BALANCE = "0.004";
 
 export interface TokenMarket {

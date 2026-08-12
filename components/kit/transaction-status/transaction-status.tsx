@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * TransactionStatus — Solana UI Kit
+ * TransactionStatus - Solana UI Kit
  *
  * Every state of a Solana transaction with human-readable errors and calm,
  * purposeful motion. Self-contained: copy this file into your project.
@@ -23,7 +23,7 @@
  * Note on confirmations: `getSignatureStatuses` counts up to ~31 slots
  * (finality), but most dApps treat the "confirmed" commitment (~1–2s) as
  * success. If that's you, jump straight to status="confirmed" and skip the
- * count — or omit `confirmations` for a calm indeterminate bar.
+ * count - or omit `confirmations` for a calm indeterminate bar.
  */
 
 import {
@@ -43,7 +43,7 @@ export interface TransactionStatusErrorRule {
 
 /**
  * Program-agnostic defaults only. Anchor custom errors (0x1770 + N) mean
- * different things per program — pass your program's own rules via the
+ * different things per program - pass your program's own rules via the
  * `errorMap` prop, e.g. for a Jupiter swap:
  *   { test: /0x1771/i, text: "Price moved too much. Try again or increase slippage." }
  * Post-send failures report codes in decimal ({"Custom":6001}); the component
@@ -72,7 +72,7 @@ const DEFAULT_ERROR_MAP: TransactionStatusErrorRule[] = [
   },
   {
     test: /was not confirmed in \d+/i,
-    text: "Confirmation timed out — it may still have landed. Check the explorer before retrying.",
+    text: "Confirmation timed out - it may still have landed. Check the explorer before retrying.",
   },
   {
     test: /user rejected|rejected the request|user cancelled|user declined/i,
@@ -117,7 +117,7 @@ function friendlyError(
 ): { text: string; raw: string } {
   const normalized = normalizeError(raw);
   if (!normalized) return { text: "Something went wrong on-chain.", raw: "" };
-  // RPC simulation wraps the real error — strip the prefix before matching.
+  // RPC simulation wraps the real error - strip the prefix before matching.
   const matchable = normalized.replace(
     /^.*transaction simulation failed:\s*/i,
     "",
@@ -137,7 +137,7 @@ function defaultExplorerUrl(signature: string, cluster: SolanaCluster): string {
   return `https://solscan.io/tx/${signature}${suffix}`;
 }
 
-/** "View on Solscan" would lie when explorerUrl is overridden — derive it. */
+/** "View on Solscan" would lie when explorerUrl is overridden - derive it. */
 function explorerLabel(href: string): string {
   try {
     const host = new URL(href).hostname.replace(/^www\./, "");
@@ -197,16 +197,16 @@ export interface TransactionStatusDetails {
 
 export interface TransactionStatusProps {
   status: TransactionStatusState;
-  /** Transaction signature — powers the explorer link and short display. */
+  /** Transaction signature - powers the explorer link and short display. */
   signature?: string;
   /**
-   * Raw RPC / wallet error — a string or the error object itself (e.g. the
+   * Raw RPC / wallet error - a string or the error object itself (e.g. the
    * `err` from getSignatureStatuses). Mapped to plain language automatically.
    */
   error?: string | object;
   /**
    * Your program's error rules, matched before the built-in defaults.
-   * Anchor custom errors (0x1770 + N) are program-specific — map them here.
+   * Anchor custom errors (0x1770 + N) are program-specific - map them here.
    */
   errorMap?: TransactionStatusErrorRule[];
   /** Confirmations so far. Omit while confirming for an indeterminate bar. */
@@ -365,7 +365,7 @@ export function TransactionStatus({
   useKitStyles(STYLE_ID, KEYFRAMES);
 
   // Reset the collapsible + progress when a new attempt starts
-  // (render-phase adjustment — https://react.dev/learn/you-might-not-need-an-effect).
+  // (render-phase adjustment - https://react.dev/learn/you-might-not-need-an-effect).
   // The bar also resets on any entry into confirming so a failed→confirming
   // retry never starts from the previous attempt's stale percentage.
   if (prevStatus !== status) {
@@ -474,7 +474,7 @@ export function TransactionStatus({
   const atTarget =
     confirmations !== undefined && confirmations >= totalConfirmations;
 
-  // Milestone announcements only — announcing every confirmation update
+  // Milestone announcements only - announcing every confirmation update
   // would flood screen readers.
   const liveAnnouncement =
     status === "pending"
@@ -552,7 +552,7 @@ export function TransactionStatus({
     );
 
   // Content for a given state. `interactive` is true only for the incoming
-  // layer — the outgoing (fading) layer is inert (no refs, no shake replay).
+  // layer - the outgoing (fading) layer is inert (no refs, no shake replay).
   const renderContent = (s: TransactionStatusState, interactive: boolean) => (
     <div className={interactive && s === "failed" ? "sol-txs-shake" : undefined}>
       {s === "pending" && (

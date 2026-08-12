@@ -20,7 +20,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard unavailable (permissions / insecure context) — leave state as-is.
+      // Clipboard unavailable (permissions / insecure context) - leave state as-is.
     }
   };
 

@@ -62,7 +62,7 @@ export default function FeeExplainerDemo() {
     };
   }, [speed, congested, createsAta]);
 
-  // Null the moment the inputs change — which is what makes `loading` honest.
+  // Null the moment the inputs change - which is what makes `loading` honest.
   const fresh = market?.key === key ? market.est : null;
   const loading = forcedLoading || fresh === null;
   const showEstimate = !unavailable && fresh !== null;
@@ -72,7 +72,7 @@ export default function FeeExplainerDemo() {
     return {
       speed: s,
       label: SPEED_LABELS[s],
-      // Under "unavailable" the tiers can't be quoted either — only timing.
+      // Under "unavailable" the tiers can't be quoted either - only timing.
       feeUsd: unavailable ? undefined : e.feeUsd,
       confirmTime: e.confirmTime,
     };

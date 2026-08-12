@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * FeeExplainer — Solana UI Kit
+ * FeeExplainer - Solana UI Kit
  *
  * Translates Solana fees into plain language: cost in USD and time in
  * seconds. Lamports and micro-lamports never reach the screen. USD is
@@ -10,7 +10,7 @@
  * Two rules this component holds to, because it is a money surface:
  *   1. Costs round UP. Never show a price lower than what the runtime debits.
  *   2. Nothing unknown is ever rendered as a number. A missing or malformed
- *      figure shows "—" or the unavailable fallback — never "$0.00", which
+ *      figure shows "-" or the unavailable fallback - never "$0.00", which
  *      is a claim that is never true of a Solana transaction.
  *
  * A missing estimate never blocks the user.
@@ -48,19 +48,19 @@ import {
 
 export type FeeSpeed = "normal" | "fast" | "turbo";
 
-/** Seconds. A tuple renders as a range — never invent precision we lack. */
+/** Seconds. A tuple renders as a range - never invent precision we lack. */
 export type ConfirmTime = number | [number, number];
 
 export interface FeeSpeedOption {
   speed: FeeSpeed;
   label: string;
-  /** Omit when there's no estimate — the tier still shows its time. */
+  /** Omit when there's no estimate - the tier still shows its time. */
   feeUsd?: number;
   confirmTime: ConfirmTime;
 }
 
 /**
- * A cost the user pays that isn't the network fee — account rent, a bundle
+ * A cost the user pays that isn't the network fee - account rent, a bundle
  * tip. Creating an associated token account costs ~0.00204 SOL, which dwarfs
  * the fee itself, so leaving these out understates a first-time transfer by
  * orders of magnitude.
@@ -76,7 +76,7 @@ export interface FeeExtraCost {
 export interface FeeExplainerProps {
   /** Total cost in USD. Omit (or pass a non-finite value) for the fallback. */
   feeUsd?: number;
-  /** The same total in SOL — the secondary reference. */
+  /** The same total in SOL - the secondary reference. */
   feeSol?: number;
   confirmTime?: ConfirmTime;
   /** Breakdown; with both parts finite, the disclosure appears. */
@@ -94,9 +94,9 @@ export interface FeeExplainerProps {
    * in the breakdown.
    */
   extraCosts?: FeeExtraCost[];
-  /** Network is busy — raises a calm notice, never an alarm. */
+  /** Network is busy - raises a calm notice, never an alarm. */
   congested?: boolean;
-  /** Estimating — shimmers the fee line. */
+  /** Estimating - shimmers the fee line. */
   loading?: boolean;
   /** Row label. Defaults to "Network fee". */
   label?: string;
@@ -118,7 +118,7 @@ function finite(v: number | undefined): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
-/** Costs round up — the runtime does not round in the user's favour. */
+/** Costs round up - the runtime does not round in the user's favour. */
 function ceilTo(v: number, dp: number): number {
   const f = 10 ** dp;
   // Nudge to absorb binary representation error before ceiling.
@@ -129,7 +129,7 @@ function usdAt(v: number, dp: number): string {
   return `$${ceilTo(v, dp).toFixed(dp)}`;
 }
 
-/** Headline formatting — coarse and scannable. */
+/** Headline formatting - coarse and scannable. */
 function formatUsd(v: number | null): string | null {
   if (v === null) return null;
   if (v <= 0) return null;
@@ -156,7 +156,7 @@ function costPrecision(total: number | null): number {
   return 4;
 }
 
-/** Trimmed, never exponential — 0.000005 not 5e-6. */
+/** Trimmed, never exponential - 0.000005 not 5e-6. */
 function formatSol(v: number | null): string | null {
   if (v === null || v <= 0) return null;
   const s = v.toFixed(9).replace(/0+$/, "").replace(/\.$/, "");
@@ -190,7 +190,7 @@ function useKitStyles(id: string, css: string) {
 }
 
 const STYLE_ID = "sol-fee-styles";
-// prefers-reduced-motion is handled entirely in CSS — no matchMedia hook, so
+// prefers-reduced-motion is handled entirely in CSS - no matchMedia hook, so
 // there's no per-render evaluation and no hydration double-render.
 const KEYFRAMES = `
 @keyframes sol-fee-tick { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -233,7 +233,7 @@ export function FeeExplainer({
   useKitStyles(STYLE_ID, KEYFRAMES);
 
   // Fully controlled only when a handler comes with the prop. Passing `open`
-  // alone still works — it seeds the state instead of freezing the trigger.
+  // alone still works - it seeds the state instead of freezing the trigger.
   const isControlled = openProp !== undefined && onOpenChange !== undefined;
   const open = isControlled ? openProp! : openInternal;
   if (openProp !== prevOpenProp) {
@@ -272,7 +272,7 @@ export function FeeExplainer({
   const resolvedLabel = label ?? (extras.length ? "Estimated cost" : "Network fee");
 
   // One precision everywhere, and the displayed total is the SUM OF THE
-  // ROUNDED PARTS rather than a separately-rounded total — independent
+  // ROUNDED PARTS rather than a separately-rounded total - independent
   // ceiling can't otherwise reconcile, which is how "<$0.001 + <$0.001 =
   // $0.002" happened. Erring upward is the safe direction for a cost.
   const dp = costPrecision(totalUsd);
@@ -383,7 +383,7 @@ export function FeeExplainer({
               <span className="text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
                 Fee estimate unavailable{" "}
                 <span className="text-[var(--sk-text-tertiary,#94969c)]">
-                  — typically under $0.01
+                  - typically under $0.01
                 </span>
               </span>
             )}
@@ -404,7 +404,7 @@ export function FeeExplainer({
           </button>
         )}
 
-        {/* Congestion — ambient weather, not a blocking error, so it does not
+        {/* Congestion - ambient weather, not a blocking error, so it does not
             borrow the card-border treatment used for user mistakes. */}
         <div
           aria-hidden={!congested}
@@ -421,7 +421,7 @@ export function FeeExplainer({
                 more likely to expire than to merely be slow. */}
             {congested && (
               <p className="text-[12px] leading-relaxed text-[var(--sk-warning,#e8b562)]">
-                Network is busy — fees are higher than usual and transactions
+                Network is busy - fees are higher than usual and transactions
                 may need retrying.
               </p>
             )}
@@ -451,7 +451,7 @@ export function FeeExplainer({
                     </dt>
                     <dd className="text-right">
                       <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
-                        {baseText ?? "—"}
+                        {baseText ?? "-"}
                       </div>
                       {formatSol(baseSol) && (
                         <div className="text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
@@ -470,7 +470,7 @@ export function FeeExplainer({
                       </dt>
                       <dd className="text-right">
                         <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
-                          {priorityText ?? "—"}
+                          {priorityText ?? "-"}
                         </div>
                         {formatSol(prioritySol) && (
                           <div className="text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
@@ -498,7 +498,7 @@ export function FeeExplainer({
                           <div className="text-[12px] tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
                             {finite(extra.usd) !== null
                               ? usdAt(finite(extra.usd)!, dp)
-                              : "—"}
+                              : "-"}
                           </div>
                           {formatSol(finite(extra.sol)) && (
                             <div className="text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
@@ -516,7 +516,7 @@ export function FeeExplainer({
                   ))}
                 </dl>
 
-                {/* The number the panel exists to reconcile — so it is the
+                {/* The number the panel exists to reconcile - so it is the
                     largest thing in it, at the parts' own precision. */}
                 <div className="mt-3 flex items-start justify-between gap-3 border-t border-[var(--sk-border,#22262f)] pt-3">
                   <span className="text-[13px] font-semibold text-[var(--sk-text,#f7f7f7)]">
@@ -524,7 +524,7 @@ export function FeeExplainer({
                   </span>
                   <span className="text-right">
                     <span className="block text-[13px] font-semibold tabular-nums text-[var(--sk-text,#f7f7f7)]">
-                      {totalText ?? "—"}
+                      {totalText ?? "-"}
                     </span>
                     {solText && (
                       <span className="block text-[11px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
@@ -578,7 +578,7 @@ export function FeeExplainer({
                           : "text-[var(--sk-text-tertiary,#94969c)]"
                       }`}
                     >
-                      {/* Without a total we can't honestly quote tiers — the
+                      {/* Without a total we can't honestly quote tiers - the
                           time still stands on its own. */}
                       {hasEstimate && optFee ? (
                         <>

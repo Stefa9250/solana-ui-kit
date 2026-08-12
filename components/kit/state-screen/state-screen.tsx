@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * StateScreen — Solana UI Kit
+ * StateScreen - Solana UI Kit
  *
  * The screens nobody designs: RPC down, rate-limited, wrong network, no
- * tokens, no transactions, wallet not connected. One calm centered layout —
+ * tokens, no transactions, wallet not connected. One calm centered layout -
  * icon, title, a line of plain-language explanation, a way forward, and (for
- * errors) an expandable technical detail — with four restrained tones.
+ * errors) an expandable technical detail - with four restrained tones.
  * Even the error tone is a muted coral, never an alarm-red full-bleed.
  *
  * Congestion is deliberately NOT a preset here: the kit models a busy network
@@ -58,7 +58,7 @@ export interface StateAction {
   label: string;
   onClick?: () => void;
   href?: string;
-  /** Label while `busy` — defaults to the normal label (never "Retrying…"). */
+  /** Label while `busy` - defaults to the normal label (never "Retrying…"). */
   busyLabel?: string;
   /** Force same-tab / new-tab. Defaults to new tab for external URLs only. */
   newTab?: boolean;
@@ -80,7 +80,7 @@ export interface StateScreenProps {
   errorDetail?: string;
   /** Heading level for the title (default 2). Set to fit your page hierarchy. */
   headingLevel?: 1 | 2 | 3 | 4;
-  /** Move focus to the primary action on mount — for post-error screens. */
+  /** Move focus to the primary action on mount - for post-error screens. */
   autoFocusAction?: boolean;
   /** Tighter vertical padding for use inside a card rather than a page. */
   compact?: boolean;
@@ -178,7 +178,7 @@ function ActionButton({
     </>
   );
 
-  // A link stays a link even while pending — it never silently becomes a
+  // A link stays a link even while pending - it never silently becomes a
   // disabled button. onClick fires alongside navigation for tracking.
   if (action.href) {
     return (
@@ -243,7 +243,7 @@ export function StateScreen({
   const secondary = usableAction(secondaryAction) ? secondaryAction : undefined;
 
   // A separate polite region (matching every sibling), announced on change of
-  // title/tone. Errors stay polite — the full-screen visual carries urgency.
+  // title/tone. Errors stay polite - the full-screen visual carries urgency.
   const announcement = [tone === "error" ? "Error." : "", title, description]
     .filter(Boolean)
     .join(" ");
@@ -331,7 +331,7 @@ export function StateScreen({
 }
 
 /* ------------------------------------------------------------------ *
- * Presets — the common Solana states, with copy written for end users (not
+ * Presets - the common Solana states, with copy written for end users (not
  * developer advice). Spread one and add your handlers:
  *   <StateScreen {...STATE_PRESETS.noTokens} action={{ label: "Receive", onClick }} />
  * ------------------------------------------------------------------ */
@@ -342,14 +342,14 @@ export const STATE_PRESETS = {
     tone: "error" as StateTone,
     title: "Can’t reach Solana",
     description:
-      "We couldn’t load data from the network. This is usually temporary — try again in a moment.",
+      "We couldn’t load data from the network. This is usually temporary - try again in a moment.",
   },
   rateLimited: {
     icon: Timer,
     tone: "warning" as StateTone,
     title: "Slowing down",
     description:
-      "The network is briefly limiting requests. This clears on its own — retrying shortly.",
+      "The network is briefly limiting requests. This clears on its own - retrying shortly.",
   },
   wrongNetwork: {
     icon: Network,
@@ -372,7 +372,7 @@ export const STATE_PRESETS = {
   },
   notConnected: {
     icon: Wallet,
-    // Inviting, not an error — this is the conversion moment.
+    // Inviting, not an error - this is the conversion moment.
     tone: "brand" as StateTone,
     title: "Connect your wallet",
     description: "Connect a wallet to see your balances and activity.",

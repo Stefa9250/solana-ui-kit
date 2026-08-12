@@ -1,24 +1,24 @@
 /**
- * Mock fee oracle — stands in for an RPC + price feed so the demo works
+ * Mock fee oracle - stands in for an RPC + price feed so the demo works
  * standalone. The component only needs USD and SOL figures plus a time;
  * swap the internals below and the UI doesn't change.
  *
  * The shape here matters more than the numbers: a priority tier is NOT a flat
  * lamport amount, it's a price per compute unit. If you copy this file as a
- * starting point, keep that shape — a tier system built on flat lamports has
+ * starting point, keep that shape - a tier system built on flat lamports has
  * nowhere to put the compute budget and has to be redesigned when real data
  * arrives.
  *
  * REAL INTEGRATION
  *
- * Base fee — 5000 lamports *per signature*, and `lamports_per_signature` is a
+ * Base fee - 5000 lamports *per signature*, and `lamports_per_signature` is a
  * cluster fee-governor parameter rather than a true constant. Don't hardcode
  * it: `getFeeForMessage(message)` returns the exact base fee for the actual
  * transaction you're about to send, signatures included.
  *
  *   const { value: lamports } = await connection.getFeeForMessage(message);
  *
- * Priority fee — sample what recent blocks actually paid for the accounts your
+ * Priority fee - sample what recent blocks actually paid for the accounts your
  * transaction writes to, then take a percentile per tier:
  *
  *   const recent = await connection.getRecentPrioritizationFees({
@@ -30,20 +30,20 @@
  * ⚠ Set ComputeUnitLimit as well as ComputeUnitPrice. If you set the price
  * without a limit, you are billed against the 200k-per-instruction default,
  * so the fee actually charged routinely EXCEEDS the estimate you showed the
- * user — an understatement, which is the direction that generates refunds.
+ * user - an understatement, which is the direction that generates refunds.
  * Simulate first and set the limit to the units actually consumed (+ headroom).
  *
- * Congestion — not a boolean. It's the shape of the getRecentPrioritizationFees
+ * Congestion - not a boolean. It's the shape of the getRecentPrioritizationFees
  * distribution, which is the same data you derive the tiers from. The flat
  * multiplier below is a placeholder so the demo has something to show.
  *
- * Confirmation time — priority fees buy *inclusion probability in the next
+ * Confirmation time - priority fees buy *inclusion probability in the next
  * leader's block*, not lower latency. Under real congestion the failure mode
  * isn't a slow confirm, it's the blockhash expiring after ~150 slots (~60-90s)
  * and the transaction being dropped. Treat every number below as a range with
  * a fat tail, and give users a retry path.
  *
- * Prices come from any feed — Pyth, Jupiter, Birdeye, CoinGecko.
+ * Prices come from any feed - Pyth, Jupiter, Birdeye, CoinGecko.
  */
 
 import type { ConfirmTime, FeeSpeed } from "./fee-explainer";
@@ -52,7 +52,7 @@ const LAMPORTS_PER_SOL = 1_000_000_000;
 /** Matches the token-amount-input mock so the kit tells one story. */
 const SOL_USD = 172.18;
 
-/** Per signature — most transactions carry one, plenty carry more. */
+/** Per signature - most transactions carry one, plenty carry more. */
 const BASE_FEE_LAMPORTS_PER_SIGNATURE = 5_000;
 
 /** The default compute budget an instruction is billed against. */
@@ -60,7 +60,7 @@ export const DEFAULT_COMPUTE_UNIT_LIMIT = 200_000;
 
 /**
  * Rent-exempt minimum for a 165-byte SPL token account. Creating an
- * associated token account for a first-time recipient costs this — roughly
+ * associated token account for a first-time recipient costs this - roughly
  * 200x a congested priority fee, and the single largest thing a "network fee"
  * line can silently omit. It is recoverable: closing the account returns it.
  */
@@ -78,7 +78,7 @@ const PRIORITY_MICRO_LAMPORTS_PER_CU: Record<FeeSpeed, number> = {
 
 /**
  * Placeholder only. Real congestion moves the p75 prioritization fee by two to
- * four orders of magnitude, not a tidy constant — derive this from sampled
+ * four orders of magnitude, not a tidy constant - derive this from sampled
  * data, never from a number someone typed.
  */
 const CONGESTION_MULTIPLIER = 25;
@@ -103,7 +103,7 @@ export interface FeeParams {
   /** Set this from a simulation, not from hope. */
   computeUnitLimit?: number;
   numSignatures?: number;
-  /** Recipient has no token account yet — adds recoverable rent. */
+  /** Recipient has no token account yet - adds recoverable rent. */
   createsAta?: boolean;
 }
 
@@ -134,7 +134,7 @@ export function estimateFee(
   const baseLamports = BASE_FEE_LAMPORTS_PER_SIGNATURE * numSignatures;
   const microPerCu =
     PRIORITY_MICRO_LAMPORTS_PER_CU[speed] * (congested ? CONGESTION_MULTIPLIER : 1);
-  // Lamports are integers — the runtime ceils, so we ceil.
+  // Lamports are integers - the runtime ceils, so we ceil.
   const priorityLamports = Math.ceil((microPerCu * computeUnitLimit) / 1e6);
 
   const toSol = (l: number) => l / LAMPORTS_PER_SOL;

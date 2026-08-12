@@ -9,7 +9,7 @@ export function LandingHero() {
     <section className="relative px-5 pb-16 pt-32 sm:px-8 sm:pb-24 sm:pt-40">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
-          {/* Left — copy */}
+          {/* Left - copy */}
           <div className="flex flex-col gap-7">
             <p className="sk-fade-up font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
               Solana UI Kit · the moments after the click
@@ -20,7 +20,7 @@ export function LandingHero() {
             </h1>
             <p className="sk-fade-up sk-d2 max-w-lg text-[15px] leading-relaxed text-[#94969c] sm:text-[16px]">
               Copy-paste React components for the moments every Solana dApp gets
-              wrong — transaction status, signing review, wallet connect, fee
+              wrong - transaction status, signing review, wallet connect, fee
               clarity, error states. Dark-mode first, accessible, animated. No
               package. Copy the file, own the code.
             </p>
@@ -61,7 +61,7 @@ export function LandingHero() {
             </div>
           </div>
 
-          {/* Right — terminal card with the live component */}
+          {/* Right - terminal card with the live component */}
           <div className="sk-scale-in sk-d3 relative">
             <div className="sk-glass sk-lift relative rounded-xl border border-[#22262f] p-4 pt-9">
               <div className="absolute left-4 top-3.5 flex items-center gap-1.5">

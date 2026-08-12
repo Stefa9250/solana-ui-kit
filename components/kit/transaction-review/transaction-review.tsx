@@ -1,25 +1,25 @@
 "use client";
 
 /**
- * TransactionReview — Solana UI Kit
+ * TransactionReview - Solana UI Kit
  *
  * The screen that decides trust: a plain-language, simulation-driven preview
  * of what a transaction will actually do BEFORE the user signs. Net balance
  * changes ("you pay X / you receive Y"), token approvals it grants, the fee,
- * and any warnings, with a three-level severity — safe / warn / block. A
+ * and any warnings, with a three-level severity - safe / warn / block. A
  * blocking transaction turns the card coral, makes Reject the prominent
  * action, and demotes Sign to a deliberate "Sign anyway" gated behind an
  * explicit acknowledgement. A missing simulation never hard-blocks; it
- * degrades to an honest "couldn't preview — proceed with caution".
+ * degrades to an honest "couldn't preview - proceed with caution".
  *
  * This renders a simulation you pass in; it does not run one. Feed it from
  * simulateTransaction (pre/post balance deltas) plus a scanner (Blowfish, the
  * wallet's own heuristics) for the warnings. See mock-simulation.ts for a
- * worked mapping — the hard part is producing correct `assets`/`approvals`/
+ * worked mapping - the hard part is producing correct `assets`/`approvals`/
  * `warnings`, and a naive balance-diff misses approvals, setAuthority and
  * closeAccount entirely.
  *
- * This is a content panel, not a modal — it does not own an overlay or portal.
+ * This is a content panel, not a modal - it does not own an overlay or portal.
  * Wrap it in ConnectWalletModal-style chrome (or your own dialog) if you need
  * modality; it will trap focus and lock scroll for you there.
  *
@@ -63,7 +63,7 @@ export interface ReviewAsset {
   direction: "out" | "in";
   /** Pre-formatted human-unit amount, absolute value ("2.5", "1,234.56"). */
   amount?: string;
-  /** Raw base units — converted to human units with `decimals` inside. */
+  /** Raw base units - converted to human units with `decimals` inside. */
   rawAmount?: string | number | bigint;
   /** Decimals for `rawAmount` (SOL 9, USDC 6). */
   decimals?: number;
@@ -89,20 +89,20 @@ export interface ReviewWarning {
 }
 
 export interface TransactionReviewProps {
-  /** The dApp domain requesting the signature — shown for phishing awareness. */
+  /** The dApp domain requesting the signature - shown for phishing awareness. */
   origin?: string;
   /** Mark the origin as verified. Unverified/omitted shows a caution chip. */
   originVerified?: boolean;
   /** Net balance changes from the simulation. */
   assets?: ReviewAsset[];
-  /** Token approvals the transaction grants — unlimited ones are flagged. */
+  /** Token approvals the transaction grants - unlimited ones are flagged. */
   approvals?: ReviewApproval[];
   /** Scanner / heuristic findings, most severe first. */
   warnings?: ReviewWarning[];
   /** Network fee. Rounds UP, never below what the runtime debits. */
   feeUsd?: number;
   feeSol?: number;
-  /** Quiet attribution — "Simulated by Blowfish" — so users can calibrate. */
+  /** Quiet attribution - "Simulated by Blowfish" - so users can calibrate. */
   simulatedBy?: string;
   /**
    * Overall verdict. An explicit value can only RAISE the level implied by
@@ -111,11 +111,11 @@ export interface TransactionReviewProps {
   severity?: ReviewSeverity;
   /** Require an "I understand" acknowledgement before Sign on a block verdict. */
   requireAckOnBlock?: boolean;
-  /** Simulation in flight — shows skeletons. */
+  /** Simulation in flight - shows skeletons. */
   simulating?: boolean;
-  /** Simulation couldn't run — shows a proceed-with-caution notice. */
+  /** Simulation couldn't run - shows a proceed-with-caution notice. */
   simulationFailed?: boolean;
-  /** Sign in flight — spinner on the sign action, both actions disabled. */
+  /** Sign in flight - spinner on the sign action, both actions disabled. */
   signing?: boolean;
   onSign?: () => void;
   onReject?: () => void;
@@ -143,7 +143,7 @@ function ceilTo(v: number, dp: number): number {
   return Math.ceil(v * f - 1e-9) / f;
 }
 
-/** Costs round up — matches FeeExplainer so the two surfaces never disagree. */
+/** Costs round up - matches FeeExplainer so the two surfaces never disagree. */
 function formatUsd(v: number | null): string | null {
   if (v === null || v <= 0) return null;
   if (v < 0.001) return "<$0.001";
@@ -180,7 +180,7 @@ function fromBaseUnits(raw: string | number | bigint, decimals: number): string 
   return frac ? `${int}.${frac}` : int;
 }
 
-/** Never exponential — 0.000005 not 5e-6 — matching FeeExplainer's formatSol. */
+/** Never exponential - 0.000005 not 5e-6 - matching FeeExplainer's formatSol. */
 function formatSol(v: number | null): string | null {
   if (v === null || v <= 0) return null;
   const s = v.toFixed(9).replace(/0+$/, "").replace(/\.$/, "");
@@ -317,7 +317,7 @@ export function TransactionReview({
     onRejectRef.current = onReject;
   });
 
-  // An explicit severity can only RAISE the level the warnings imply — never
+  // An explicit severity can only RAISE the level the warnings imply - never
   // hide a danger. Unlimited approvals floor it to at least "warn".
   const implied = highestLevel(warnings);
   const hasUnlimited = approvals.some(
@@ -413,7 +413,7 @@ export function TransactionReview({
         style={{ borderColor }}
         className="sol-txr-in flex flex-col gap-4 border bg-[var(--sk-surface,#161b26)] p-5 transition-colors duration-200 ease-out"
       >
-        {/* Header — WHO is asking is the headline of an anti-phishing screen. */}
+        {/* Header - WHO is asking is the headline of an anti-phishing screen. */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
@@ -444,7 +444,7 @@ export function TransactionReview({
           )}
         </div>
 
-        {/* Warnings — most severe first, with a text level label (not hue alone). */}
+        {/* Warnings - most severe first, with a text level label (not hue alone). */}
         {!simulating && warnings.length > 0 && (
           <div className="flex flex-col gap-2">
             {warnings.map((w, i) => {
@@ -498,7 +498,7 @@ export function TransactionReview({
           </div>
         )}
 
-        {/* Approvals — spending permissions, NOT balance deltas. Unlimited is coral. */}
+        {/* Approvals - spending permissions, NOT balance deltas. Unlimited is coral. */}
         {!simulating && approvals.length > 0 &&
           section(
             "Approvals",
@@ -565,7 +565,7 @@ export function TransactionReview({
           ) : assets.length === 0 && approvals.length === 0 ? (
             <p className="text-[13px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
               No token balance changes detected. This transaction can still
-              change on-chain permissions or account authorities — only
+              change on-chain permissions or account authorities - only
               continue if you trust the source.
             </p>
           ) : (
@@ -588,7 +588,7 @@ export function TransactionReview({
                     ))}
                   </div>,
                 )}
-              {/* Net summary — so users don't diff two columns by eye. */}
+              {/* Net summary - so users don't diff two columns by eye. */}
               {outUsd > 0 && inUsd > 0 && (
                 <div className="text-right text-[12px] tabular-nums text-[var(--sk-text-tertiary,#94969c)]">
                   Net{" "}
@@ -602,7 +602,7 @@ export function TransactionReview({
           )}
         </div>
 
-        {/* Fee — same round-up / no-exponential contract as FeeExplainer. */}
+        {/* Fee - same round-up / no-exponential contract as FeeExplainer. */}
         <div className="flex items-center justify-between border-t border-[var(--sk-border,#22262f)] pt-3 text-[13px]">
           <span className="text-[var(--sk-text-tertiary,#94969c)]">Network fee</span>
           {simulating ? (
@@ -642,7 +642,7 @@ export function TransactionReview({
         )}
 
         {/* Actions. On block, Reject is primary and Sign is the deliberate,
-            gated, cautionary choice — safe by default. */}
+            gated, cautionary choice - safe by default. */}
         <div className="flex items-center gap-2.5">
           <button
             type="button"

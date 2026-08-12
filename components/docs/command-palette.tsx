@@ -17,7 +17,7 @@ export const OPEN_SEARCH_EVENT = "sk-open-search";
 
 type Result = { slug: string; name: string; category: string; description: string };
 
-/** SSR-safe "am I on the client" — the portal can't render on the server. */
+/** SSR-safe "am I on the client" - the portal can't render on the server. */
 function useMounted(): boolean {
   return useSyncExternalStore(
     () => () => {},

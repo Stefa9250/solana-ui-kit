@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ConnectWalletModal — Solana UI Kit
+ * ConnectWalletModal - Solana UI Kit
  *
  * Wallet selection, connecting, rejected, and connected states in one
  * accessible modal. Self-contained: copy this file into your project.
@@ -54,7 +54,7 @@ export interface WalletOption {
   /**
    * Builds this wallet's mobile deeplink from the current dApp URL. On a phone,
    * an undetected wallet with a deeplink shows "Open ↗" instead of a dead-end
-   * install link — tapping it opens your site inside the wallet's in-app
+   * install link - tapping it opens your site inside the wallet's in-app
    * browser, where the provider is injected and the normal flow takes over.
    * Phantom and Solflare are recognised by name for free; supply this for
    * other wallets (e.g. (url) => `mywallet://browse/${encodeURIComponent(url)}`).
@@ -87,7 +87,7 @@ export interface ConnectWalletModalProps {
   errorMap?: ConnectWalletErrorRule[];
   /** Which wallet is connecting/rejected/connected, when driven externally. */
   selectedWalletId?: string;
-  /** Connected address (full base58 is fine — truncated for display). */
+  /** Connected address (full base58 is fine - truncated for display). */
   address?: string;
   /** Badge this wallet "Connected" in the list (e.g. when switching wallets). */
   connectedWalletId?: string;
@@ -156,7 +156,7 @@ function detectPlatform(): Platform {
 /**
  * Built-in "open this dApp in the wallet's in-app browser" universal links.
  * Inside that browser the wallet injects its provider, so the ordinary
- * detected-wallet flow connects — no per-wallet crypto handshake needed here.
+ * detected-wallet flow connects - no per-wallet crypto handshake needed here.
  */
 const KNOWN_BROWSE_LINKS: { match: RegExp; build: (url: string) => string }[] = [
   {
@@ -252,7 +252,7 @@ function useReducedMotion(): boolean {
   );
 }
 
-/** SSR-safe "am I on the client" — portals can't render on the server. */
+/** SSR-safe "am I on the client" - portals can't render on the server. */
 function useMounted(): boolean {
   return useSyncExternalStore(
     () => () => {},
@@ -509,7 +509,7 @@ export function ConnectWalletModal({
     } ${isDimmed ? "opacity-40" : "cursor-pointer"}`;
     const rowStyle = { animationDelay: `${index * 40}ms` };
     // While connecting, the selected wallet's logo is framed by a square
-    // outline whose segment traces the perimeter — same loader language as
+    // outline whose segment traces the perimeter - same loader language as
     // ConnectWallet and TransactionStatus.
     const icon = isSelected ? (
       <span className="relative flex size-9 shrink-0 items-center justify-center">
@@ -632,7 +632,7 @@ export function ConnectWalletModal({
           {liveText}
         </div>
 
-        {/* Grabber — signals the sheet is draggable-feeling on touch; hidden
+        {/* Grabber - signals the sheet is draggable-feeling on touch; hidden
             on desktop where the surface is a centered card. */}
         <div
           aria-hidden
@@ -662,7 +662,7 @@ export function ConnectWalletModal({
               </div>
               <div className="max-w-[360px] text-[13px] text-[var(--sk-text-tertiary,#94969c)]">
                 A wallet is a browser extension that holds your keys and
-                approves transactions — install one to continue.
+                approves transactions - install one to continue.
               </div>
               <div className="mt-1 flex flex-wrap justify-center gap-2.5">
                 {wallets.map((w) => (

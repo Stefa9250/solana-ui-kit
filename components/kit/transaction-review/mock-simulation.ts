@@ -1,9 +1,9 @@
 /**
- * Mock simulation — stands in for a real preview so the demo works standalone.
+ * Mock simulation - stands in for a real preview so the demo works standalone.
  * The component only needs asset changes + warnings + a fee; swap the
  * internals and the UI doesn't change.
  *
- * Real integration — the hard part is producing correct assets/approvals/
+ * Real integration - the hard part is producing correct assets/approvals/
  * warnings; a naive balance diff gets several cases wrong. Worked notes:
  *
  *   const sim = await connection.simulateTransaction(vtx, {
@@ -11,12 +11,12 @@
  *     replaceRecentBlockhash: true,
  *   });
  *
- *   // SPL tokens — diff sim.value's post token balances against current, and
+ *   // SPL tokens - diff sim.value's post token balances against current, and
  *   //   pass rawAmount + decimals to a ReviewAsset (let the component convert):
  *   //     { symbol, direction: post > pre ? "in" : "out",
  *   //       rawAmount: abs(post - pre), decimals: mint.decimals, usd }
  *   //
- *   // NATIVE SOL is NOT a token account — its delta is in pre/postBalances
+ *   // NATIVE SOL is NOT a token account - its delta is in pre/postBalances
  *   //   (lamports on the fee-payer / recipient), not postTokenBalances. A
  *   //   plain SOL send is invisible if you only diff token accounts.
  *   //
@@ -24,16 +24,16 @@
  *   //   separately with getFeeForMessage(message) and subtract it out so the
  *   //   SOL "you pay" isn't double-counted.
  *   //
- *   // APPROVALS (Approve / delegate) move zero balance — parse the
+ *   // APPROVALS (Approve / delegate) move zero balance - parse the
  *   //   instructions, not the diff. amount === undefined means unlimited.
  *   //
- *   // TOKEN-2022 transfer fees mean received != sent — don't assume the
+ *   // TOKEN-2022 transfer fees mean received != sent - don't assume the
  *   //   recipient's "in" equals the sender's "out".
  *   //
  *   // Simulation can miss compute-budget / priority-fee economics and may
  *   //   diverge from landed state; treat it as a preview, not a guarantee.
  *
- *   // Warnings — a scanner (Blowfish, or your heuristics) turns raw
+ *   // Warnings - a scanner (Blowfish, or your heuristics) turns raw
  *   //   instructions into human risks: unlimited approvals, unknown/malicious
  *   //   programs, setAuthority/closeAccount, a never-before-seen recipient.
  *
@@ -63,7 +63,7 @@ export interface SimulationScenario {
 }
 
 export const SIMULATION_SCENARIOS: Record<string, SimulationScenario> = {
-  // A clean swap — you pay SOL, you receive USDC. Uses raw base units so the
+  // A clean swap - you pay SOL, you receive USDC. Uses raw base units so the
   // component does the decimal conversion, the way a real simulation returns.
   swap: {
     origin: "jup.ag",
@@ -102,7 +102,7 @@ export const SIMULATION_SCENARIOS: Record<string, SimulationScenario> = {
         level: "warn",
         title: "New recipient",
         detail:
-          "You’ve never sent to this address before. Double-check it matches — address-poisoning scams seed lookalikes into your history.",
+          "You’ve never sent to this address before. Double-check it matches - address-poisoning scams seed lookalikes into your history.",
       },
     ],
     feeUsd: 0.0009,

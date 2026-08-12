@@ -20,25 +20,25 @@ export const guidance: Record<string, Guidance> = {
     whenToUse: [
       "Right after a user submits a transaction, to track pending → confirming → confirmed / failed.",
       "When you poll getSignatureStatuses and want the confirmation count surfaced calmly.",
-      "Anywhere a raw error code would otherwise leak — it maps common Solana and Anchor errors to plain language, with the raw code one click away.",
+      "Anywhere a raw error code would otherwise leak - it maps common Solana and Anchor errors to plain language, with the raw code one click away.",
     ],
     accessibility: [
       "Status transitions are announced through an aria-live region.",
       "On failure, Retry can take focus automatically (autoFocusRetry).",
-      "Respects prefers-reduced-motion — the trace and spinner animations stop.",
+      "Respects prefers-reduced-motion - the trace and spinner animations stop.",
       "The raw error stays reachable behind a keyboard-focusable details toggle.",
     ],
   },
   "transaction-review": {
     whenToUse: [
       "Before signing, to preview net balance changes, fee, and warnings in plain language.",
-      "For any transaction that moves funds or grants approvals — swaps, sends, staking.",
+      "For any transaction that moves funds or grants approvals - swaps, sends, staking.",
       "When a scanner (Blowfish or your heuristics) flags risk and you want Reject to become the prominent action.",
     ],
     anatomy: [
       { name: "Origin header", note: "The requesting site and a verified-origin badge." },
       { name: "Balance changes", note: "Out (you pay) and in (you receive) asset rows, with USD." },
-      { name: "Approvals", note: "Token approvals as their own rows — unlimited renders coral." },
+      { name: "Approvals", note: "Token approvals as their own rows - unlimited renders coral." },
       { name: "Fee", note: "The network fee in USD and SOL, never double-counted." },
       { name: "Verdict", note: "safe / warn / block, which sets how prominent Reject vs. Sign is." },
     ],
@@ -50,7 +50,7 @@ export const guidance: Record<string, Guidance> = {
   },
   "token-amount-input": {
     whenToUse: [
-      "Whenever a user types a token amount — swaps, sends, deposits.",
+      "Whenever a user types a token amount - swaps, sends, deposits.",
       "When you need exact per-token decimals and thousands separators applied as they type.",
       "When MAX should reserve rent and fees rather than empty the wallet.",
     ],
@@ -75,7 +75,7 @@ export const guidance: Record<string, Guidance> = {
   "address-display": {
     whenToUse: [
       "Anywhere you surface a wallet, program, or token-mint address.",
-      "When users must copy the full address without mis-reads — middle truncation plus one-tap copy.",
+      "When users must copy the full address without mis-reads - middle truncation plus one-tap copy.",
       "When a program or token address must be flagged so nobody sends funds into a program by mistake.",
     ],
     anatomy: [
@@ -92,7 +92,7 @@ export const guidance: Record<string, Guidance> = {
   },
   "state-screen": {
     whenToUse: [
-      "For the empty and error moments most apps skip — RPC down, no tokens, not connected.",
+      "For the empty and error moments most apps skip - RPC down, no tokens, not connected.",
       "When a dead-end needs one calm layout with an honest message and a single clear action.",
       "As a full-screen or inline block, using a shipped preset or your own copy.",
     ],

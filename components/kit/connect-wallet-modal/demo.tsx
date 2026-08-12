@@ -127,11 +127,11 @@ export default function ConnectWalletModalDemo() {
 
   const scenarios = [
     "Wallet list",
-    "List — connected",
+    "List - connected",
     "No wallet installed",
     "Connecting",
     "Rejected",
-    "Rejected — not responding",
+    "Rejected - not responding",
     "Connected",
   ] as const;
 
@@ -144,12 +144,12 @@ export default function ConnectWalletModalDemo() {
         ? "Connected"
         : status === "rejected"
           ? error && /not responding/i.test(error)
-            ? "Rejected — not responding"
+            ? "Rejected - not responding"
             : "Rejected"
           : noneDetected
             ? "No wallet installed"
             : connectedWalletId
-              ? "List — connected"
+              ? "List - connected"
               : "Wallet list";
 
   const runScenario = (label: (typeof scenarios)[number]) => {
@@ -157,7 +157,7 @@ export default function ConnectWalletModalDemo() {
       case "Wallet list":
         openWith("list");
         break;
-      case "List — connected":
+      case "List - connected":
         openWith("list", { connectedWalletId: "solflare" });
         break;
       case "No wallet installed":
@@ -170,7 +170,7 @@ export default function ConnectWalletModalDemo() {
       case "Rejected":
         openWith("rejected", { selectedWalletId: "phantom" });
         break;
-      case "Rejected — not responding":
+      case "Rejected - not responding":
         openWith("rejected", {
           selectedWalletId: "phantom",
           error: "wallet not responding: timeout waiting for approval",

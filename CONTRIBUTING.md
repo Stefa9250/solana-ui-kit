@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest! This is an early-stage project — expect this guide
+Thanks for your interest! This is an early-stage project - expect this guide
 to grow.
 
 ## Adding a component
@@ -9,7 +9,7 @@ to grow.
    the only allowed dependencies are React, Tailwind CSS, and lucide-react.
    Inject keyframes once via the `useKitStyles` pattern (see any existing
    component). Colors are `--sk-*` CSS variables with the kit's hex defaults
-   inlined as fallbacks — e.g. `bg-[var(--sk-surface,#161b26)]` — so files
+   inlined as fallbacks - e.g. `bg-[var(--sk-surface,#161b26)]` - so files
    stay portable *and* themeable. Reuse the existing token names.
 2. Add a `demo.tsx` next to it that cycles every state with buttons.
 3. Register it: one entry in `lib/registry.ts` (name, slug, description, path,

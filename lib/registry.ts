@@ -1,10 +1,10 @@
 /**
- * Component registry — the single source of truth for the docs site.
+ * Component registry - the single source of truth for the docs site.
  *
  * Adding a new component:
  *   1. Create its folder under components/kit/<slug>/
  *   2. Add one entry here.
- * That's it — the landing index and /components/<slug> docs page pick it up.
+ * That's it - the landing index and /components/<slug> docs page pick it up.
  */
 
 export type PropRow = {
@@ -35,7 +35,7 @@ export const registry: RegistryEntry[] = [
     slug: "transaction-status",
     category: "Transactions",
     description:
-      "Every state of a Solana transaction — pending, confirming, confirmed, failed — with human-readable errors and calm, purposeful motion.",
+      "Every state of a Solana transaction - pending, confirming, confirmed, failed - with human-readable errors and calm, purposeful motion.",
     path: "components/kit/transaction-status/transaction-status.tsx",
     usage: `<TransactionStatus
   status={status}
@@ -46,7 +46,7 @@ export const registry: RegistryEntry[] = [
   onRetry={() => resubmit()}
   onDismiss={() => reset()}
 />`,
-    note: "Feed confirmations from a getSignatureStatuses polling loop — signatureSubscribe fires once and can't drive a count. See the README's “Wiring up real data” pattern.",
+    note: "Feed confirmations from a getSignatureStatuses polling loop - signatureSubscribe fires once and can't drive a count. See the README's “Wiring up real data” pattern.",
     props: [
       {
         name: "status",
@@ -58,7 +58,7 @@ export const registry: RegistryEntry[] = [
         name: "signature",
         type: "string",
         description:
-          "Transaction signature — used for the Solscan explorer link and the shortened display.",
+          "Transaction signature - used for the Solscan explorer link and the shortened display.",
       },
       {
         name: "error",
@@ -70,7 +70,7 @@ export const registry: RegistryEntry[] = [
         name: "errorMap",
         type: "{ test: RegExp; text: string }[]",
         description:
-          "Your program's error rules, matched before the built-in defaults. Anchor custom errors (0x1770 + N) are program-specific — map them here.",
+          "Your program's error rules, matched before the built-in defaults. Anchor custom errors (0x1770 + N) are program-specific - map them here.",
       },
       {
         name: "confirmations",
@@ -83,7 +83,7 @@ export const registry: RegistryEntry[] = [
         type: "number",
         default: "31",
         description:
-          "Confirmation target (finality is ~31 slots). Most dApps treat the confirmed commitment (~1–2s) as success — jump to status=\"confirmed\" then, or omit confirmations for an indeterminate bar.",
+          "Confirmation target (finality is ~31 slots). Most dApps treat the confirmed commitment (~1–2s) as success - jump to status=\"confirmed\" then, or omit confirmations for an indeterminate bar.",
       },
       {
         name: "cluster",
@@ -139,7 +139,7 @@ export const registry: RegistryEntry[] = [
     slug: "transaction-review",
     category: "Transactions",
     description:
-      "The pre-signature trust screen: a plain-language preview of net balance changes, fee, and warnings — with a safe / warn / block verdict that makes Reject prominent when it matters.",
+      "The pre-signature trust screen: a plain-language preview of net balance changes, fee, and warnings - with a safe / warn / block verdict that makes Reject prominent when it matters.",
     path: "components/kit/transaction-review/transaction-review.tsx",
     usage: `<TransactionReview
   origin="jup.ag"
@@ -153,13 +153,13 @@ export const registry: RegistryEntry[] = [
   onSign={sign}
   onReject={reject}
 />`,
-    note: "Renders a simulation you pass in — it does not run one; see the README's “Wiring up real data” for mapping simulateTransaction deltas into assets (native SOL isn't a token account; the fee is inside the payer's lamport delta; approvals move zero balance). An explicit `severity` can only RAISE the verdict the warnings imply, never hide a danger. A “block” makes Reject primary and gates “Sign anyway” behind an acknowledgement. Approvals are modelled as their own row (unlimited → coral) rather than a fake “−0” balance line, and the empty state warns that a zero-balance tx can still change authorities. The fee rounds up and never shows exponential notation, matching FeeExplainer.",
+    note: "Renders a simulation you pass in - it does not run one; see the README's “Wiring up real data” for mapping simulateTransaction deltas into assets (native SOL isn't a token account; the fee is inside the payer's lamport delta; approvals move zero balance). An explicit `severity` can only RAISE the verdict the warnings imply, never hide a danger. A “block” makes Reject primary and gates “Sign anyway” behind an acknowledgement. Approvals are modelled as their own row (unlimited → coral) rather than a fake “−0” balance line, and the empty state warns that a zero-balance tx can still change authorities. The fee rounds up and never shows exponential notation, matching FeeExplainer.",
     props: [
       {
         name: "origin",
         type: "string",
         description:
-          "The dApp domain requesting the signature — the headline of the anti-phishing header. Pair with originVerified.",
+          "The dApp domain requesting the signature - the headline of the anti-phishing header. Pair with originVerified.",
       },
       {
         name: "originVerified",
@@ -172,13 +172,13 @@ export const registry: RegistryEntry[] = [
         name: "assets",
         type: "ReviewAsset[]",
         description:
-          "Net balance changes: { symbol, direction, amount? | rawAmount?+decimals?, usd?, icon?, color? }. Prefer rawAmount+decimals (raw base units) — the component does the conversion. Grouped into “You pay” / “You receive” with a net line.",
+          "Net balance changes: { symbol, direction, amount? | rawAmount?+decimals?, usd?, icon?, color? }. Prefer rawAmount+decimals (raw base units) - the component does the conversion. Grouped into “You pay” / “You receive” with a net line.",
       },
       {
         name: "approvals",
         type: "ReviewApproval[]",
         description:
-          "Token approvals the tx grants: { symbol, amount?, icon?, color? }. Omitting amount means unlimited, rendered coral — because an approval moves no balance and would otherwise be invisible.",
+          "Token approvals the tx grants: { symbol, amount?, icon?, color? }. Omitting amount means unlimited, rendered coral - because an approval moves no balance and would otherwise be invisible.",
       },
       {
         name: "warnings",
@@ -195,7 +195,7 @@ export const registry: RegistryEntry[] = [
         name: "severity",
         type: '"safe" | "warn" | "block"',
         description:
-          "Overall verdict. An explicit value can only raise the level the warnings imply — it can't demote a danger. Block flips Reject to primary and gates “Sign anyway”. Defaults to the highest warning level.",
+          "Overall verdict. An explicit value can only raise the level the warnings imply - it can't demote a danger. Block flips Reject to primary and gates “Sign anyway”. Defaults to the highest warning level.",
       },
       {
         name: "requireAckOnBlock",
@@ -213,20 +213,20 @@ export const registry: RegistryEntry[] = [
         name: "simulating",
         type: "boolean",
         default: "false",
-        description: "Simulation in flight — shows skeletons.",
+        description: "Simulation in flight - shows skeletons.",
       },
       {
         name: "simulationFailed",
         type: "boolean",
         default: "false",
         description:
-          "Simulation couldn't run — shows a proceed-with-caution notice instead of blocking.",
+          "Simulation couldn't run - shows a proceed-with-caution notice instead of blocking.",
       },
       {
         name: "signing",
         type: "boolean",
         default: "false",
-        description: "Sign in flight — spinner on Sign, both actions disabled.",
+        description: "Sign in flight - spinner on Sign, both actions disabled.",
       },
       {
         name: "onSign / onReject",
@@ -253,31 +253,31 @@ export const registry: RegistryEntry[] = [
   tokens={MOCK_TOKENS}
   onSelectToken={setToken}
 />`,
-    note: "Every comparison, MAX subtraction and balance check runs on BigInt base units and truncates, never rounds, so MAX can't exceed the real balance. The USD conversion is float maths — a display estimate that never decides validity. Pass `balance`/`price` as strings to avoid the precision a JS number loses above 2^53 raw units. `value` is always in token units, even while typing in USD.",
+    note: "Every comparison, MAX subtraction and balance check runs on BigInt base units and truncates, never rounds, so MAX can't exceed the real balance. The USD conversion is float maths - a display estimate that never decides validity. Pass `balance`/`price` as strings to avoid the precision a JS number loses above 2^53 raw units. `value` is always in token units, even while typing in USD.",
     props: [
       {
         name: "token",
         type: "TokenInfo",
         description:
-          "{ symbol, name?, mint?, decimals, icon?, color?, feeReserve? }. `decimals` caps what can be typed (SOL 9, USDC 6); `mint` keys token lists, since symbols aren't unique on Solana; `feeReserve` is what MAX holds back on native SOL — a constant is a simplification for rentExemptMin + fees + accounts created.",
+          "{ symbol, name?, mint?, decimals, icon?, color?, feeReserve? }. `decimals` caps what can be typed (SOL 9, USDC 6); `mint` keys token lists, since symbols aren't unique on Solana; `feeReserve` is what MAX holds back on native SOL - a constant is a simplification for rentExemptMin + fees + accounts created.",
       },
       {
         name: "balance",
         type: "number | string",
         description:
-          "Human-unit balance. Prefer a string — a JS number loses bits above 2^53 raw units (~9B USDC, ~9M SOL). Omit while fetching to show the skeleton.",
+          "Human-unit balance. Prefer a string - a JS number loses bits above 2^53 raw units (~9B USDC, ~9M SOL). Omit while fetching to show the skeleton.",
       },
       {
         name: "price",
         type: "number | string",
         description:
-          "USD price per whole token. Display only — never decides validity. Omit while fetching; the USD toggle disables without it.",
+          "USD price per whole token. Display only - never decides validity. Omit while fetching; the USD toggle disables without it.",
       },
       {
         name: "value",
         type: "string",
         description:
-          "Amount as a plain decimal string, always in token units — even when the user is typing in USD.",
+          "Amount as a plain decimal string, always in token units - even when the user is typing in USD.",
       },
       {
         name: "onChange",
@@ -301,7 +301,7 @@ export const registry: RegistryEntry[] = [
         type: "boolean",
         default: "false",
         description:
-          "Balance/price still fetching — shimmers the balance and conversion lines and disables input.",
+          "Balance/price still fetching - shimmers the balance and conversion lines and disables input.",
       },
       {
         name: "disabled",
@@ -338,7 +338,7 @@ export const registry: RegistryEntry[] = [
     slug: "fee-explainer",
     category: "Transactions",
     description:
-      "Translates Solana priority fees into plain language — cost in dollars, time in seconds. Lamports never reach the user, and a missing estimate never blocks them.",
+      "Translates Solana priority fees into plain language - cost in dollars, time in seconds. Lamports never reach the user, and a missing estimate never blocks them.",
     path: "components/kit/fee-explainer/fee-explainer.tsx",
     usage: `<FeeExplainer
   feeUsd={0.0021}
@@ -351,13 +351,13 @@ export const registry: RegistryEntry[] = [
   speedOptions={speedOptions}
   congested={congested}
 />`,
-    note: "Costs round UP, never to nearest, and the displayed total is the sum of the rounded parts — so the breakdown always reconciles with the headline. Nothing unknown renders as a number: a null or NaN shows “—”, never “$0.00”. Pass `extraCosts` for account rent or tips, otherwise the headline understates a first-time token transfer by ~270× (ATA rent is ~0.00204 SOL against a ~$0.001 fee).",
+    note: "Costs round UP, never to nearest, and the displayed total is the sum of the rounded parts - so the breakdown always reconciles with the headline. Nothing unknown renders as a number: a null or NaN shows “-”, never “$0.00”. Pass `extraCosts` for account rent or tips, otherwise the headline understates a first-time token transfer by ~270× (ATA rent is ~0.00204 SOL against a ~$0.001 fee).",
     props: [
       {
         name: "feeUsd",
         type: "number",
         description:
-          "Total cost in USD — the primary figure everywhere. Omit for the unavailable fallback.",
+          "Total cost in USD - the primary figure everywhere. Omit for the unavailable fallback.",
       },
       {
         name: "feeSol",
@@ -397,13 +397,13 @@ export const registry: RegistryEntry[] = [
         name: "speedOptions",
         type: "FeeSpeedOption[]",
         description:
-          "{ speed, label, feeUsd, confirmTime } per tier — each option shows its own cost and time.",
+          "{ speed, label, feeUsd, confirmTime } per tier - each option shows its own cost and time.",
       },
       {
         name: "extraCosts",
         type: "{ label, usd?, sol?, hint? }[]",
         description:
-          "Costs beyond the network fee — account rent, bundle tips. When present the headline becomes the total the user actually pays and the label defaults to “Estimated cost”. Creating an associated token account costs ~0.00204 SOL, which dwarfs the fee itself.",
+          "Costs beyond the network fee - account rent, bundle tips. When present the headline becomes the total the user actually pays and the label defaults to “Estimated cost”. Creating an associated token account costs ~0.00204 SOL, which dwarfs the fee itself.",
       },
       {
         name: "congested",
@@ -452,7 +452,7 @@ export const registry: RegistryEntry[] = [
   showExplorer
   onCopy={(addr) => track("copy", addr)}
 />`,
-    note: "Copy always writes the full base58 address (with a clipboard fallback for insecure contexts and a visible failure state), never the shortened form. `kind` defaults to “unknown” — trust is opt-in; declare “wallet” explicitly to drop the badge. The chip and short form are visual anchors, not identity checks: distinct addresses can share a prefix/suffix (address-poisoning grinds exactly that), so verify by copying the full string. Malformed input renders an “Invalid address” affordance rather than a broken link.",
+    note: "Copy always writes the full base58 address (with a clipboard fallback for insecure contexts and a visible failure state), never the shortened form. `kind` defaults to “unknown” - trust is opt-in; declare “wallet” explicitly to drop the badge. The chip and short form are visual anchors, not identity checks: distinct addresses can share a prefix/suffix (address-poisoning grinds exactly that), so verify by copying the full string. Malformed input renders an “Invalid address” affordance rather than a broken link.",
     props: [
       {
         name: "address",
@@ -463,21 +463,21 @@ export const registry: RegistryEntry[] = [
         name: "name",
         type: "string",
         description:
-          "Known label — a .sol domain, a program name — shown in place of the truncated address, which drops to the secondary line.",
+          "Known label - a .sol domain, a program name - shown in place of the truncated address, which drops to the secondary line.",
       },
       {
         name: "kind",
         type: '"wallet" | "program" | "token" | "unknown"',
         default: '"unknown"',
         description:
-          "Programs and token mints get an amber cautionary badge and a shield glyph so they aren't mistaken for a personal wallet; unknown shows “Unverified”. Caller-supplied — not verified by the component.",
+          "Programs and token mints get an amber cautionary badge and a shield glyph so they aren't mistaken for a personal wallet; unknown shows “Unverified”. Caller-supplied - not verified by the component.",
       },
       {
         name: "chars",
         type: "number",
         default: "6",
         description:
-          "Characters shown on each side of the ellipsis. Clamped to a floor of 4 — lower lets distinct addresses render identically.",
+          "Characters shown on each side of the ellipsis. Clamped to a floor of 4 - lower lets distinct addresses render identically.",
       },
       {
         name: "onCopyError",
@@ -511,7 +511,7 @@ export const registry: RegistryEntry[] = [
         name: "loading",
         type: "boolean",
         default: "false",
-        description: "Identity still resolving — shows a skeleton.",
+        description: "Identity still resolving - shows a skeleton.",
       },
       {
         name: "variant",
@@ -535,7 +535,7 @@ export const registry: RegistryEntry[] = [
   secondaryAction={{ label: "Switch endpoint", onClick: pickRpc }}
   busy={retrying}
 />`,
-    note: "STATE_PRESETS ships end-user copy for rpcDown, rateLimited, wrongNetwork, noTokens, noTransactions and notConnected — spread one and add handlers. Congestion is deliberately not here: the kit models a busy network as FeeExplainer's inline banner, not a full-screen dead-end. The error tone is a muted coral, never alarm-red, and can reveal the raw error under “technical details”. `busy` shows a spinner and keeps the action's own label (or its busyLabel) — never a baked-in “Retrying…”.",
+    note: "STATE_PRESETS ships end-user copy for rpcDown, rateLimited, wrongNetwork, noTokens, noTransactions and notConnected - spread one and add handlers. Congestion is deliberately not here: the kit models a busy network as FeeExplainer's inline banner, not a full-screen dead-end. The error tone is a muted coral, never alarm-red, and can reveal the raw error under “technical details”. `busy` shows a spinner and keeps the action's own label (or its busyLabel) - never a baked-in “Retrying…”.",
     props: [
       {
         name: "title",
@@ -558,13 +558,13 @@ export const registry: RegistryEntry[] = [
         type: '"neutral" | "brand" | "warning" | "error"',
         default: '"neutral"',
         description:
-          "Tints the icon. Brand is the inviting emerald for a call-to-action like connect-wallet; error is a muted coral. Announcements are always polite — the full-screen visual carries the urgency.",
+          "Tints the icon. Brand is the inviting emerald for a call-to-action like connect-wallet; error is a muted coral. Announcements are always polite - the full-screen visual carries the urgency.",
       },
       {
         name: "action",
         type: "{ label, onClick?, href?, busyLabel?, newTab? }",
         description:
-          "Primary way forward — a button, or a link when href is set (external URLs get a ↗ and open a new tab; override with newTab). onClick fires alongside navigation. Rendered only if it can actually do something.",
+          "Primary way forward - a button, or a link when href is set (external URLs get a ↗ and open a new tab; override with newTab). onClick fires alongside navigation. Rendered only if it can actually do something.",
       },
       {
         name: "secondaryAction",
@@ -576,13 +576,13 @@ export const registry: RegistryEntry[] = [
         type: "boolean",
         default: "false",
         description:
-          "Spinner on the primary action, keeping its own label (or busyLabel); disables it while in flight. A link stays a link — it never becomes a dead button.",
+          "Spinner on the primary action, keeping its own label (or busyLabel); disables it while in flight. A link stays a link - it never becomes a dead button.",
       },
       {
         name: "errorDetail",
         type: "string",
         description:
-          "Error tone only — the raw error, revealed under a collapsible “technical details” like TransactionStatus.",
+          "Error tone only - the raw error, revealed under a collapsible “technical details” like TransactionStatus.",
       },
       {
         name: "headingLevel",
@@ -595,7 +595,7 @@ export const registry: RegistryEntry[] = [
         type: "boolean",
         default: "false",
         description:
-          "Move focus to the primary action on mount — for post-error screens, matching TransactionStatus's autoFocusRetry.",
+          "Move focus to the primary action on mount - for post-error screens, matching TransactionStatus's autoFocusRetry.",
       },
       {
         name: "compact",
@@ -621,7 +621,7 @@ export const registry: RegistryEntry[] = [
   onSign={() => signIn()}   // omit status="signing" to skip SIWS
   onDisconnect={() => disconnect()}
 />`,
-    note: "Dropdown vs Modal: this anchored flow owns the trigger and becomes the connected chip — pick it when connect lives in your navbar. Pick the modal when connect is triggered from arbitrary places, or when the trigger sits inside an overflow-hidden container (this panel doesn't portal).",
+    note: "Dropdown vs Modal: this anchored flow owns the trigger and becomes the connected chip - pick it when connect lives in your navbar. Pick the modal when connect is triggered from arbitrary places, or when the trigger sits inside an overflow-hidden container (this panel doesn't portal).",
     props: [
       {
         name: "wallets",
@@ -633,7 +633,7 @@ export const registry: RegistryEntry[] = [
         name: "status",
         type: '"disconnected" | "connecting" | "signing" | "rejected" | "connected"',
         description:
-          "Wallet lifecycle, driven by your adapter calls. The signing step is optional — never set it if your dApp doesn't use sign-in-with-Solana.",
+          "Wallet lifecycle, driven by your adapter calls. The signing step is optional - never set it if your dApp doesn't use sign-in-with-Solana.",
       },
       {
         name: "onSelectWallet",
@@ -666,7 +666,7 @@ export const registry: RegistryEntry[] = [
       {
         name: "address",
         type: "string",
-        description: "Connected address — shown in the success beat and the chip.",
+        description: "Connected address - shown in the success beat and the chip.",
       },
       {
         name: "connectedWalletId",
@@ -703,7 +703,7 @@ export const registry: RegistryEntry[] = [
     slug: "connect-wallet-modal",
     category: "Connection",
     description:
-      "For triggering connect from anywhere: a centered, focus-trapped modal — wallet selection, connecting, rejected, connected. Detected wallets first, install links for the rest.",
+      "For triggering connect from anywhere: a centered, focus-trapped modal - wallet selection, connecting, rejected, connected. Detected wallets first, install links for the rest.",
     path: "components/kit/connect-wallet-modal/connect-wallet-modal.tsx",
     usage: `<ConnectWalletModal
   open={open}
@@ -715,7 +715,7 @@ export const registry: RegistryEntry[] = [
   termsUrl="/terms"
   privacyUrl="/privacy"
 />`,
-    note: "Dropdown vs Modal: this centered modal portals to document.body and locks scroll — pick it when connect is triggered from arbitrary places. Pick the anchored ConnectWallet when connect lives in your navbar and you want the trigger-to-chip morph.",
+    note: "Dropdown vs Modal: this centered modal portals to document.body and locks scroll - pick it when connect is triggered from arbitrary places. Pick the anchored ConnectWallet when connect lives in your navbar and you want the trigger-to-chip morph.",
     props: [
       {
         name: "open",
@@ -744,7 +744,7 @@ export const registry: RegistryEntry[] = [
         name: "connectedWalletId",
         type: "string",
         description:
-          "Badges this wallet “Connected” in the list — for reopening the modal to switch wallets.",
+          "Badges this wallet “Connected” in the list - for reopening the modal to switch wallets.",
       },
       {
         name: "termsUrl",
@@ -789,7 +789,7 @@ export function getEntry(slug: string): RegistryEntry | undefined {
   return registry.find((e) => e.slug === slug);
 }
 
-/** Sidebar group order — the single source of truth for how components are
+/** Sidebar group order - the single source of truth for how components are
  *  ordered across the sidebar, the landing filters, and the prev/next pager. */
 export const GROUP_ORDER = ["Transactions", "Inputs", "Connection", "Feedback"];
 

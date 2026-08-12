@@ -2,7 +2,7 @@ import { GITHUB_URL } from "./site";
 
 /**
  * Fetch the repo's star count (server-side, revalidated hourly). Returns null
- * on any failure — offline, rate-limited, private repo — so callers can just
+ * on any failure - offline, rate-limited, private repo - so callers can just
  * hide the count rather than error.
  */
 export async function getStars(): Promise<number | null> {

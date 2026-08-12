@@ -3,7 +3,7 @@
  *
  * SOL and USDC come from the Solana Labs token list (keyed by mint); BONK
  * from its on-chain metadata image on Arweave. Inlined so the docs demo has
- * no network dependency — a real integration passes a URL straight from a
+ * no network dependency - a real integration passes a URL straight from a
  * token list (Jupiter, Solana token list) into TokenInfo.icon.
  *
  * Logos are trademarks of their respective projects, used nominatively to

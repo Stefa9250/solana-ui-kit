@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * TokenAmountInput — Solana UI Kit
+ * TokenAmountInput - Solana UI Kit
  *
  * The boring-but-critical parts of a token amount field, done properly:
  * per-token decimal caps, exact base-unit comparison and MAX arithmetic,
- * a MAX that leaves rent behind, and a calm correction — not a red alarm —
+ * a MAX that leaves rent behind, and a calm correction - not a red alarm -
  * when the amount is too large.
  *
  * Exactness, precisely scoped: every comparison, MAX subtraction and balance
  * check runs on BigInt base units and truncates, never rounds, so MAX can
- * never exceed the real balance. The USD conversion is float maths — it is a
+ * never exceed the real balance. The USD conversion is float maths - it is a
  * display estimate only and never decides validity. Pass `balance`/`price` as
  * strings to avoid the precision loss a JS number has above 2^53 raw units.
  *
@@ -50,9 +50,9 @@ import { ArrowUpDown, Check, ChevronDown } from "lucide-react";
 export interface TokenInfo {
   symbol: string;
   name?: string;
-  /** Mint address. Symbols are not unique on Solana — key lists on this. */
+  /** Mint address. Symbols are not unique on Solana - key lists on this. */
   mint?: string;
-  /** On-chain decimals — SOL 9, USDC 6, BONK 5. Caps what can be typed. */
+  /** On-chain decimals - SOL 9, USDC 6, BONK 5. Caps what can be typed. */
   decimals: number;
   /** Logo URL or data URI. Falls back to a colored initial. */
   icon?: string;
@@ -78,7 +78,7 @@ export interface TokenAmountValidity {
 
 export interface TokenAmountInputProps {
   token: TokenInfo;
-  /** Human-unit balance. Prefer a string — a number loses bits above 2^53. */
+  /** Human-unit balance. Prefer a string - a number loses bits above 2^53. */
   balance?: number | string;
   /** USD price per whole token. Display only; never decides validity. */
   price?: number | string;
@@ -89,7 +89,7 @@ export interface TokenAmountInputProps {
   onMax?: (value: string) => void;
   /** Fired when the amount's validity changes, so a parent can gate submit. */
   onValidityChange?: (validity: TokenAmountValidity) => void;
-  /** Balance/price still fetching — shows skeletons, input disabled. */
+  /** Balance/price still fetching - shows skeletons, input disabled. */
   loading?: boolean;
   disabled?: boolean;
   /** Field label (visible). Defaults to "Amount". */
@@ -131,8 +131,8 @@ function sanitizeCore(input: string, decimals: number): string {
 }
 
 /**
- * Normalizes anything a parent might hand us — exponential notation, a
- * pre-formatted "1,234", stray characters — into a plain decimal string.
+ * Normalizes anything a parent might hand us - exponential notation, a
+ * pre-formatted "1,234", stray characters - into a plain decimal string.
  * Commas are treated as grouping here; negatives are rejected outright.
  */
 function normalizeAmount(raw: string, decimals: number): string {
@@ -144,7 +144,7 @@ function normalizeAmount(raw: string, decimals: number): string {
 
 /**
  * Sanitizes what a user typed. Unlike the prop path, a lone comma is read as
- * a decimal separator when it can't be a thousands mark — on most non-US
+ * a decimal separator when it can't be a thousands mark - on most non-US
  * keypads the decimal key emits "," and silently turning "1,5" into 15 is a
  * 10x overspend. A comma followed by exactly three digits is still grouping.
  */
@@ -198,7 +198,7 @@ function fromBaseUnits(v: bigint, decimals: number): string {
 
 /**
  * Strings go straight through (exact). Numbers get extra digits from toFixed
- * and are then truncated — toFixed(decimals) alone rounds half-up, which can
+ * and are then truncated - toFixed(decimals) alone rounds half-up, which can
  * produce a MAX one base unit larger than the balance actually holds.
  */
 function amountToBaseUnits(
@@ -232,7 +232,7 @@ function formatUsd(v: number): string {
   });
 }
 
-/** Truncates at the display cap — rounding up would overstate a balance. */
+/** Truncates at the display cap - rounding up would overstate a balance. */
 function formatBaseUnits(v: bigint, decimals: number, maxFrac = 6): string {
   const full = fromBaseUnits(v, decimals);
   const [int, frac] = full.split(".");
@@ -457,7 +457,7 @@ export function TokenAmountInput({
   useEffect(() => {
     const clamped = normalizeAmount(value, decimals);
     if (clamped !== value) onChange(clamped);
-    // Only when the token's precision changes — not on every keystroke.
+    // Only when the token's precision changes - not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decimals]);
 
@@ -720,7 +720,7 @@ export function TokenAmountInput({
                 {tokenPill}
               </button>
             ) : (
-              // Static, not a disabled button — a lone token must not read as
+              // Static, not a disabled button - a lone token must not read as
               // a greyed-out control.
               <div className="flex items-center gap-2 border border-[var(--sk-border,#22262f)] bg-[var(--sk-card,#13161b)] py-1.5 pl-2 pr-2.5">
                 {tokenPill}
@@ -775,7 +775,7 @@ export function TokenAmountInput({
             />
           ) : (
             secondaryText && (
-              // Only animates on discrete events — ticking on every keystroke
+              // Only animates on discrete events - ticking on every keystroke
               // made the figure twitch continuously while typing.
               <span
                 className={`text-[13px] tabular-nums text-[var(--sk-text-tertiary,#94969c)] ${
@@ -804,7 +804,7 @@ export function TokenAmountInput({
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[var(--sk-warning,#e8b562)]">
               <span>
                 {insufficient
-                  ? `You only have ${balanceText ?? "—"}`
+                  ? `You only have ${balanceText ?? "-"}`
                   : `Leaves nothing for network fees`}
               </span>
               {maxText !== null && maxBase !== BigInt(0) && (
@@ -832,7 +832,7 @@ export function TokenAmountInput({
               <span className="text-[var(--sk-text-tertiary,#94969c)]">
                 Balance:{" "}
                 <span className="tabular-nums text-[var(--sk-text-secondary,#cecfd2)]">
-                  {balanceText ?? "—"}
+                  {balanceText ?? "-"}
                 </span>
               </span>
             )}

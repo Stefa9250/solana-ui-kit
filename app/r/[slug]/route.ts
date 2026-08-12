@@ -6,11 +6,11 @@ import { guidance } from "@/lib/guidance";
 
 /**
  * Component distribution endpoints:
- *   /r/<slug>.json  — a shadcn-compatible registry item, so
+ *   /r/<slug>.json  - a shadcn-compatible registry item, so
  *                     `npx shadcn@latest add <origin>/r/<slug>.json` works.
- *   /r/<slug>.md    — a plain-markdown doc (title, when-to-use, props, source)
+ *   /r/<slug>.md    - a plain-markdown doc (title, when-to-use, props, source)
  *                     for LLMs / agents and copy-paste-first developers.
- *   /r/<slug>       — same as .json.
+ *   /r/<slug>       - same as .json.
  */
 
 export function generateStaticParams() {
@@ -42,7 +42,7 @@ export async function GET(
 
   const source = await readSource(entry.path);
   if (source === null) {
-    // The component is registered but its file couldn't be read — a server
+    // The component is registered but its file couldn't be read - a server
     // problem, not a missing route.
     return NextResponse.json(
       { error: "Component source could not be read" },
@@ -71,7 +71,7 @@ export async function GET(
     lines.push("## Props", "");
     entry.props.forEach((p) => {
       lines.push(
-        `- \`${p.name}\`: \`${p.type}\`${p.default ? ` (default \`${p.default}\`)` : ""} — ${p.description}`,
+        `- \`${p.name}\`: \`${p.type}\`${p.default ? ` (default \`${p.default}\`)` : ""} - ${p.description}`,
       );
     });
     // Use a fence longer than any backtick run in the source so a component

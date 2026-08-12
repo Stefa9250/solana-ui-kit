@@ -3,7 +3,7 @@
 /**
  * Docs demo for TransactionStatus. Cycles every state, simulating the bursty
  * counts a real getSignatureStatuses polling loop delivers (signatureSubscribe
- * fires once at a commitment — it can't feed a count; see the README).
+ * fires once at a commitment - it can't feed a count; see the README).
  * Not part of the copy-paste component.
  */
 
@@ -16,7 +16,7 @@ import {
 } from "./transaction-status";
 import { DemoStage } from "@/components/docs/demo-stage";
 
-// Anchor custom errors are program-specific — this maps Jupiter's 6001
+// Anchor custom errors are program-specific - this maps Jupiter's 6001
 // (0x1771). Integrators pass their own program's rules the same way.
 const DEMO_ERROR_MAP: TransactionStatusErrorRule[] = [
   {
@@ -42,28 +42,28 @@ const SCENARIOS: DemoScenario[] = [
   { label: "Confirming", status: "confirming" },
   { label: "Confirmed", status: "confirmed" },
   {
-    label: "Failed — slippage",
+    label: "Failed - slippage",
     status: "failed",
     // Post-send failures arrive as objects with decimal codes; the component
     // appends the hex form so the 0x1771 rule still matches.
     error: '{"InstructionError":[0,{"Custom":6001}]}',
   },
-  { label: "Failed — no SOL", status: "failed", error: "insufficient lamports for fee" },
+  { label: "Failed - no SOL", status: "failed", error: "insufficient lamports for fee" },
   {
-    label: "Failed — no prior credit",
+    label: "Failed - no prior credit",
     status: "failed",
     error:
       "Transaction simulation failed: Attempt to debit an account but found no record of a prior credit.",
   },
   {
-    label: "Failed — expired",
+    label: "Failed - expired",
     status: "failed",
     error:
       "TransactionExpiredBlockheightExceededError: Signature 2ZE7…YeUf has expired: block height exceeded.",
   },
-  { label: "Failed — rejected", status: "failed", error: "user rejected the request" },
+  { label: "Failed - rejected", status: "failed", error: "user rejected the request" },
   {
-    label: "Failed — unknown",
+    label: "Failed - unknown",
     status: "failed",
     error: "Program failed: custom program error: 0x64a2",
   },

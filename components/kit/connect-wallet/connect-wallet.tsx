@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ConnectWallet — Solana UI Kit
+ * ConnectWallet - Solana UI Kit
  *
  * The full connect flow in one piece: a trigger button, an anchored panel
  * that morphs through wallet list → connecting → (optional) sign-in-with-
@@ -10,7 +10,7 @@
  * Dependencies: React, Tailwind CSS, lucide-react.
  *
  * Positioning: the panel is absolutely positioned inside the trigger's
- * wrapper (no portal), so an `overflow: hidden` ancestor will clip it —
+ * wrapper (no portal), so an `overflow: hidden` ancestor will clip it -
  * keep the trigger out of clipping containers, or use ConnectWalletModal.
  *
  * Theming: every color is a CSS variable with the kit's dark-emerald default
@@ -27,7 +27,7 @@
  * />
  *
  * The signing step is optional: if your dApp doesn't use sign-in-with-Solana,
- * simply never set status="signing" — go connecting → connected directly.
+ * simply never set status="signing" - go connecting → connected directly.
  */
 
 import {
@@ -60,7 +60,7 @@ export interface WalletOption {
   /**
    * Builds this wallet's mobile deeplink from the current dApp URL. On a phone,
    * an undetected wallet with a deeplink shows "Open ↗" instead of a dead-end
-   * install link — tapping it opens your site inside the wallet's in-app
+   * install link - tapping it opens your site inside the wallet's in-app
    * browser, where the provider is injected and the normal flow takes over.
    * Phantom and Solflare are recognised by name for free; supply this for
    * other wallets (e.g. (url) => `mywallet://browse/${encodeURIComponent(url)}`).
@@ -96,7 +96,7 @@ export interface ConnectWalletProps {
   errorMap?: ConnectWalletErrorRule[];
   /** Which wallet is mid-flow, when driven externally. */
   selectedWalletId?: string;
-  /** Connected address (full base58 is fine — truncated for display). */
+  /** Connected address (full base58 is fine - truncated for display). */
   address?: string;
   /** Badge this wallet "Connected" in the list; also drives the chip glyph. */
   connectedWalletId?: string;
@@ -169,7 +169,7 @@ function detectPlatform(): Platform {
 /**
  * Built-in "open this dApp in the wallet's in-app browser" universal links.
  * Inside that browser the wallet injects its provider, so the ordinary
- * detected-wallet flow connects — no per-wallet crypto handshake needed here.
+ * detected-wallet flow connects - no per-wallet crypto handshake needed here.
  */
 const KNOWN_BROWSE_LINKS: { match: RegExp; build: (url: string) => string }[] = [
   {
@@ -204,7 +204,7 @@ function usePlatform(): Platform {
   );
 }
 
-/** SSR-safe "am I on the client" — portals can't render on the server. */
+/** SSR-safe "am I on the client" - portals can't render on the server. */
 function useMounted(): boolean {
   return useSyncExternalStore(
     () => () => {},
@@ -352,7 +352,7 @@ const KEYFRAMES = `
 
 /**
  * Wallet avatar framed by a square outline with a segment tracing its
- * perimeter — the loader follows the icon's shape (and matches the
+ * perimeter - the loader follows the icon's shape (and matches the
  * block-trace language used by TransactionStatus).
  */
 function SpinnerAvatar({ wallet }: { wallet?: WalletOption }) {
@@ -461,7 +461,7 @@ export function ConnectWallet({
   const focusTriggerRef = useRef<() => void>(() => {});
   useEffect(() => {
     closeRef.current = () => setOpen(false);
-    // The trigger node swaps between button and chip — focus whichever
+    // The trigger node swaps between button and chip - focus whichever
     // exists when the panel actually closes, not a stale capture.
     focusTriggerRef.current = () => triggerRef.current?.focus();
   });
@@ -857,7 +857,7 @@ export function ConnectWallet({
                   </div>
                   <div className="text-[12px] leading-relaxed text-[var(--sk-text-tertiary,#94969c)]">
                     A wallet is a browser extension that holds your keys and
-                    approves transactions — install one to continue.
+                    approves transactions - install one to continue.
                   </div>
                   <div className="mt-1 flex flex-wrap justify-center gap-2">
                     {wallets.map((w) => (

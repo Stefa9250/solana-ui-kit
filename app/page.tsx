@@ -18,7 +18,7 @@ const PROOF = [
   },
   {
     title: "Amounts stay exact",
-    body: "Token values keep full precision — no bits lost above 2^53, ever.",
+    body: "Token values keep full precision - no bits lost above 2^53, ever.",
   },
   {
     title: "Poisoning is flagged",
@@ -44,7 +44,7 @@ export default function Home() {
               <span className="font-medium text-[#f7f7f7]">
                 Wallet kits get you connected.
               </span>{" "}
-              Then you&apos;re on your own — building transaction status, signing
+              Then you&apos;re on your own - building transaction status, signing
               previews, fee explainers, and error states from scratch. This is
               that layer.
             </p>
@@ -53,7 +53,7 @@ export default function Home() {
 
         <ComponentsShowcase />
 
-        {/* Proof of rigor — the defaults are the selling point. */}
+        {/* Proof of rigor - the defaults are the selling point. */}
         <section className="px-5 py-16 sm:px-8 sm:py-20">
           <div className="mx-auto flex max-w-6xl flex-col gap-8">
             <div className="flex flex-col gap-3">
@@ -64,7 +64,7 @@ export default function Home() {
                 The defaults are the point.
               </h2>
               <p className="max-w-lg text-[14px] leading-relaxed text-[#94969c]">
-                The details that quietly protect users — the ones you&apos;d only
+                The details that quietly protect users - the ones you&apos;d only
                 learn by shipping and getting burned.
               </p>
             </div>
@@ -98,7 +98,7 @@ export default function Home() {
               </h2>
               <p className="max-w-lg text-[15px] leading-relaxed text-[#94969c]">
                 Copy a file, or pull it with the shadcn CLI. Either way it lives in
-                your repo — retheme it, fork it, keep it.
+                your repo - retheme it, fork it, keep it.
               </p>
 
               <div className="flex max-w-xl items-center gap-3 rounded-lg border border-[#22262f] bg-[#0a0c10] px-4 py-3">

@@ -1,9 +1,9 @@
 /**
- * Mock wallet layer — stands in for @solana/wallet-adapter so the demo works
+ * Mock wallet layer - stands in for @solana/wallet-adapter so the demo works
  * standalone. The modal only needs a wallet list and a connect() promise;
  * swap the internals below and the UI doesn't change.
  *
- * Real integration sketch (inside a React component — hooks can't be called
+ * Real integration sketch (inside a React component - hooks can't be called
  * from plain functions like the ones below):
  *
  *   import { useWallet } from "@solana/wallet-adapter-react";
@@ -18,7 +18,7 @@
  *     installUrl: w.adapter.url,
  *   }));
  *   // on select: select(walletName); await connect();
- *   // then read publicKey.toBase58() — connect() itself returns void.
+ *   // then read publicKey.toBase58() - connect() itself returns void.
  */
 
 import type { WalletOption } from "./connect-wallet-modal";

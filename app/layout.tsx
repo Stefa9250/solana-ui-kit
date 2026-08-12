@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "Solana UI Kit — the missing UX layer for Solana dApps";
+const TITLE = "Solana UI Kit - the missing UX layer for Solana dApps";
 const DESCRIPTION =
   "Copy-paste React components for the moments after the click: transaction status, signing review, wallet connect, fees, and error states. Dark-mode first, accessible, MIT.";
 

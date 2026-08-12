@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * AddressDisplay — Solana UI Kit
+ * AddressDisplay - Solana UI Kit
  *
  * Shows a Solana address the way a dApp should: middle-truncated, with a
  * deterministic monogram chip, one-tap copy of the FULL address (never the
@@ -11,7 +11,7 @@
  *
  * Two safety stances, both deliberate:
  *   1. `kind` defaults to "unknown", not "wallet". An unclassified address is
- *      shown as Unverified — you must explicitly declare it a wallet before it
+ *      shown as Unverified - you must explicitly declare it a wallet before it
  *      loses its badge. Trust is opt-in.
  *   2. The chip and short form are visual anchors, NOT identity checks. Two
  *      addresses can share a prefix/suffix (address-poisoning attacks grind
@@ -19,7 +19,7 @@
  *      verification path is Copy → paste the full string.
  *
  * Honesty note: `kind` is whatever you pass. The badge does not mean the
- * component checked the chain — resolve it with getAccountInfo → executable
+ * component checked the chain - resolve it with getAccountInfo → executable
  * and pass the result in.
  *
  * Self-contained: copy this file into your project.
@@ -46,16 +46,16 @@ export type SolanaCluster = "mainnet-beta" | "devnet" | "testnet";
 export interface AddressDisplayProps {
   /** Full base58 address. Truncated for display; copied in full. */
   address: string;
-  /** Known label — a .sol domain, a program name ("Jupiter"), etc. */
+  /** Known label - a .sol domain, a program name ("Jupiter"), etc. */
   name?: string;
   /**
    * What kind of account this is. Defaults to "unknown" (shown Unverified);
    * declare "wallet" explicitly to drop the badge. Programs and token mints
-   * get a cautionary badge. Caller-supplied — not verified by the component.
+   * get a cautionary badge. Caller-supplied - not verified by the component.
    */
   kind?: AddressKind;
   /** Characters shown on each side of the ellipsis (default 6). Low values
-   *  let distinct addresses render identically — don't go below 4. */
+   *  let distinct addresses render identically - don't go below 4. */
   chars?: number;
   /** Explorer links point at this cluster (default mainnet-beta). */
   cluster?: SolanaCluster;
@@ -71,7 +71,7 @@ export interface AddressDisplayProps {
   onCopy?: (address: string) => void;
   /** Called if the copy failed (blocked clipboard, insecure context). */
   onCopyError?: () => void;
-  /** Identity still resolving — shows a skeleton. */
+  /** Identity still resolving - shows a skeleton. */
   loading?: boolean;
   /** "inline" is a compact chip; "card" is a padded row with the name/kind. */
   variant?: "inline" | "card";
@@ -90,7 +90,7 @@ function normalizeAddress(raw: string): { address: string; valid: boolean } {
   return { address, valid: BASE58_RE.test(address) };
 }
 
-/** Deterministic 32-bit hash (FNV-1a). Total — never throws on any string. */
+/** Deterministic 32-bit hash (FNV-1a). Total - never throws on any string. */
 function hashAddress(s: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) {
@@ -133,8 +133,8 @@ const KIND_BADGE: Record<
   Exclude<AddressKind, "wallet">,
   { label: string; warn: boolean }
 > = {
-  // Both program and mint are cautionary — sending funds to either is a
-  // footgun — so both are amber; only the label distinguishes them.
+  // Both program and mint are cautionary - sending funds to either is a
+  // footgun - so both are amber; only the label distinguishes them.
   program: { label: "Program", warn: true },
   token: { label: "Token mint", warn: true },
   unknown: { label: "Unverified", warn: false },
@@ -153,7 +153,7 @@ async function copyText(text: string): Promise<boolean> {
   try {
     const ta = document.createElement("textarea");
     ta.value = text;
-    // Kept tiny and on-screen rather than opacity:0 — iOS can suppress
+    // Kept tiny and on-screen rather than opacity:0 - iOS can suppress
     // selection on fully transparent nodes. 16px font avoids focus-zoom.
     ta.style.position = "fixed";
     ta.style.top = "0";
@@ -214,7 +214,7 @@ const KEYFRAMES = `
 `;
 
 /**
- * Monogram chip — a flat solid-color glyph with a letterform, matching the
+ * Monogram chip - a flat solid-color glyph with a letterform, matching the
  * kit's WalletGlyph / TokenGlyph idiom. It's a visual anchor, not an identity
  * checksum: derive one hue from the hash and keep it flat (no gradient).
  */
@@ -229,7 +229,7 @@ function Glyph({
   kind: AddressKind;
   size: number;
 }) {
-  // Programs and mints are not people — show the caution glyph, not a chip.
+  // Programs and mints are not people - show the caution glyph, not a chip.
   if (kind === "program" || kind === "token") {
     return (
       <span
@@ -283,7 +283,7 @@ export function AddressDisplay({
   useKitStyles(STYLE_ID, KEYFRAMES);
 
   // A copy confirmation must never outlive the value it referred to
-  // (render-phase reset — https://react.dev/learn/you-might-not-need-an-effect).
+  // (render-phase reset - https://react.dev/learn/you-might-not-need-an-effect).
   if (rawAddress !== prevAddress) {
     setPrevAddress(rawAddress);
     if (status !== "idle") setStatus("idle");
@@ -329,7 +329,7 @@ export function AddressDisplay({
         status === "copied"
           ? "Address copied"
           : status === "error"
-            ? "Copy failed — select the address manually"
+            ? "Copy failed - select the address manually"
             : "Copy full address"
       }
       className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--sk-text-tertiary,#94969c)] transition-colors duration-150 hover:text-[var(--sk-text,#f7f7f7)] focus-visible:outline-2 focus-visible:outline-[var(--sk-accent,#34d399)] focus-visible:outline-offset-2 active:scale-[0.97]"
@@ -351,7 +351,7 @@ export function AddressDisplay({
     <span
       title={
         badge.warn
-          ? "Caller-asserted account type — not verified on-chain"
+          ? "Caller-asserted account type - not verified on-chain"
           : undefined
       }
       className={`inline-flex items-center gap-1 border px-1.5 py-0.5 text-[11px] font-semibold ${
@@ -365,7 +365,7 @@ export function AddressDisplay({
     </span>
   );
 
-  // Screen readers get name, kind, and the full address as one token — then
+  // Screen readers get name, kind, and the full address as one token - then
   // Copy is the exact-verification path. (Reading 44 chars one-by-one can't
   // convey base58 case anyway, so it isn't offered as a false guarantee.)
   const srLabel = valid
@@ -385,7 +385,7 @@ export function AddressDisplay({
   );
 
   // When copy fails (insecure context, denied permission, old webview) the
-  // guidance is "select the address manually" — so give touch users the full
+  // guidance is "select the address manually" - so give touch users the full
   // base58 as actually-selectable text, since only the truncated form shows.
   const copyFallback = status === "error" && valid && (
     <span
@@ -450,7 +450,7 @@ export function AddressDisplay({
           title={address}
           className="font-mono text-[13px] text-[var(--sk-text,#f7f7f7)]"
         >
-          {/* Name is verifiable at a glance — the short address rides along so
+          {/* Name is verifiable at a glance - the short address rides along so
               a spoofed .sol can't hide behind a name with no address shown. */}
           {name ? (
             <>

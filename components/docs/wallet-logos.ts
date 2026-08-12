@@ -2,7 +2,7 @@
  * Official wallet icons as data URIs, extracted from each wallet's own
  * adapter (@solana/wallet-adapter-wallets packages; Backpack's
  * wallet-standard registration). In a real integration you get these
- * for free via wallet.adapter.icon — this file exists so the docs
+ * for free via wallet.adapter.icon - this file exists so the docs
  * demos can show real logos without those dependencies.
  */
 

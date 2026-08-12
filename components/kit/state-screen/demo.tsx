@@ -3,7 +3,7 @@
 /**
  * Docs demo for StateScreen. Buttons switch between the shipped presets;
  * "RPC down" wires a real retry with a busy spinner and a technical-detail
- * view. (Network congestion is intentionally NOT here — the kit models that
+ * view. (Network congestion is intentionally NOT here - the kit models that
  * as FeeExplainer's inline banner, not a full-screen dead-end.)
  * Not part of the copy-paste component.
  */

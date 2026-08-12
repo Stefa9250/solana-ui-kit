@@ -62,7 +62,7 @@ const WALLETS: WalletOption[] = [
   },
 ];
 const NONE_DETECTED = WALLETS.map((w) => ({ ...w, detected: false }));
-// Full base58 address — the components truncate for display themselves.
+// Full base58 address - the components truncate for display themselves.
 const ADDRESS = "GK7zVzHYf7hM4dQxkNvR8mW2jL5tYbAcD9eF6gHiJkMq";
 
 export default function ConnectWalletDemo() {
@@ -91,7 +91,7 @@ export default function ConnectWalletDemo() {
     setOpen(opts.open ?? true);
   };
 
-  // Mock wallet layer. TODO: swap for @solana/wallet-adapter —
+  // Mock wallet layer. TODO: swap for @solana/wallet-adapter -
   //   select(walletName); await connect(); then signIn() for SIWS.
   const handleSelectWallet = (wallet: WalletOption) => {
     const attempt = ++attemptRef.current;
