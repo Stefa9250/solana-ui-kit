@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { GITHUB_URL } from "@/lib/site";
 import { registry } from "@/lib/registry";
 import { OPEN_SEARCH_EVENT } from "./command-palette";
+import { Logo } from "./logo";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
 
@@ -31,8 +32,9 @@ export function LandingHeader() {
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link
             href="/"
-          className="rounded font-mono text-[13px] tracking-tight text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+          className="flex items-center gap-2 rounded font-mono text-[13px] tracking-tight text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
         >
+          <Logo className="h-[22px] w-auto" />
           <span className="sk-text-gradient font-semibold">Signet</span>
         </Link>
 

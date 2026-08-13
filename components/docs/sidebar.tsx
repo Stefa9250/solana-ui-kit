@@ -8,6 +8,7 @@ import { registry, GROUP_ORDER, type RegistryEntry } from "@/lib/registry";
 import { GITHUB_URL } from "@/lib/site";
 import { formatStars } from "@/lib/github";
 import { OPEN_SEARCH_EVENT } from "./command-palette";
+import { Logo } from "./logo";
 
 function buildGroups() {
   const known = new Set(GROUP_ORDER);
@@ -71,8 +72,9 @@ function Brand() {
   return (
     <Link
       href="/"
-      className="px-2 text-[14px] font-semibold tracking-[-0.01em] text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+      className="flex items-center gap-2 px-2 text-[14px] font-semibold tracking-[-0.01em] text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
     >
+      <Logo className="h-[18px] w-auto" />
       Signet
     </Link>
   );
