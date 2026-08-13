@@ -19,10 +19,10 @@ export function LandingHero() {
               <span className="sk-text-gradient">Sign.</span>
             </h1>
             <p className="sk-fade-up sk-d2 max-w-lg text-[15px] leading-relaxed text-[#94969c] sm:text-[16px]">
-              Copy-paste React components for the moments every Solana dApp gets
-              wrong - transaction status, signing review, wallet connect, fee
-              clarity, error states. Dark-mode first, accessible, animated. No
-              package. Copy the file, own the code.
+              Copy-paste React components for the part every Solana dApp fumbles
+              - transaction status, signing review, wallet connect, fees, error
+              states. Dark-mode first and accessible. No package. Copy the file,
+              you own the code.
             </p>
             <div className="sk-fade-up sk-d3 flex flex-col gap-3 sm:flex-row">
               <Link

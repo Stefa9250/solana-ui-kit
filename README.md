@@ -10,11 +10,11 @@ connection, fees, and the other high-anxiety seconds where trust is won or lost.
 - **Copy-paste, not a package.** Like shadcn/ui: you copy a component file into
   your project and own the code. No npm install, no versioning treadmill, no
   build step.
-- **Dark-mode first.** Designed for how dApps actually ship.
+- **Dark-mode first.** That's how dApps actually ship.
 - **Accessible.** Focus management, `aria-live` announcements, keyboard
   navigation, `prefers-reduced-motion` respected.
-- **Calm, purposeful motion.** 200–400ms transitions that explain state, not
-  decorate it.
+- **Motion that explains state.** 200–400ms transitions that show what changed
+  instead of decorating.
 - **Human-readable errors.** `0x1771` becomes "Price moved too much." - the raw
   error stays one click away under technical details.
 
@@ -46,12 +46,12 @@ There is nothing to install. Each component is a single self-contained file.
 | --- | --- |
 | [Transaction Status](components/kit/transaction-status/transaction-status.tsx) | Pending → confirming (`12 of 31`) → confirmed / failed, with mapped Solana errors, Solscan links, Retry, and a collapsible raw-error view. |
 | [Transaction Review](components/kit/transaction-review/transaction-review.tsx) | The pre-signature trust screen: a plain-language preview of net balance changes, fee, and warnings, with a safe/warn/block verdict that makes Reject prominent when a transaction is dangerous. |
-| [Token Amount Input](components/kit/token-amount-input/token-amount-input.tsx) | Exact per-token decimals, thousands separators as you type, USD ⇄ token toggle, MAX that reserves rent, and a calm insufficient-balance correction. |
+| [Token Amount Input](components/kit/token-amount-input/token-amount-input.tsx) | Exact per-token decimals, thousands separators as you type, USD ⇄ token toggle, MAX that reserves rent, and an insufficient-balance correction that fixes rather than scolds. |
 | [Address Display](components/kit/address-display/address-display.tsx) | Middle-truncated address with a deterministic avatar, full-address copy, and a program/token affordance so nobody sends funds into a program by mistake. Inline chip and card variants. |
-| [State Screen](components/kit/state-screen/state-screen.tsx) | The empty and error screens nobody designs - RPC down, no tokens, network congested, not connected. One calm layout, restrained tones, presets with copy written. |
-| [Fee Explainer](components/kit/fee-explainer/fee-explainer.tsx) | Priority fees in plain language - "~$0.002 · confirms in ~2s". Breakdown on demand, Normal/Fast/Turbo selector, calm congestion notice, and an honest fallback when the estimate is missing. |
+| [State Screen](components/kit/state-screen/state-screen.tsx) | The empty and error screens nobody designs - RPC down, no tokens, network congested, not connected. One layout, honest tones, presets with copy written. |
+| [Fee Explainer](components/kit/fee-explainer/fee-explainer.tsx) | Priority fees in plain language - "~$0.002 · confirms in ~2s". Breakdown on demand, Normal/Fast/Turbo selector, a congestion notice instead of an alarm, and an honest fallback when the estimate is missing. |
 | [Connect Wallet](components/kit/connect-wallet/connect-wallet.tsx) | The full connect flow: trigger button → anchored panel morphing through wallet list, connecting, optional sign-in-with-Solana, success → connected account chip. |
-| [Connect Wallet Modal](components/kit/connect-wallet-modal/connect-wallet-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, calm rejection, auto-dismiss. Focus-trapped and keyboard-friendly. |
+| [Connect Wallet Modal](components/kit/connect-wallet-modal/connect-wallet-modal.tsx) | The same states as a centered modal, for apps that prefer it. Wallet list (detected first), no-wallet empty state, connecting hint, a plain rejection state, auto-dismiss. Focus-trapped and keyboard-friendly. |
 
 Each component folder also contains its docs demo (`demo.tsx`) and, where
 useful, a mock layer (`mock-wallet.ts`) with `TODO` markers showing exactly
@@ -206,7 +206,7 @@ For a queue, render a list keyed by signature:
 **Commitment levels.** `confirmations` counting to 31 tracks finality, but
 most dApps treat the `confirmed` commitment (~1–2s) as success. If that's
 you, jump straight to `status="confirmed"` - or omit `confirmations` while
-confirming for a calm indeterminate bar.
+confirming for an indeterminate bar.
 
 ## Out of scope
 

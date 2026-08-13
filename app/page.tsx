@@ -6,6 +6,7 @@ import { CopyButton } from "@/components/docs/copy-button";
 import { LandingHeader } from "@/components/docs/landing-header";
 import { LandingHero } from "@/components/docs/landing-hero";
 import { ComponentsShowcase } from "@/components/docs/components-showcase";
+import { XIcon, TelegramIcon } from "@/components/docs/social-icons";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
 const INSTALL_CMD = `npx shadcn@latest add ${SITE_URL}/r/transaction-review.json`;
@@ -22,7 +23,7 @@ const PROOF = [
   },
   {
     title: "Poisoning is flagged",
-    body: "Look-alike addresses seeded by address-poisoning scams are surfaced, not trusted.",
+    body: "Look-alike addresses from address-poisoning scams get flagged, not trusted.",
   },
   {
     title: "Safe by default",
@@ -64,8 +65,8 @@ export default function Home() {
                 The defaults are the point.
               </h2>
               <p className="max-w-lg text-[14px] leading-relaxed text-[#94969c]">
-                The details that quietly protect users - the ones you&apos;d only
-                learn by shipping and getting burned.
+                The small stuff that protects users - the kind you only learn by
+                shipping and getting burned.
               </p>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -97,8 +98,8 @@ export default function Home() {
                 <span className="sk-text-gradient">No install treadmill.</span>
               </h2>
               <p className="max-w-lg text-[15px] leading-relaxed text-[#94969c]">
-                Copy a file, or pull it with the shadcn CLI. Either way it lives in
-                your repo - retheme it, fork it, keep it.
+                Copy a file, or pull it with the shadcn CLI. Either way it lands in
+                your repo and it&apos;s yours to retheme or fork.
               </p>
 
               <div className="flex max-w-xl items-center gap-3 rounded-lg border border-[#22262f] bg-[#0a0c10] px-4 py-3">
@@ -132,6 +133,31 @@ export default function Home() {
                   </a>
                 )}
               </div>
+
+              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-[#94969c]">
+                <span>Got feedback or hit a rough edge? Find me on</span>
+                <a
+                  href="https://x.com/pixelpapi92"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[#cecfd2] underline-offset-4 transition-colors hover:text-[#f7f7f7] hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                >
+                  <XIcon className="size-3.5" />
+                  @pixelpapi92
+                </a>
+                <span aria-hidden className="text-[#373a41]">
+                  ·
+                </span>
+                <a
+                  href="https://t.me/pixelpapi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[#cecfd2] underline-offset-4 transition-colors hover:text-[#f7f7f7] hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                >
+                  <TelegramIcon className="size-3.5" />
+                  Telegram
+                </a>
+              </p>
             </div>
 
             <div className="flex flex-col items-start justify-between gap-4 border-t border-[#22262f]/50 pt-8 font-mono text-[12px] text-[#94969c] sm:flex-row sm:items-center">

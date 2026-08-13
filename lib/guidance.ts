@@ -19,7 +19,7 @@ export const guidance: Record<string, Guidance> = {
   "transaction-status": {
     whenToUse: [
       "Right after a user submits a transaction, to track pending → confirming → confirmed / failed.",
-      "When you poll getSignatureStatuses and want the confirmation count surfaced calmly.",
+      "When you poll getSignatureStatuses and want the confirmation count shown clearly.",
       "Anywhere a raw error code would otherwise leak - it maps common Solana and Anchor errors to plain language, with the raw code one click away.",
     ],
     accessibility: [
@@ -64,7 +64,7 @@ export const guidance: Record<string, Guidance> = {
     whenToUse: [
       "To explain priority fees in plain language before a user confirms.",
       "When you offer Normal / Fast / Turbo speeds and want the trade-off legible.",
-      "When the network is congested and you want a calm notice rather than an alarm.",
+      "When the network is congested and you want a notice, not an alarm.",
     ],
     accessibility: [
       "The breakdown is a keyboard-toggleable disclosure.",
@@ -93,7 +93,7 @@ export const guidance: Record<string, Guidance> = {
   "state-screen": {
     whenToUse: [
       "For the empty and error moments most apps skip - RPC down, no tokens, not connected.",
-      "When a dead-end needs one calm layout with an honest message and a single clear action.",
+      "When a dead-end needs one honest message and a single clear action.",
       "As a full-screen or inline block, using a shipped preset or your own copy.",
     ],
     accessibility: [

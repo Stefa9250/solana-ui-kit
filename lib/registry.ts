@@ -35,7 +35,7 @@ export const registry: RegistryEntry[] = [
     slug: "transaction-status",
     category: "Transactions",
     description:
-      "Every state of a Solana transaction - pending, confirming, confirmed, failed - with human-readable errors and calm, purposeful motion.",
+      "Every state of a Solana transaction - pending, confirming, confirmed, failed - with human-readable errors and motion that explains the state instead of decorating it.",
     path: "components/kit/transaction-status/transaction-status.tsx",
     usage: `<TransactionStatus
   status={status}
@@ -527,7 +527,7 @@ export const registry: RegistryEntry[] = [
     slug: "state-screen",
     category: "Feedback",
     description:
-      "The empty and error screens nobody designs: RPC down, no tokens, network congested, wallet not connected. One calm layout, three restrained tones, presets with the copy already written.",
+      "The empty and error screens nobody designs: RPC down, no tokens, network congested, wallet not connected. One layout, honest tones, presets with the copy already written.",
     path: "components/kit/state-screen/state-screen.tsx",
     usage: `<StateScreen
   {...STATE_PRESETS.rpcDown}
