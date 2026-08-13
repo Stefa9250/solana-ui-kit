@@ -33,7 +33,7 @@ export function LandingHeader() {
             href="/"
           className="rounded font-mono text-[13px] tracking-tight text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
         >
-          Solana UI <span className="sk-text-gradient font-semibold">Kit</span>
+          <span className="sk-text-gradient font-semibold">Signet</span>
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2">

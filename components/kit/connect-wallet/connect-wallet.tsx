@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ConnectWallet - Solana UI Kit
+ * ConnectWallet - Signet
  *
  * The full connect flow in one piece: a trigger button, an anchored panel
  * that morphs through wallet list → connecting → (optional) sign-in-with-

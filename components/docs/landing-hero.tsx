@@ -12,7 +12,7 @@ export function LandingHero() {
           {/* Left - copy */}
           <div className="flex flex-col gap-7">
             <p className="sk-fade-up font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
-              Solana UI Kit · the moments after the click
+              Signet · the moments after the click
             </p>
             <h1 className="sk-fade-up sk-d1 text-balance text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
               Win the seconds after they click{" "}

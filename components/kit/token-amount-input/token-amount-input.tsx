@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * TokenAmountInput - Solana UI Kit
+ * TokenAmountInput - Signet
  *
  * The boring-but-critical parts of a token amount field, done properly:
  * per-token decimal caps, exact base-unit comparison and MAX arithmetic,

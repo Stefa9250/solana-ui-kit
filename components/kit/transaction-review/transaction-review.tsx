@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * TransactionReview - Solana UI Kit
+ * TransactionReview - Signet
  *
  * The screen that decides trust: a plain-language, simulation-driven preview
  * of what a transaction will actually do BEFORE the user signs. Net balance

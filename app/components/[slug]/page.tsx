@@ -26,9 +26,9 @@ export async function generateMetadata({
   const { slug } = await params;
   const entry = getEntry(slug);
   if (!entry) return {};
-  const title = `${entry.name} · Solana UI Kit`;
+  const title = `${entry.name} · Signet`;
   return {
-    title: entry.name, // the root template appends "· Solana UI Kit"
+    title: entry.name, // the root template appends "· Signet"
     description: entry.description,
     openGraph: { title, description: entry.description },
     twitter: { title, description: entry.description },

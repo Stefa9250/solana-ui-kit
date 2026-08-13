@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * StateScreen - Solana UI Kit
+ * StateScreen - Signet
  *
  * The screens nobody designs: RPC down, rate-limited, wrong network, no
  * tokens, no transactions, wallet not connected. One calm centered layout -

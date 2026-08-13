@@ -73,7 +73,7 @@ function Brand() {
       href="/"
       className="px-2 text-[14px] font-semibold tracking-[-0.01em] text-[#f7f7f7] outline-none focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
     >
-      Solana UI Kit
+      Signet
     </Link>
   );
 }

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "Solana UI Kit - the missing UX layer for Solana dApps";
+const TITLE = "Signet - the missing UX layer for Solana dApps";
 const DESCRIPTION =
   "Copy-paste React components for the moments after the click: transaction status, signing review, wallet connect, fees, and error states. Dark-mode first, accessible, MIT.";
 
@@ -22,10 +22,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: "%s · Solana UI Kit",
+    template: "%s · Signet",
   },
   description: DESCRIPTION,
   keywords: [
+    "signet",
+    "signet ui",
     "solana",
     "solana ui kit",
     "web3 components",
@@ -38,11 +40,11 @@ export const metadata: Metadata = {
     "dApp UX",
     "copy-paste components",
   ],
-  applicationName: "Solana UI Kit",
+  applicationName: "Signet",
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "Solana UI Kit",
+    siteName: "Signet",
     title: TITLE,
     description: DESCRIPTION,
   },

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * TransactionStatus - Solana UI Kit
+ * TransactionStatus - Signet
  *
  * Every state of a Solana transaction with human-readable errors and calm,
  * purposeful motion. Self-contained: copy this file into your project.

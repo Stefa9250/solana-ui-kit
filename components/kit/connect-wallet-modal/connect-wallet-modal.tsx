@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ConnectWalletModal - Solana UI Kit
+ * ConnectWalletModal - Signet
  *
  * Wallet selection, connecting, rejected, and connected states in one
  * accessible modal. Self-contained: copy this file into your project.

@@ -1,4 +1,4 @@
-# Solana UI Kit
+# Signet
 
 Most Solana dApps get the hard part right - the program, the RPC plumbing, the
 wallet adapter - and then show users a spinner and a raw error code.

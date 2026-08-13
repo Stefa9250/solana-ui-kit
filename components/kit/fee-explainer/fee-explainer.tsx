@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * FeeExplainer - Solana UI Kit
+ * FeeExplainer - Signet
  *
  * Translates Solana fees into plain language: cost in USD and time in
  * seconds. Lamports and micro-lamports never reach the screen. USD is

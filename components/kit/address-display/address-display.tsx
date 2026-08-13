@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * AddressDisplay - Solana UI Kit
+ * AddressDisplay - Signet
  *
  * Shows a Solana address the way a dApp should: middle-truncated, with a
  * deterministic monogram chip, one-tap copy of the FULL address (never the
