@@ -65,8 +65,7 @@ export default function Home() {
                 The defaults are the point.
               </h2>
               <p className="max-w-lg text-[14px] leading-relaxed text-[#94969c]">
-                The small stuff that protects users - the kind you only learn by
-                shipping and getting burned.
+                The small stuff that protects the users.
               </p>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
