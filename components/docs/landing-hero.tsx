@@ -23,7 +23,7 @@ export function LandingHero() {
             </p>
             <div className="sk-fade-up sk-d3 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/components/transaction-review"
+                href="/components/transaction-status"
                 className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-lg border border-emerald-500 bg-emerald-500/10 px-6 py-3.5 font-mono text-[13px] text-emerald-300 transition-colors duration-500 hover:text-[#06110d] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2 active:scale-[0.98]"
               >
                 <span className="relative z-10">copy your first component</span>
