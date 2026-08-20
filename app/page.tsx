@@ -132,31 +132,38 @@ export default function Home() {
                   </a>
                 )}
               </div>
+            </div>
 
-              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-[#94969c]">
-                <span>Got feedback or hit a rough edge? Find me on</span>
+            <div className="flex flex-col gap-5 rounded-xl border border-[#22262f] bg-[#0f1319]/70 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+              <div className="flex flex-col gap-1.5">
+                <div className="text-[17px] font-semibold text-[#f7f7f7]">
+                  Got feedback? Let&apos;s talk.
+                </div>
+                <div className="max-w-md text-[13px] leading-relaxed text-[#94969c]">
+                  Found a rough edge, or built something with it? I want to hear
+                  about it.
+                </div>
+              </div>
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
                 <a
                   href="https://x.com/pixelpapi92"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[#cecfd2] underline-offset-4 transition-colors hover:text-[#f7f7f7] hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                  className="inline-flex items-center justify-center gap-2.5 rounded-lg border border-[#373a41] bg-[#13161b] px-5 py-3 font-mono text-[13px] text-[#cecfd2] transition-colors duration-200 hover:border-[#4a4e57] hover:bg-[#1a1e26] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
                 >
-                  <XIcon className="size-3.5" />
+                  <XIcon className="size-4" />
                   @pixelpapi92
                 </a>
-                <span aria-hidden className="text-[#373a41]">
-                  ·
-                </span>
                 <a
                   href="https://t.me/pixelpapi"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[#cecfd2] underline-offset-4 transition-colors hover:text-[#f7f7f7] hover:underline focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+                  className="inline-flex items-center justify-center gap-2.5 rounded-lg border border-[#373a41] bg-[#13161b] px-5 py-3 font-mono text-[13px] text-[#cecfd2] transition-colors duration-200 hover:border-[#4a4e57] hover:bg-[#1a1e26] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
                 >
-                  <TelegramIcon className="size-3.5" />
+                  <TelegramIcon className="size-4" />
                   Telegram
                 </a>
-              </p>
+              </div>
             </div>
 
             <div className="flex flex-col items-start justify-between gap-4 border-t border-[#22262f]/50 pt-8 font-mono text-[12px] text-[#94969c] sm:flex-row sm:items-center">

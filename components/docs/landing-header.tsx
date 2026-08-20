@@ -7,6 +7,7 @@ import { GITHUB_URL } from "@/lib/site";
 import { registry } from "@/lib/registry";
 import { OPEN_SEARCH_EVENT } from "./command-palette";
 import { Logo } from "./logo";
+import { XIcon, TelegramIcon } from "./social-icons";
 
 const FIRST = registry[0]?.slug ?? "transaction-status";
 
@@ -59,6 +60,24 @@ export function LandingHeader() {
           >
             <Search className="size-4" />
           </button>
+          <a
+            href="https://x.com/pixelpapi92"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Message me on X"
+            className="flex size-9 items-center justify-center rounded-lg text-[#94969c] outline-none transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+          >
+            <XIcon className="size-4" />
+          </a>
+          <a
+            href="https://t.me/pixelpapi"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Message me on Telegram"
+            className="flex size-9 items-center justify-center rounded-lg text-[#94969c] outline-none transition-colors duration-200 hover:bg-[#13161b] hover:text-[#f7f7f7] focus-visible:outline-2 focus-visible:outline-emerald-500 focus-visible:outline-offset-2"
+          >
+            <TelegramIcon className="size-4" />
+          </a>
           {GITHUB_URL && (
             <a
               href={GITHUB_URL}
