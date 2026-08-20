@@ -54,7 +54,7 @@ export function LandingHero() {
               <span aria-hidden>·</span>
               <span>React + Tailwind + lucide-react</span>
               <span aria-hidden>·</span>
-              <span>nothing to install</span>
+              <span>Nothing to install</span>
             </div>
           </div>
 
