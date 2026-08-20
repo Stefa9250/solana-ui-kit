@@ -95,7 +95,7 @@ export default function Home() {
               </p>
               <h2 className="max-w-xl text-balance text-[30px] font-semibold leading-tight tracking-[-0.015em] text-[#f7f7f7] sm:text-[40px]">
                 Own the code.{" "}
-                <span className="sk-text-gradient">No install treadmill.</span>
+                <span className="text-[#f7f7f7]">No install treadmill.</span>
               </h2>
               <p className="max-w-lg text-[15px] leading-relaxed text-[#94969c]">
                 Copy a file, or pull it with the shadcn CLI. Either way it lands in

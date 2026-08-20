@@ -16,7 +16,7 @@ export function LandingHero() {
             </p>
             <h1 className="sk-fade-up sk-d1 text-balance text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
               Win the seconds after they click{" "}
-              <span className="sk-text-gradient">Sign.</span>
+              <span className="text-[#f7f7f7]">Sign.</span>
             </h1>
             <p className="sk-fade-up sk-d2 max-w-lg text-[15px] leading-relaxed text-[#94969c] sm:text-[16px]">
               Copy-paste React components for the part every Solana dApp fumbles
