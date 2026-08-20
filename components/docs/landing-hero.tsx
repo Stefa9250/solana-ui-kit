@@ -11,9 +11,6 @@ export function LandingHero() {
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           {/* Left - copy */}
           <div className="flex flex-col gap-7">
-            <p className="sk-fade-up font-mono text-[11px] uppercase tracking-[0.28em] text-emerald-400">
-              Signet · the moments after the click
-            </p>
             <h1 className="sk-fade-up sk-d1 text-balance text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#f7f7f7] sm:text-[46px] lg:text-[54px]">
               Win the seconds after they click{" "}
               <span className="text-[#f7f7f7]">Sign.</span>
